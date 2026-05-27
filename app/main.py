@@ -10,6 +10,7 @@ from app.config.settings import settings
 from app.database.indexes import create_indexes
 from app.database.mongodb import close_mongo_connection, connect_to_mongo
 from app.middleware.exception_handlers import register_exception_handlers
+from app.routes.api.health import router as health_router
 from app.routes.public.home import router as home_router
 
 
@@ -47,4 +48,5 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 register_exception_handlers(app)
+app.include_router(health_router)
 app.include_router(home_router)

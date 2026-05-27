@@ -9,6 +9,7 @@ Infinity Den is a FastAPI and MongoDB content publishing platform MVP. It is bei
 - Async MongoDB client using Motor
 - MongoDB indexes for articles, categories, tags, and newsletter subscribers
 - Centralized exception handling for public pages and API responses
+- JSON health check endpoint at `/health`
 - Bootstrap 5 and custom static assets
 - Jinja2 base layout with reusable navbar and footer partials
 - Responsive homepage with hero content, featured articles, category showcase, and article cards
@@ -80,6 +81,12 @@ python run.py
 ```
 
 The homepage will be available at [http://127.0.0.1:8000](http://127.0.0.1:8000).
+
+Check application health:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
 
 ## Configuration
 

@@ -43,7 +43,7 @@
 - [x] Setup MongoDB connection
 - [x] Setup logging system
 - [x] Add centralized exception handling
-- [ ] Add health check endpoint
+- [x] Add health check endpoint
 
 ## Frontend Foundation
 - [x] Setup Bootstrap integration
