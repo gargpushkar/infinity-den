@@ -74,9 +74,58 @@ async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
         },
     ]
 
+    latest_articles = [
+        {
+            "title": "A weekly editorial review that keeps teams aligned",
+            "slug": "#",
+            "excerpt": "Use a short review ritual to spot stale drafts, unblock approvals, and keep the publishing calendar honest.",
+            "category": "Editorial",
+            "cover_image": "/static/images/articles/editorial-default.svg",
+            "image_alt": "Editorial planning board with article cards",
+            "read_time": "7 min read",
+        },
+        {
+            "title": "What to measure before refreshing old content",
+            "slug": "#",
+            "excerpt": "Prioritize updates with search intent, decay signals, and conversion context instead of chasing every aging post.",
+            "category": "Growth",
+            "cover_image": "/static/images/articles/search-traffic.svg",
+            "image_alt": "Search analytics charts for content refresh decisions",
+            "read_time": "6 min read",
+        },
+        {
+            "title": "Turn contributor pitches into a reliable intake queue",
+            "slug": "#",
+            "excerpt": "Separate promising ideas from noisy submissions with clear prompts, topic lanes, and review states.",
+            "category": "Community",
+            "cover_image": "/static/images/articles/contributors.svg",
+            "image_alt": "Contributors reviewing article ideas together",
+            "read_time": "5 min read",
+        },
+        {
+            "title": "Newsletter sections that make repeat reading easier",
+            "slug": "#",
+            "excerpt": "Design recurring newsletter blocks that help subscribers recognize value before they reach the first link.",
+            "category": "Newsletter",
+            "cover_image": "/static/images/articles/newsletter-loops.svg",
+            "image_alt": "Newsletter layout and engagement workflow",
+            "read_time": "4 min read",
+        },
+        {
+            "title": "How category pages can guide editorial planning",
+            "slug": "#",
+            "excerpt": "Use category hubs as living maps for coverage gaps, internal links, and reader journeys.",
+            "category": "SEO",
+            "cover_image": "/static/images/articles/content-engine.svg",
+            "image_alt": "Content strategy workspace with publishing tools",
+            "read_time": "8 min read",
+        },
+    ]
+
     return {
         "hero_metrics": hero_metrics,
         "top_articles": top_articles,
         "featured_articles": featured_articles,
+        "latest_articles": latest_articles,
         "categories": ["Content Marketing", "SEO", "Editorial", "Growth", "Newsletter"],
     }

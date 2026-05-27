@@ -56,21 +56,7 @@
     </section>
 
     {% include "partials/featured_articles_section.html" %}
-
-    <section class="content-section article-grid-section" id="latestArticles" aria-labelledby="latestArticlesTitle">
-      <div class="section-heading">
-        <p class="eyebrow mb-2">Latest articles</p>
-        <h2 id="latestArticlesTitle">Practical publishing ideas for the next decision.</h2>
-      </div>
-
-      <div class="row g-4">
-        {% for article in featured_articles %}
-          <div class="col-md-6 d-flex">
-            {% include "components/article_card.html" %}
-          </div>
-        {% endfor %}
-      </div>
-    </section>
+    {% include "partials/latest_articles_section.html" %}
 
     <section class="content-section category-showcase" aria-labelledby="categoryShowcaseTitle">
       <div class="section-heading">

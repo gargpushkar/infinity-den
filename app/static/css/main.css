@@ -308,10 +308,18 @@ a {
 .content-section {
   margin: 0 auto 4rem;
   max-width: 64rem;
+  scroll-margin-top: 7rem;
 }
 
 .section-heading {
   margin-bottom: 1.35rem;
+}
+
+.section-heading-split {
+  align-items: end;
+  display: flex;
+  gap: 1.25rem;
+  justify-content: space-between;
 }
 
 .section-heading h2 {
@@ -321,6 +329,18 @@ a {
   line-height: 1.04;
   margin: 0;
   max-width: 42rem;
+}
+
+.section-link {
+  color: var(--accent);
+  flex: 0 0 auto;
+  font-size: 0.95rem;
+  font-weight: 800;
+  padding-bottom: 0.3rem;
+}
+
+.section-link:hover {
+  color: var(--accent-hover);
 }
 
 .carousel-panel {
@@ -408,9 +428,25 @@ a {
   width: 1.7rem;
 }
 
-.article-grid-section {
-  margin: 0 auto;
+.latest-section {
+  margin: 0 auto 4rem;
   max-width: 64rem;
+}
+
+.latest-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.latest-grid-item {
+  display: flex;
+  min-width: 0;
+}
+
+.latest-grid-item-featured {
+  grid-column: span 2;
+  grid-row: span 2;
 }
 
 .article-card {
@@ -432,6 +468,25 @@ a {
   aspect-ratio: 16 / 9;
   background: var(--bg-secondary);
   overflow: hidden;
+}
+
+.latest-grid-item-featured .article-card-media {
+  aspect-ratio: 16 / 8.6;
+}
+
+.latest-grid-item-featured .card-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.7rem, 3vw, 2.45rem);
+  line-height: 1.05;
+}
+
+.latest-grid-item-featured .article-excerpt {
+  font-size: 1.02rem;
+  max-width: 36rem;
+}
+
+.latest-grid-item-featured .read-link {
+  margin-top: 1.25rem !important;
 }
 
 .article-card-image {
@@ -624,6 +679,14 @@ a {
   .category-showcase-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .latest-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .latest-grid-item-featured {
+    grid-column: span 2;
+  }
 }
 
 @media (max-width: 767.98px) {
@@ -660,6 +723,16 @@ a {
   .write-panel {
     margin-left: 0.25rem;
     margin-right: 0.25rem;
+  }
+
+  .content-section {
+    scroll-margin-top: 5.5rem;
+  }
+
+  .section-heading-split {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.8rem;
   }
 
   .home-hero {
@@ -712,6 +785,22 @@ a {
 
   .category-showcase-grid {
     grid-template-columns: 1fr;
+  }
+
+  .latest-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .latest-grid-item-featured {
+    grid-column: auto;
+  }
+
+  .latest-grid-item-featured .article-card-media {
+    aspect-ratio: 16 / 9;
+  }
+
+  .latest-grid-item-featured .card-title {
+    font-size: 1.35rem;
   }
 
   .category-showcase-item {

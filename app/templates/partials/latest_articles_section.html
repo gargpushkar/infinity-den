@@ -1,0 +1,17 @@
+<section class="content-section latest-section" id="latestArticles" aria-labelledby="latestArticlesTitle">
+  <div class="section-heading section-heading-split">
+    <div>
+      <p class="eyebrow mb-2">Latest articles</p>
+      <h2 id="latestArticlesTitle">Fresh thinking for the next publishing decision.</h2>
+    </div>
+    <a class="section-link" href="#">View all articles</a>
+  </div>
+
+  <div class="latest-grid">
+    {% for article in latest_articles %}
+      <div class="latest-grid-item {% if loop.first %}latest-grid-item-featured{% endif %}">
+        {% include "components/article_card.html" %}
+      </div>
+    {% endfor %}
+  </div>
+</section>

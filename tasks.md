@@ -61,7 +61,7 @@
 ## Homepage UI
 - [x] Improve homepage hero section
 - [x] Create featured articles carousel
-- [ ] Create latest articles section
+- [x] Create latest articles section
 - [x] Create category showcase section
 - [ ] Create newsletter signup section
 - [ ] Create write-for-us CTA section
