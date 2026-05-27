@@ -1,0 +1,40 @@
+<section class="content-section featured-section" aria-labelledby="featuredArticlesTitle">
+  <div class="section-heading">
+    <p class="eyebrow mb-2">Featured now</p>
+    <h2 id="featuredArticlesTitle">Stories worth putting in front.</h2>
+  </div>
+
+  <div class="carousel-panel">
+    <div id="featuredArticlesCarousel" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-indicators">
+        {% for article in top_articles %}
+          <button
+            type="button"
+            data-bs-target="#featuredArticlesCarousel"
+            data-bs-slide-to="{{ loop.index0 }}"
+            class="{% if loop.first %}active{% endif %}"
+            aria-current="{% if loop.first %}true{% endif %}"
+            aria-label="Featured article {{ loop.index }}"
+          ></button>
+        {% endfor %}
+      </div>
+
+      <div class="carousel-inner">
+        {% for article in top_articles %}
+          <div class="carousel-item {% if loop.first %}active{% endif %}">
+            {% include "components/featured_article_card.html" %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <button class="carousel-control-prev" type="button" data-bs-target="#featuredArticlesCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#featuredArticlesCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </div>
+  </div>
+</section>

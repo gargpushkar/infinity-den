@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 506" role="img" aria-labelledby="title desc">
+  <title id="title">Search analytics dashboard</title>
+  <desc id="desc">Abstract analytics screen with search growth charts.</desc>
+  <rect width="900" height="506" fill="#eff6ff"/>
+  <rect x="72" y="70" width="756" height="366" rx="30" fill="#ffffff" stroke="#bfdbfe" stroke-width="6"/>
+  <rect x="122" y="116" width="238" height="44" rx="14" fill="#0f172a"/>
+  <circle cx="744" cy="138" r="34" fill="#06b6d4"/>
+  <path d="M146 352c78-104 140-108 190-56s108 54 174-30 130-94 236-18" fill="none" stroke="#4f46e5" stroke-width="18" stroke-linecap="round"/>
+  <rect x="142" y="206" width="114" height="92" rx="16" fill="#dbeafe"/>
+  <rect x="292" y="186" width="114" height="112" rx="16" fill="#ccfbf1"/>
+  <rect x="442" y="226" width="114" height="72" rx="16" fill="#ede9fe"/>
+  <rect x="592" y="166" width="114" height="132" rx="16" fill="#fef3c7"/>
+</svg>

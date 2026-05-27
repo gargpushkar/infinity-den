@@ -1,0 +1,38 @@
+{% set article_url = article.url|default(article.slug|default("#", true), true) %}
+{% set article_title = article.title|default("Featured article", true) %}
+{% set article_excerpt = article.excerpt|default("", true) %}
+{% set article_category = article.category|default("Featured", true) %}
+{% set article_read_time = article.read_time|default("5 min read", true) %}
+{% set article_image = article.cover_image|default(article.image|default("/static/images/articles/editorial-default.svg", true), true) %}
+{% set article_image_alt = article.image_alt|default(article_title, true) %}
+
+<article class="featured-article-card">
+  <div class="row g-0 align-items-stretch">
+    <div class="col-lg-5">
+      <a class="featured-article-media" href="{{ article_url }}" aria-label="Read {{ article_title }}">
+        <img
+          src="{{ article_image }}"
+          alt="{{ article_image_alt }}"
+          loading="{% if loop.first|default(false) %}eager{% else %}lazy{% endif %}"
+        >
+      </a>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="featured-article-body">
+        <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+          <span class="badge article-category-badge rounded-pill">{{ article_category }}</span>
+          <span class="article-read-time text-secondary small fw-semibold">{{ article_read_time }}</span>
+        </div>
+
+        <h3>
+          <a href="{{ article_url }}">{{ article_title }}</a>
+        </h3>
+
+        <p>{{ article_excerpt }}</p>
+
+        <a class="read-link" href="{{ article_url }}">Read featured article</a>
+      </div>
+    </div>
+  </div>
+</article>

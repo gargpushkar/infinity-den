@@ -1,0 +1,44 @@
+<header class="site-header">
+  <div class="container">
+    <nav class="topbar" aria-label="Primary navigation">
+      <a class="logo-box" href="/" aria-label="{{ app_name }} homepage">ID</a>
+
+      <div class="category-header" aria-label="Featured categories">
+        <span class="header-label">Topics</span>
+        <div class="category-links">
+          {% for category in (categories | default([]))[:4] %}
+            <a href="#">{{ category }}</a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <button class="menu-box" type="button" data-bs-toggle="offcanvas" data-bs-target="#siteMenu" aria-controls="siteMenu" aria-label="Open menu">
+        <span></span>
+        <span></span>
+        <span></span>
+        <strong>Menu</strong>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="siteMenu" aria-labelledby="siteMenuLabel">
+  <div class="offcanvas-header">
+    <h2 class="h5 mb-0" id="siteMenuLabel">{{ app_name }}</h2>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <ul class="menu-list">
+      <li><a href="/">Home</a></li>
+      <li><a href="#">Articles</a></li>
+      <li><a href="#">Categories</a></li>
+      <li><a href="#">Write for us</a></li>
+      <li><a href="#">Newsletter</a></li>
+    </ul>
+    <div class="menu-categories">
+      {% for category in categories | default([]) %}
+        {% include "components/category_pill.html" %}
+      {% endfor %}
+    </div>
+  </div>
+</div>

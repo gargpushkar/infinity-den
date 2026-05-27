@@ -1,0 +1,98 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
+{% block meta_description %}Launch and manage articles, categories, newsletters, and editorial submissions from a modular FastAPI platform.{% endblock %}
+
+{% block content %}
+<section class="home-canvas">
+  <div class="container">
+    <section class="home-hero" aria-labelledby="homeHeroTitle">
+      <div class="row g-4 align-items-center">
+        <div class="col-lg-7">
+          <div class="hero-copy">
+            <p class="eyebrow mb-3">Editorial command center</p>
+            <h1 id="homeHeroTitle">Publish sharper stories with a calmer workflow.</h1>
+            <p class="hero-lede">Plan articles, shape categories, invite contributors, and grow reader trust from one clean publishing platform.</p>
+            <div class="d-flex flex-wrap gap-2 mt-4">
+              <a class="btn btn-primary px-4" href="#latestArticles">Explore articles</a>
+              <a class="btn btn-outline-primary px-4" href="#writeForUs">Pitch a story</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-5">
+          <aside class="hero-briefing" aria-label="Platform highlights">
+            <div class="briefing-topline">
+              <span>Publishing pulse</span>
+              <strong>Live</strong>
+            </div>
+            <div class="briefing-window">
+              <div class="briefing-row active">
+                <span>Draft queue</span>
+                <strong>12 ideas</strong>
+              </div>
+              <div class="briefing-row">
+                <span>Featured rotation</span>
+                <strong>{{ top_articles|length }} stories</strong>
+              </div>
+              <div class="briefing-row">
+                <span>Topic map</span>
+                <strong>{{ categories|length }} hubs</strong>
+              </div>
+            </div>
+            <div class="row g-3 mt-1">
+              {% for metric in hero_metrics %}
+                <div class="col-4">
+                  <div class="hero-metric">
+                    <strong>{{ metric.value }}</strong>
+                    <span>{{ metric.label }}</span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    {% include "partials/featured_articles_section.html" %}
+
+    <section class="content-section article-grid-section" id="latestArticles" aria-labelledby="latestArticlesTitle">
+      <div class="section-heading">
+        <p class="eyebrow mb-2">Latest articles</p>
+        <h2 id="latestArticlesTitle">Practical publishing ideas for the next decision.</h2>
+      </div>
+
+      <div class="row g-4">
+        {% for article in featured_articles %}
+          <div class="col-md-6 d-flex">
+            {% include "components/article_card.html" %}
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="content-section category-showcase" aria-labelledby="categoryShowcaseTitle">
+      <div class="section-heading">
+        <p class="eyebrow mb-2">Topic hubs</p>
+        <h2 id="categoryShowcaseTitle">Give every reader a clear path in.</h2>
+      </div>
+      <div class="category-showcase-grid">
+        {% for category in categories %}
+          <a class="category-showcase-item" href="#">
+            {% include "components/category_pill.html" %}
+            <span>Browse {{ category|lower }} articles</span>
+          </a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="write-panel text-center" id="writeForUs">
+      <p class="eyebrow mb-2">Contribute</p>
+      <h2>Write for us</h2>
+      <p>Share expert ideas with readers who care about publishing systems, content strategy, and growth.</p>
+      <a class="btn btn-primary px-4" href="#">Submit your pitch</a>
+    </section>
+  </div>
+</section>
+{% endblock %}

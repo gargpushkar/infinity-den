@@ -1,0 +1,33 @@
+{% set article_url = article.url|default(article.slug|default("#", true), true) %}
+{% set article_title = article.title|default("Untitled article", true) %}
+{% set article_excerpt = article.excerpt|default("", true) %}
+{% set article_category = article.category|default("Article", true) %}
+{% set article_read_time = article.read_time|default("4 min read", true) %}
+{% set article_image = article.cover_image|default(article.image|default("/static/images/articles/editorial-default.svg", true), true) %}
+{% set article_image_alt = article.image_alt|default(article_title, true) %}
+
+<article class="card article-card h-100 w-100 overflow-hidden position-relative">
+  <a class="article-card-media d-block" href="{{ article_url }}" aria-label="Read {{ article_title }}">
+    <img
+      src="{{ article_image }}"
+      class="card-img-top article-card-image"
+      alt="{{ article_image_alt }}"
+      loading="lazy"
+    >
+  </a>
+
+  <div class="card-body d-flex flex-column p-4">
+    <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+      <span class="badge article-category-badge rounded-pill">{{ article_category }}</span>
+      <span class="article-read-time text-secondary small fw-semibold">{{ article_read_time }}</span>
+    </div>
+
+    <h3 class="card-title h5 fw-bold lh-sm mb-3">
+      <a class="article-title-link stretched-link" href="{{ article_url }}">{{ article_title }}</a>
+    </h3>
+
+    <p class="card-text article-excerpt text-secondary mb-4">{{ article_excerpt }}</p>
+
+    <span class="read-link mt-auto fw-bold" aria-hidden="true">Read article</span>
+  </div>
+</article>
