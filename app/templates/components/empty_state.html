@@ -1,0 +1,43 @@
+{% set empty_state_data = empty_state|default({}, true) %}
+{% set empty_state_eyebrow = empty_state_data.eyebrow|default(empty_state_eyebrow|default("Nothing here yet", true), true) %}
+{% set empty_state_title = empty_state_data.title|default(empty_state_title|default("No content found", true), true) %}
+{% set empty_state_message = empty_state_data.message|default(empty_state_message|default("Try a different filter, broaden your search, or check back after new stories are published.", true), true) %}
+{% set empty_state_action_label = empty_state_data.action_label|default(empty_state_action_label|default("", true), true) %}
+{% set empty_state_action_href = empty_state_data.action_href|default(empty_state_action_href|default("", true), true) %}
+{% set empty_state_secondary_label = empty_state_data.secondary_action_label|default(empty_state_secondary_label|default("", true), true) %}
+{% set empty_state_secondary_href = empty_state_data.secondary_action_href|default(empty_state_secondary_href|default("", true), true) %}
+{% set empty_state_hints = empty_state_data.hints|default(empty_state_hints|default([], true), true) %}
+{% set empty_state_class = empty_state_data.class|default(empty_state_class|default("", true), true) %}
+
+<section class="empty-state {{ empty_state_class }}" aria-live="polite">
+  <div class="empty-state-mark" aria-hidden="true">
+    <span></span>
+    <strong>0</strong>
+  </div>
+
+  <div class="empty-state-copy">
+    <p class="empty-state-eyebrow">{{ empty_state_eyebrow }}</p>
+    <h2>{{ empty_state_title }}</h2>
+    <p>{{ empty_state_message }}</p>
+  </div>
+
+  {% if empty_state_hints %}
+    <ul class="empty-state-hints" role="list">
+      {% for hint in empty_state_hints %}
+        <li>{{ hint }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if empty_state_action_label and empty_state_action_href or empty_state_secondary_label and empty_state_secondary_href %}
+    <div class="empty-state-actions">
+      {% if empty_state_action_label and empty_state_action_href %}
+        <a class="btn btn-primary px-4" href="{{ empty_state_action_href }}">{{ empty_state_action_label }}</a>
+      {% endif %}
+
+      {% if empty_state_secondary_label and empty_state_secondary_href %}
+        <a class="btn btn-outline-primary px-4" href="{{ empty_state_secondary_href }}">{{ empty_state_secondary_label }}</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
