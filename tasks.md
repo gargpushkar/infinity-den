@@ -73,7 +73,7 @@
 - [x] Create featured_article_card.html
 - [x] Create category_badge.html
 - [x] Create pagination.html
-- [ ] Create empty_state.html
+- [x] Create empty_state.html
 - [ ] Create loading placeholders
 
 ---
