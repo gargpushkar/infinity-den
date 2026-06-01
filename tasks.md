@@ -84,7 +84,7 @@
 - [x] Create article schema/model
 - [x] Create article Pydantic schemas
 - [x] Create article service layer
-- [ ] Add article database indexes
+- [x] Add article database indexes
 
 ## Article APIs
 - [ ] Create article create API
