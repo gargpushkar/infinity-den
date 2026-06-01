@@ -1,0 +1,4 @@
+{% set badge_label = category_label|default(article_category|default(category|default("Article", true), true), true) %}
+{% set badge_class = category_badge_class|default("", true) %}
+
+<span class="badge category-badge rounded-pill {{ badge_class }}">{{ badge_label }}</span>
