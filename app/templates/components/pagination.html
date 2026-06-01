@@ -1,0 +1,87 @@
+{% set pagination_data = pagination|default({}, true) %}
+{% set current_page = pagination_data.current_page|default(current_page|default(1, true), true)|int %}
+{% set total_pages = pagination_data.total_pages|default(total_pages|default(1, true), true)|int %}
+{% set total_items = pagination_data.total_items|default(total_items|default(0))|int %}
+{% set per_page = pagination_data.per_page|default(per_page|default(0))|int %}
+{% set pagination_url_template = pagination_data.url_template|default(pagination_url_template|default("?page={page}", true), true) %}
+{% set pagination_label = pagination_data.aria_label|default(pagination_aria_label|default("Pagination", true), true) %}
+{% set show_summary = pagination_data.show_summary|default(show_pagination_summary|default(true)) %}
+
+{% if total_pages < 1 %}
+  {% set total_pages = 1 %}
+{% endif %}
+{% if current_page < 1 %}
+  {% set current_page = 1 %}
+{% endif %}
+{% if current_page > total_pages %}
+  {% set current_page = total_pages %}
+{% endif %}
+
+{% macro pagination_href(page_number) -%}
+  {{ pagination_url_template|replace("{page}", page_number) }}
+{%- endmacro %}
+
+{% if total_pages > 1 %}
+  {% set previous_page = current_page - 1 %}
+  {% set next_page = current_page + 1 %}
+  {% set pagination_window = namespace(last_page=0) %}
+
+  <nav class="pagination-shell" aria-label="{{ pagination_label }}">
+    {% if show_summary and total_items > 0 and per_page > 0 %}
+      {% set item_start = ((current_page - 1) * per_page) + 1 %}
+      {% set item_end = current_page * per_page %}
+      {% if item_end > total_items %}
+        {% set item_end = total_items %}
+      {% endif %}
+      <p class="pagination-summary mb-0">Showing {{ item_start }}-{{ item_end }} of {{ total_items }}</p>
+    {% endif %}
+
+    <ul class="pagination-list" role="list">
+      <li class="pagination-item">
+        {% if current_page > 1 %}
+          <a class="pagination-control" href="{{ pagination_href(previous_page) }}" aria-label="Previous page">
+            <span aria-hidden="true">&lsaquo;</span>
+          </a>
+        {% else %}
+          <span class="pagination-control is-disabled" aria-disabled="true">
+            <span aria-hidden="true">&lsaquo;</span>
+            <span class="visually-hidden">Previous page unavailable</span>
+          </span>
+        {% endif %}
+      </li>
+
+      {% for page_number in range(1, total_pages + 1) %}
+        {% set is_visible_page = page_number == 1 or page_number == total_pages or (page_number >= current_page - 1 and page_number <= current_page + 1) %}
+        {% if is_visible_page %}
+          {% if pagination_window.last_page and page_number - pagination_window.last_page > 1 %}
+            <li class="pagination-item" aria-hidden="true">
+              <span class="pagination-ellipsis">...</span>
+            </li>
+          {% endif %}
+
+          <li class="pagination-item">
+            {% if page_number == current_page %}
+              <span class="pagination-page is-active" aria-current="page">{{ page_number }}</span>
+            {% else %}
+              <a class="pagination-page" href="{{ pagination_href(page_number) }}" aria-label="Go to page {{ page_number }}">{{ page_number }}</a>
+            {% endif %}
+          </li>
+          {% set pagination_window.last_page = page_number %}
+        {% endif %}
+      {% endfor %}
+
+      <li class="pagination-item">
+        {% if current_page < total_pages %}
+          <a class="pagination-control" href="{{ pagination_href(next_page) }}" aria-label="Next page">
+            <span aria-hidden="true">&rsaquo;</span>
+          </a>
+        {% else %}
+          <span class="pagination-control is-disabled" aria-disabled="true">
+            <span aria-hidden="true">&rsaquo;</span>
+            <span class="visually-hidden">Next page unavailable</span>
+          </span>
+        {% endif %}
+      </li>
+    </ul>
+  </nav>
+{% endif %}

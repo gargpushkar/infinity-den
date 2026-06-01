@@ -622,6 +622,84 @@ button:focus-visible,
   font-weight: 800;
 }
 
+.pagination-shell {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
+
+.pagination-summary {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.pagination-list {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pagination-page,
+.pagination-control,
+.pagination-ellipsis {
+  align-items: center;
+  border-radius: 8px;
+  display: inline-flex;
+  font-weight: 800;
+  height: 2.55rem;
+  justify-content: center;
+  line-height: 1;
+  min-width: 2.55rem;
+}
+
+.pagination-page,
+.pagination-control {
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 22px rgba(19, 37, 31, 0.05);
+  color: var(--text);
+}
+
+.pagination-page:hover,
+.pagination-page:focus-visible,
+.pagination-control:hover,
+.pagination-control:focus-visible {
+  border-color: rgba(15, 118, 110, 0.35);
+  color: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+.pagination-page.is-active {
+  background: var(--text);
+  border-color: var(--text);
+  box-shadow: 0 14px 28px rgba(19, 37, 31, 0.16);
+  color: var(--card);
+}
+
+.pagination-control {
+  font-size: 1.35rem;
+}
+
+.pagination-control.is-disabled {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(220, 230, 223, 0.75);
+  box-shadow: none;
+  color: var(--text-muted);
+}
+
+.pagination-ellipsis {
+  color: var(--text-muted);
+  min-width: 1.5rem;
+}
+
 .category-strip {
   display: flex;
   flex-wrap: wrap;
@@ -1080,6 +1158,23 @@ button:focus-visible,
 
   .newsletter-form-row {
     grid-template-columns: 1fr;
+  }
+
+  .pagination-shell {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pagination-list {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .pagination-page,
+  .pagination-control,
+  .pagination-ellipsis {
+    height: 2.35rem;
+    min-width: 2.35rem;
   }
 
   .newsletter-submit {
