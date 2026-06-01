@@ -94,7 +94,7 @@
 - [x] Create article detail API
 - [x] Add article pagination
 - [x] Add article filtering
-- [ ] Add article sorting
+- [x] Add article sorting
 
 ## Article Pages
 - [ ] Create article listing page

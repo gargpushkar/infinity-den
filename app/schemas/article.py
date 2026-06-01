@@ -210,6 +210,8 @@ class ArticleListResponse(BaseModel):
     page: int = Field(ge=1)
     per_page: int = Field(ge=1, le=100)
     total_pages: int = Field(ge=0)
+    sort_by: ArticleSortField
+    sort_direction: SortDirection
     has_next: bool = False
     has_previous: bool = False
     next_page: int | None = Field(default=None, ge=1)

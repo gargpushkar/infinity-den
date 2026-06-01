@@ -83,12 +83,11 @@ class ArticleService:
 
     async def list_articles(self, query: ArticleQueryParams) -> ArticleListResponse:
         article_filter = self._build_filter(query)
-        sort_direction = ASCENDING if query.sort_direction == "asc" else DESCENDING
         skip = (query.page - 1) * query.per_page
 
         cursor = (
             self.collection.find(article_filter)
-            .sort(query.sort_by, sort_direction)
+            .sort(self._build_sort(query))
             .skip(skip)
             .limit(query.per_page)
         )
@@ -101,6 +100,8 @@ class ArticleService:
             page=query.page,
             per_page=query.per_page,
             total_pages=0,
+            sort_by=query.sort_by,
+            sort_direction=query.sort_direction,
         )
 
     async def update_article(self, article_id: str, payload: ArticleUpdate) -> ArticleRead:
@@ -175,6 +176,14 @@ class ArticleService:
             article_filter["$text"] = {"$search": query.search}
 
         return article_filter
+
+    def _build_sort(self, query: ArticleQueryParams) -> list[tuple[str, int]]:
+        sort_direction = ASCENDING if query.sort_direction == "asc" else DESCENDING
+
+        return [
+            (query.sort_by, sort_direction),
+            ("_id", sort_direction),
+        ]
 
     def _date_range_filter(
         self,
