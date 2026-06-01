@@ -1,10 +1,10 @@
-<section class="content-section featured-section" aria-labelledby="featuredArticlesTitle">
+<section class="content-section featured-section" aria-labelledby="featuredArticlesTitle" data-reveal>
   <div class="section-heading">
     <p class="eyebrow mb-2">Featured now</p>
     <h2 id="featuredArticlesTitle">Stories worth putting in front.</h2>
   </div>
 
-  <div class="carousel-panel">
+  <div class="carousel-panel" data-reveal-child>
     <div id="featuredArticlesCarousel" class="carousel slide" data-bs-ride="carousel">
       <div class="carousel-indicators">
         {% for article in top_articles %}

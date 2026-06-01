@@ -1,7 +1,80 @@
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+if (!prefersReducedMotion) {
+  document.documentElement.classList.add("motion-ready");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll("[data-bs-toggle='tooltip']").forEach((element) => {
-    new bootstrap.Tooltip(element);
-  });
+  if (window.bootstrap?.Tooltip) {
+    document.querySelectorAll("[data-bs-toggle='tooltip']").forEach((element) => {
+      new bootstrap.Tooltip(element);
+    });
+  }
+
+  const revealBlocks = document.querySelectorAll("[data-reveal]");
+
+  const prepareRevealChildren = (block) => {
+    block.querySelectorAll("[data-reveal-child]").forEach((child, index) => {
+      child.style.setProperty("--reveal-delay", `${Math.min(index * 85, 425)}ms`);
+    });
+  };
+
+  const revealBlock = (block) => {
+    prepareRevealChildren(block);
+    block.classList.add("is-visible");
+  };
+
+  if (prefersReducedMotion || !("IntersectionObserver" in window)) {
+    revealBlocks.forEach(revealBlock);
+  } else {
+    const revealObserver = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) {
+            return;
+          }
+
+          revealBlock(entry.target);
+          observer.unobserve(entry.target);
+        });
+      },
+      {
+        rootMargin: "0px 0px -12% 0px",
+        threshold: 0.16,
+      },
+    );
+
+    revealBlocks.forEach((block) => {
+      prepareRevealChildren(block);
+      revealObserver.observe(block);
+    });
+  }
+
+  const briefingRows = Array.from(document.querySelectorAll("[data-briefing-row]"));
+
+  if (briefingRows.length > 1) {
+    let activeBriefingIndex = Math.max(
+      0,
+      briefingRows.findIndex((row) => row.classList.contains("active")),
+    );
+
+    const setActiveBriefingRow = (nextIndex) => {
+      briefingRows.forEach((row, index) => {
+        const isActive = index === nextIndex;
+        row.classList.toggle("active", isActive);
+        row.classList.toggle("is-active", isActive);
+      });
+    };
+
+    setActiveBriefingRow(activeBriefingIndex);
+
+    if (!prefersReducedMotion) {
+      window.setInterval(() => {
+        activeBriefingIndex = (activeBriefingIndex + 1) % briefingRows.length;
+        setActiveBriefingRow(activeBriefingIndex);
+      }, 2600);
+    }
+  }
 
   document.querySelectorAll("[data-newsletter-form]").forEach((form) => {
     form.addEventListener("submit", (event) => {

@@ -66,7 +66,7 @@
 - [x] Create newsletter signup section
 - [x] Create write-for-us CTA section
 - [x] Improve homepage responsiveness
-- [ ] Add homepage animations/interactions
+- [x] Add homepage animations/interactions
 
 ## Reusable Components
 - [x] Create article_card.html

@@ -1,4 +1,4 @@
-<section class="content-section latest-section" id="latestArticles" aria-labelledby="latestArticlesTitle">
+<section class="content-section latest-section" id="latestArticles" aria-labelledby="latestArticlesTitle" data-reveal>
   <div class="section-heading section-heading-split">
     <div>
       <p class="eyebrow mb-2">Latest articles</p>
@@ -9,7 +9,7 @@
 
   <div class="latest-grid">
     {% for article in latest_articles %}
-      <div class="latest-grid-item {% if loop.first %}latest-grid-item-featured{% endif %}">
+      <div class="latest-grid-item {% if loop.first %}latest-grid-item-featured{% endif %}" data-reveal-child>
         {% include "components/article_card.html" %}
       </div>
     {% endfor %}

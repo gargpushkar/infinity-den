@@ -12,7 +12,7 @@ Infinity Den is a FastAPI and MongoDB content publishing platform MVP. It is bei
 - JSON health check endpoint at `/health`
 - Bootstrap 5 and custom static assets
 - Jinja2 base layout with reusable navbar and footer partials
-- Responsive homepage with hero content, featured articles, latest articles, category showcase, newsletter signup, write-for-us CTA, and article cards
+- Responsive homepage with hero content, featured articles, latest articles, category showcase, newsletter signup, write-for-us CTA, article cards, and restrained scroll/hover interactions
 - Graceful local development mode when MongoDB is unavailable
 
 ## Tech Stack

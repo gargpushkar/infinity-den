@@ -6,14 +6,14 @@
 {% block content %}
 <section class="home-canvas">
   <div class="container">
-    <section class="home-hero" aria-labelledby="homeHeroTitle">
+    <section class="home-hero" aria-labelledby="homeHeroTitle" data-reveal>
       <div class="row g-4 align-items-center">
         <div class="col-lg-7">
           <div class="hero-copy">
-            <p class="eyebrow mb-3">Editorial command center</p>
-            <h1 id="homeHeroTitle">Publish sharper stories with a calmer workflow.</h1>
-            <p class="hero-lede">Plan articles, shape categories, invite contributors, and grow reader trust from one clean publishing platform.</p>
-            <div class="d-flex flex-wrap gap-2 mt-4">
+            <p class="eyebrow mb-3" data-reveal-child>Editorial command center</p>
+            <h1 id="homeHeroTitle" data-reveal-child>Publish sharper stories with a calmer workflow.</h1>
+            <p class="hero-lede" data-reveal-child>Plan articles, shape categories, invite contributors, and grow reader trust from one clean publishing platform.</p>
+            <div class="d-flex flex-wrap gap-2 mt-4" data-reveal-child>
               <a class="btn btn-primary px-4" href="#latestArticles">Explore articles</a>
               <a class="btn btn-outline-primary px-4" href="#writeForUs">Pitch a story</a>
             </div>
@@ -27,15 +27,15 @@
               <strong>Live</strong>
             </div>
             <div class="briefing-window">
-              <div class="briefing-row active">
+              <div class="briefing-row active" data-briefing-row>
                 <span>Draft queue</span>
                 <strong>12 ideas</strong>
               </div>
-              <div class="briefing-row">
+              <div class="briefing-row" data-briefing-row>
                 <span>Featured rotation</span>
                 <strong>{{ top_articles|length }} stories</strong>
               </div>
-              <div class="briefing-row">
+              <div class="briefing-row" data-briefing-row>
                 <span>Topic map</span>
                 <strong>{{ categories|length }} hubs</strong>
               </div>
@@ -43,7 +43,7 @@
             <div class="row g-3 mt-1">
               {% for metric in hero_metrics %}
                 <div class="col-4">
-                  <div class="hero-metric">
+                  <div class="hero-metric" data-reveal-child>
                     <strong>{{ metric.value }}</strong>
                     <span>{{ metric.label }}</span>
                   </div>
@@ -58,14 +58,14 @@
     {% include "partials/featured_articles_section.html" %}
     {% include "partials/latest_articles_section.html" %}
 
-    <section class="content-section category-showcase" aria-labelledby="categoryShowcaseTitle">
+    <section class="content-section category-showcase" aria-labelledby="categoryShowcaseTitle" data-reveal>
       <div class="section-heading">
         <p class="eyebrow mb-2">Topic hubs</p>
         <h2 id="categoryShowcaseTitle">Give every reader a clear path in.</h2>
       </div>
       <div class="category-showcase-grid">
         {% for category in categories %}
-          <a class="category-showcase-item" href="#">
+          <a class="category-showcase-item" href="#" data-reveal-child>
             {% include "components/category_pill.html" %}
             <span>Browse {{ category|lower }} articles</span>
           </a>
