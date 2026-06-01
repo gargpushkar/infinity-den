@@ -1,7 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import Response
 
-from app.schemas.article import ArticleCreate, ArticleRead, ArticleUpdate
+from app.models.article import ArticleStatus
+from app.schemas.article import (
+    ArticleCreate,
+    ArticleListResponse,
+    ArticleQueryParams,
+    ArticleRead,
+    ArticleSortField,
+    ArticleUpdate,
+    SortDirection,
+)
 from app.services.article_service import (
     ArticleNotFoundError,
     ArticleService,
@@ -15,6 +24,36 @@ router = APIRouter(prefix="/api/articles", tags=["Articles"])
 
 def get_articles_service() -> ArticleService:
     return get_article_service()
+
+
+@router.get(
+    "",
+    response_model=ArticleListResponse,
+    response_model_by_alias=False,
+)
+async def list_articles(
+    page: int = Query(default=1, ge=1),
+    per_page: int = Query(default=12, ge=1, le=100),
+    status: ArticleStatus | None = Query(default=None),
+    category_id: str | None = Query(default=None, max_length=120),
+    tag: str | None = Query(default=None, max_length=64),
+    search: str | None = Query(default=None, min_length=2, max_length=120),
+    sort_by: ArticleSortField = Query(default="published_at"),
+    sort_direction: SortDirection = Query(default="desc"),
+    article_service: ArticleService = Depends(get_articles_service),
+) -> ArticleListResponse:
+    query = ArticleQueryParams(
+        page=page,
+        per_page=per_page,
+        status=status,
+        category_id=category_id,
+        tag=tag,
+        search=search,
+        sort_by=sort_by,
+        sort_direction=sort_direction,
+    )
+
+    return await article_service.list_articles(query)
 
 
 @router.post(
