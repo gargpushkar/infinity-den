@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import Response
 
 from app.schemas.article import ArticleCreate, ArticleRead, ArticleUpdate
 from app.services.article_service import (
@@ -57,3 +58,18 @@ async def update_article(
             status_code=status.HTTP_409_CONFLICT,
             detail="An article with this slug already exists.",
         ) from exc
+
+
+@router.delete("/{article_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_article(
+    article_id: str,
+    article_service: ArticleService = Depends(get_articles_service),
+) -> Response:
+    was_deleted = await article_service.delete_article(article_id)
+    if not was_deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Article was not found.",
+        )
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
