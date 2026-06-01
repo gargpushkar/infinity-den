@@ -82,7 +82,7 @@
 
 ## Database Layer
 - [x] Create article schema/model
-- [ ] Create article Pydantic schemas
+- [x] Create article Pydantic schemas
 - [ ] Create article service layer
 - [ ] Add article database indexes
 
