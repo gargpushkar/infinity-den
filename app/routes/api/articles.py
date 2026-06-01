@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi import status as http_status
 from fastapi.responses import Response
 
 from app.models.article import ArticleStatus
@@ -34,20 +37,38 @@ def get_articles_service() -> ArticleService:
 async def list_articles(
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=12, ge=1, le=100),
-    status: ArticleStatus | None = Query(default=None),
+    article_status: ArticleStatus | None = Query(default=None, alias="status"),
     category_id: str | None = Query(default=None, max_length=120),
     tag: str | None = Query(default=None, max_length=64),
+    is_featured: bool | None = Query(default=None),
+    author: str | None = Query(default=None, max_length=120),
+    published_from: datetime | None = Query(default=None),
+    published_to: datetime | None = Query(default=None),
     search: str | None = Query(default=None, min_length=2, max_length=120),
     sort_by: ArticleSortField = Query(default="published_at"),
     sort_direction: SortDirection = Query(default="desc"),
     article_service: ArticleService = Depends(get_articles_service),
 ) -> ArticleListResponse:
+    if (
+        published_from is not None
+        and published_to is not None
+        and published_from > published_to
+    ):
+        raise HTTPException(
+            status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="published_from must be before published_to.",
+        )
+
     query = ArticleQueryParams(
         page=page,
         per_page=per_page,
-        status=status,
+        status=article_status,
         category_id=category_id,
         tag=tag,
+        is_featured=is_featured,
+        author=author,
+        published_from=published_from,
+        published_to=published_to,
         search=search,
         sort_by=sort_by,
         sort_direction=sort_direction,
@@ -60,7 +81,7 @@ async def list_articles(
     "",
     response_model=ArticleRead,
     response_model_by_alias=False,
-    status_code=status.HTTP_201_CREATED,
+    status_code=http_status.HTTP_201_CREATED,
 )
 async def create_article(
     payload: ArticleCreate,
@@ -70,7 +91,7 @@ async def create_article(
         return await article_service.create_article(payload)
     except ArticleSlugConflictError as exc:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
+            status_code=http_status.HTTP_409_CONFLICT,
             detail="An article with this slug already exists.",
         ) from exc
 
@@ -87,7 +108,7 @@ async def get_article_detail(
     article = await article_service.get_article_detail(article_identifier)
     if article is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=http_status.HTTP_404_NOT_FOUND,
             detail="Article was not found.",
         )
 
@@ -108,17 +129,17 @@ async def update_article(
         return await article_service.update_article(article_id, payload)
     except ArticleNotFoundError as exc:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=http_status.HTTP_404_NOT_FOUND,
             detail="Article was not found.",
         ) from exc
     except ArticleSlugConflictError as exc:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
+            status_code=http_status.HTTP_409_CONFLICT,
             detail="An article with this slug already exists.",
         ) from exc
 
 
-@router.delete("/{article_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{article_id}", status_code=http_status.HTTP_204_NO_CONTENT)
 async def delete_article(
     article_id: str,
     article_service: ArticleService = Depends(get_articles_service),
@@ -126,8 +147,8 @@ async def delete_article(
     was_deleted = await article_service.delete_article(article_id)
     if not was_deleted:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=http_status.HTTP_404_NOT_FOUND,
             detail="Article was not found.",
         )
 
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return Response(status_code=http_status.HTTP_204_NO_CONTENT)

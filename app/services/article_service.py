@@ -162,10 +162,33 @@ class ArticleService:
             article_filter["category_id"] = query.category_id
         if query.tag is not None:
             article_filter["tags"] = query.tag
+        if query.is_featured is not None:
+            article_filter["is_featured"] = query.is_featured
+        if query.author is not None:
+            article_filter["author"] = query.author
+        if query.published_from is not None or query.published_to is not None:
+            article_filter["published_at"] = self._date_range_filter(
+                query.published_from,
+                query.published_to,
+            )
         if query.search is not None:
             article_filter["$text"] = {"$search": query.search}
 
         return article_filter
+
+    def _date_range_filter(
+        self,
+        start: datetime | None,
+        end: datetime | None,
+    ) -> dict[str, datetime]:
+        date_filter: dict[str, datetime] = {}
+
+        if start is not None:
+            date_filter["$gte"] = start
+        if end is not None:
+            date_filter["$lte"] = end
+
+        return date_filter
 
     def _to_article_read(self, article: dict[str, Any]) -> ArticleRead:
         return ArticleRead.model_validate(article)
