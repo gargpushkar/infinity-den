@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from fastapi.responses import Response
 
 from app.models.article import ArticleStatus
@@ -73,6 +73,25 @@ async def create_article(
             status_code=status.HTTP_409_CONFLICT,
             detail="An article with this slug already exists.",
         ) from exc
+
+
+@router.get(
+    "/{article_identifier}",
+    response_model=ArticleRead,
+    response_model_by_alias=False,
+)
+async def get_article_detail(
+    article_identifier: str = Path(min_length=3, max_length=180),
+    article_service: ArticleService = Depends(get_articles_service),
+) -> ArticleRead:
+    article = await article_service.get_article_detail(article_identifier)
+    if article is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Article was not found.",
+        )
+
+    return article
 
 
 @router.patch(
