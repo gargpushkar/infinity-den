@@ -89,7 +89,7 @@
 ## Article APIs
 - [x] Create article create API
 - [x] Create article update API
-- [ ] Create article delete API
+- [x] Create article delete API
 - [ ] Create article listing API
 - [ ] Create article detail API
 - [ ] Add article pagination
