@@ -210,12 +210,21 @@ class ArticleListResponse(BaseModel):
     page: int = Field(ge=1)
     per_page: int = Field(ge=1, le=100)
     total_pages: int = Field(ge=0)
+    has_next: bool = False
+    has_previous: bool = False
+    next_page: int | None = Field(default=None, ge=1)
+    previous_page: int | None = Field(default=None, ge=1)
 
     @model_validator(mode="after")
-    def align_total_pages(self) -> "ArticleListResponse":
+    def align_pagination(self) -> "ArticleListResponse":
         expected_total_pages = ceil(self.total / self.per_page) if self.total else 0
         if self.total_pages != expected_total_pages:
             self.total_pages = expected_total_pages
+
+        self.has_next = self.page < expected_total_pages
+        self.has_previous = self.page > 1 and expected_total_pages > 0
+        self.next_page = self.page + 1 if self.has_next else None
+        self.previous_page = self.page - 1 if self.has_previous else None
 
         return self
 
