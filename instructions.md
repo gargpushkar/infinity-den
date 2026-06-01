@@ -416,19 +416,64 @@ For every task:
 
 # GIT RULES
 
-After every stable feature:
+Use a branch-based workflow for all implementation work.
 
-- commit changes
-- keep commits small
-- use meaningful commit messages
+## Branch Strategy
+
+- Keep `main` stable, tested, and deployable.
+- Do not commit feature or bug-fix work directly to `main` unless explicitly instructed.
+- Create a new branch from the latest `main` for each task or tightly related group of changes.
+- Use clear branch prefixes:
+  - `feature/...` for new functionality
+  - `fix/...` for bug fixes
+  - `refactor/...` for cleanup without behavior changes
+  - `chore/...` for project setup, docs, tooling, or maintenance
+- Keep branches focused and small.
+- Use meaningful commit messages.
 
 Example:
 
 ```bash
+git checkout main
+git pull origin main
 git checkout -b feature/article-system
 git add .
 git commit -m "Added article CRUD APIs"
+git push -u origin feature/article-system
 ```
+
+## Pull Request Flow
+
+After every stable feature:
+
+- run verification
+- commit changes on the task branch
+- push the branch
+- open a pull request into `main`
+- merge into `main` after review or verification
+- start the next task from the updated `main`
+
+Recommended next-task flow:
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b feature/next-task
+```
+
+## Stacked Branches
+
+Only create a new feature branch from another feature branch when the next task truly depends on unmerged work.
+
+Example:
+
+```text
+main
+  └── feature/article-model
+        └── feature/article-api
+```
+
+Avoid stacked branches by default because they are harder to review, merge, and roll back.
 
 ---
 
