@@ -72,6 +72,15 @@ class ArticleService:
 
         return self._to_article_read(article)
 
+    async def get_article_detail(self, identifier: str) -> ArticleRead | None:
+        clean_identifier = identifier.strip().lower()
+
+        article = await self.get_article_by_id(clean_identifier)
+        if article is not None:
+            return article
+
+        return await self.get_article_by_slug(clean_identifier)
+
     async def list_articles(self, query: ArticleQueryParams) -> ArticleListResponse:
         article_filter = self._build_filter(query)
         sort_direction = ASCENDING if query.sort_direction == "asc" else DESCENDING

@@ -91,7 +91,7 @@
 - [x] Create article update API
 - [x] Create article delete API
 - [x] Create article listing API
-- [ ] Create article detail API
+- [x] Create article detail API
 - [ ] Add article pagination
 - [ ] Add article filtering
 - [ ] Add article sorting
