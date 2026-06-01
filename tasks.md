@@ -81,7 +81,7 @@
 # ARTICLE SYSTEM
 
 ## Database Layer
-- [ ] Create article schema/model
+- [x] Create article schema/model
 - [ ] Create article Pydantic schemas
 - [ ] Create article service layer
 - [ ] Add article database indexes
@@ -317,7 +317,7 @@
 - [x] Create article_card.html component
 - [x] Improve homepage UI
 - [x] Create featured articles section
-- [ ] Create article schema/model
+- [x] Create article schema/model
 - [ ] Create article listing API
 
 ---
