@@ -64,7 +64,7 @@
 - [x] Create latest articles section
 - [x] Create category showcase section
 - [x] Create newsletter signup section
-- [ ] Create write-for-us CTA section
+- [x] Create write-for-us CTA section
 - [x] Improve homepage responsiveness
 - [ ] Add homepage animations/interactions
 
