@@ -235,6 +235,10 @@ class ArticleQueryParams(BaseModel):
     status: ArticleStatus | None = None
     category_id: str | None = Field(default=None, max_length=120)
     tag: str | None = Field(default=None, max_length=64)
+    is_featured: bool | None = None
+    author: str | None = Field(default=None, max_length=120)
+    published_from: datetime | None = None
+    published_to: datetime | None = None
     search: str | None = Field(default=None, min_length=2, max_length=120)
     sort_by: ArticleSortField = "published_at"
     sort_direction: SortDirection = "desc"
@@ -247,7 +251,18 @@ class ArticleQueryParams(BaseModel):
 
         return normalize_article_status(str(value))
 
-    @field_validator("category_id", "tag", "search", mode="before")
+    @field_validator("category_id", "tag", "author", "search", mode="before")
     @classmethod
     def normalize_optional_text(cls, value: Any) -> str | None:
         return _as_optional_string(value)
+
+    @model_validator(mode="after")
+    def validate_published_range(self) -> "ArticleQueryParams":
+        if (
+            self.published_from is not None
+            and self.published_to is not None
+            and self.published_from > self.published_to
+        ):
+            raise ValueError("published_from must be before published_to.")
+
+        return self
