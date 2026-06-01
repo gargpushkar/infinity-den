@@ -71,7 +71,7 @@
 ## Reusable Components
 - [x] Create article_card.html
 - [x] Create featured_article_card.html
-- [ ] Create category_badge.html
+- [x] Create category_badge.html
 - [ ] Create pagination.html
 - [ ] Create empty_state.html
 - [ ] Create loading placeholders

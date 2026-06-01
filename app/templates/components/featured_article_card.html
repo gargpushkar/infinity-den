@@ -21,7 +21,7 @@
     <div class="col-lg-7">
       <div class="featured-article-body">
         <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
-          <span class="badge article-category-badge rounded-pill">{{ article_category }}</span>
+          {% include "components/category_badge.html" %}
           <span class="article-read-time text-secondary small fw-semibold">{{ article_read_time }}</span>
         </div>
 
