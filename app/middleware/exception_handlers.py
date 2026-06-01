@@ -44,13 +44,14 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     logger.info("Validation error at %s: %s", request.url.path, exc.errors())
+    validation_errors = _json_safe_validation_errors(exc.errors())
 
     return _error_response(
         request=request,
         status_code=422,
         message=VALIDATION_ERROR_MESSAGE,
         error_type="validation_error",
-        errors=exc.errors() if _wants_json(request) else None,
+        errors=validation_errors if _wants_json(request) else None,
     )
 
 
@@ -114,6 +115,19 @@ def _safe_message(detail: Any, status_code: int) -> str:
     if isinstance(detail, str) and detail:
         return detail
     return _status_phrase(status_code)
+
+
+def _json_safe_validation_errors(errors: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    safe_errors: list[dict[str, Any]] = []
+
+    for error in errors:
+        safe_error = dict(error)
+        context = safe_error.get("ctx")
+        if isinstance(context, dict):
+            safe_error["ctx"] = {key: str(value) for key, value in context.items()}
+        safe_errors.append(safe_error)
+
+    return safe_errors
 
 
 def _status_phrase(status_code: int) -> str:

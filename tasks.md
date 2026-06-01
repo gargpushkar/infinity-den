@@ -88,7 +88,7 @@
 
 ## Article APIs
 - [x] Create article create API
-- [ ] Create article update API
+- [x] Create article update API
 - [ ] Create article delete API
 - [ ] Create article listing API
 - [ ] Create article detail API
