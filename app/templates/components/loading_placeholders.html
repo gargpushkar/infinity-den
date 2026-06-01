@@ -1,0 +1,58 @@
+{% set placeholder_data = loading_placeholders|default({}, true) %}
+{% set placeholder_variant = placeholder_data.variant|default(loading_placeholder_variant|default("card", true), true) %}
+{% set placeholder_count = placeholder_data.count|default(loading_placeholder_count|default(3, true), true)|int %}
+{% set placeholder_label = placeholder_data.label|default(loading_placeholder_label|default("Loading content", true), true) %}
+{% set placeholder_class = placeholder_data.class|default(loading_placeholder_class|default("", true), true) %}
+
+{% if placeholder_count < 1 %}
+  {% set placeholder_count = 1 %}
+{% endif %}
+
+<div class="loading-placeholders loading-placeholders-{{ placeholder_variant }} {{ placeholder_class }}" aria-busy="true" aria-label="{{ placeholder_label }}" role="status">
+  <span class="visually-hidden">{{ placeholder_label }}</span>
+
+  {% for _ in range(placeholder_count) %}
+    {% if placeholder_variant == "featured" %}
+      <article class="loading-placeholder loading-placeholder-featured">
+        <div class="placeholder-media loading-shimmer"></div>
+        <div class="placeholder-body">
+          <div class="placeholder-meta">
+            <span class="placeholder-pill loading-shimmer"></span>
+            <span class="placeholder-chip loading-shimmer"></span>
+          </div>
+          <span class="placeholder-title placeholder-title-lg loading-shimmer"></span>
+          <span class="placeholder-title loading-shimmer"></span>
+          <span class="placeholder-line loading-shimmer"></span>
+          <span class="placeholder-line placeholder-line-short loading-shimmer"></span>
+          <span class="placeholder-link loading-shimmer"></span>
+        </div>
+      </article>
+    {% elif placeholder_variant == "row" %}
+      <article class="loading-placeholder loading-placeholder-row">
+        <div class="placeholder-thumb loading-shimmer"></div>
+        <div class="placeholder-body">
+          <div class="placeholder-meta">
+            <span class="placeholder-pill loading-shimmer"></span>
+            <span class="placeholder-chip loading-shimmer"></span>
+          </div>
+          <span class="placeholder-title loading-shimmer"></span>
+          <span class="placeholder-line loading-shimmer"></span>
+        </div>
+      </article>
+    {% else %}
+      <article class="loading-placeholder loading-placeholder-card">
+        <div class="placeholder-media loading-shimmer"></div>
+        <div class="placeholder-body">
+          <div class="placeholder-meta">
+            <span class="placeholder-pill loading-shimmer"></span>
+            <span class="placeholder-chip loading-shimmer"></span>
+          </div>
+          <span class="placeholder-title loading-shimmer"></span>
+          <span class="placeholder-line loading-shimmer"></span>
+          <span class="placeholder-line placeholder-line-short loading-shimmer"></span>
+          <span class="placeholder-link loading-shimmer"></span>
+        </div>
+      </article>
+    {% endif %}
+  {% endfor %}
+</div>

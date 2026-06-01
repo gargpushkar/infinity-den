@@ -19,7 +19,7 @@
 
 ## Current Focus
 - [x] Homepage UI refinement
-- [ ] Reusable frontend components
+- [x] Reusable frontend components
 - [ ] Article system implementation
 - [ ] Category system
 - [ ] Admin dashboard
@@ -74,7 +74,7 @@
 - [x] Create category_badge.html
 - [x] Create pagination.html
 - [x] Create empty_state.html
-- [ ] Create loading placeholders
+- [x] Create loading placeholders
 
 ---
 
