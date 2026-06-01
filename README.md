@@ -88,6 +88,15 @@ Check application health:
 curl http://127.0.0.1:8000/health
 ```
 
+Seed sample UI content:
+
+```bash
+python -m scripts.seed_sample_data
+```
+
+The seed command upserts realistic categories, tags, and articles using your
+configured MongoDB database. It is safe to rerun while developing article pages.
+
 ## Configuration
 
 The app reads configuration from `.env` through `app/config/settings.py`.
@@ -119,7 +128,7 @@ The app reads configuration from `.env` through `app/config/settings.py`.
 Basic import check:
 
 ```bash
-python -m compileall app
+python -m compileall app scripts
 ```
 
 Run the local server:
