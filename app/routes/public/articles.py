@@ -1,8 +1,12 @@
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, HTTPException, Path, Query, Request
+from fastapi import status as http_status
 from fastapi.templating import Jinja2Templates
 
 from app.config.settings import settings
-from app.services.article_page_service import get_article_listing_context
+from app.services.article_page_service import (
+    get_article_detail_context,
+    get_article_listing_context,
+)
 
 
 router = APIRouter()
@@ -31,5 +35,28 @@ async def article_listing(
             "app_name": settings.app_name,
             "page_title": "Articles",
             **listing_context,
+        },
+    )
+
+
+@router.get("/articles/{article_slug}")
+async def article_detail(
+    request: Request,
+    article_slug: str = Path(min_length=3, max_length=180),
+):
+    detail_context = await get_article_detail_context(article_slug)
+    if detail_context is None:
+        raise HTTPException(
+            status_code=http_status.HTTP_404_NOT_FOUND,
+            detail="Article was not found.",
+        )
+
+    return templates.TemplateResponse(
+        request,
+        "pages/article_detail.html",
+        {
+            "app_name": settings.app_name,
+            "page_title": detail_context["article"]["seo_title"],
+            **detail_context,
         },
     )

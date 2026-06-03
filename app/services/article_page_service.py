@@ -102,6 +102,27 @@ async def get_article_listing_context(
         return _empty_listing_context()
 
 
+async def get_article_detail_context(article_slug: str) -> dict[str, Any] | None:
+    try:
+        db = get_database()
+        category_options = await _get_category_options(db)
+        category_lookup = {item["slug"]: item["name"] for item in category_options}
+        article = await ArticleService(database=db).get_article_detail(article_slug)
+
+        if article is None or article.status != "published":
+            return None
+
+        article_context = _article_to_detail(article, category_lookup)
+
+        return {
+            "article": article_context,
+            "categories": [item["name"] for item in category_options],
+            "is_database_available": True,
+        }
+    except (RuntimeError, PyMongoError):
+        return None
+
+
 async def _get_category_options(db: Any) -> list[dict[str, Any]]:
     categories = []
     cursor = db.categories.find({}, {"_id": 0}).sort("name", ASCENDING)
@@ -163,6 +184,34 @@ def _article_to_card(
         "published_label": published_at,
         "views": article.views,
         "tags": article.tags,
+        "tag_links": [
+            {
+                "name": tag,
+                "url": f"/articles?{urlencode({'tag': tag})}",
+            }
+            for tag in article.tags
+        ],
+    }
+
+
+def _article_to_detail(
+    article: ArticleRead,
+    category_lookup: dict[str, str],
+) -> dict[str, Any]:
+    card = _article_to_card(article, category_lookup)
+    paragraphs = [
+        paragraph.strip()
+        for paragraph in article.content.split("\n\n")
+        if paragraph.strip()
+    ]
+
+    return {
+        **card,
+        "content": article.content,
+        "content_paragraphs": paragraphs,
+        "seo_title": article.seo_title or article.title,
+        "seo_description": article.seo_description or article.excerpt,
+        "published_iso": article.published_at.isoformat() if article.published_at else "",
     }
 
 

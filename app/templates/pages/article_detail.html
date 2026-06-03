@@ -1,0 +1,60 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ article.seo_title }} | {{ app_name }}{% endblock %}
+{% block meta_description %}{{ article.seo_description }}{% endblock %}
+
+{% block content %}
+<article class="article-detail">
+  <div class="container">
+    <nav class="article-breadcrumb" aria-label="Breadcrumb" data-reveal>
+      <a href="/">Home</a>
+      <span aria-hidden="true">/</span>
+      <a href="/articles">Articles</a>
+      <span aria-hidden="true">/</span>
+      <span>{{ article.category }}</span>
+    </nav>
+
+    <header class="article-detail-hero" data-reveal>
+      <div class="article-detail-copy">
+        <p class="eyebrow mb-3">{{ article.category }}</p>
+        <h1>{{ article.title }}</h1>
+        <p class="article-detail-dek">{{ article.excerpt }}</p>
+        <div class="article-detail-meta" aria-label="Article metadata">
+          <span>{{ article.author }}</span>
+          <time datetime="{{ article.published_iso }}">{{ article.published_label }}</time>
+          <span>{{ article.read_time }}</span>
+          <span>{{ article.views }} views</span>
+        </div>
+      </div>
+
+      <figure class="article-detail-media">
+        <img src="{{ article.cover_image }}" alt="{{ article.image_alt }}" loading="eager">
+      </figure>
+    </header>
+
+    <div class="article-detail-layout">
+      <aside class="article-detail-aside" aria-label="Article tools" data-reveal>
+        <a class="back-link" href="/articles">Back to articles</a>
+        {% if article.tag_links %}
+          <div class="article-tag-list">
+            <span>Topics</span>
+            {% for tag in article.tag_links %}
+              <a href="{{ tag.url }}">{{ tag.name }}</a>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </aside>
+
+      <div class="article-detail-body" data-reveal>
+        {% for paragraph in article.content_paragraphs %}
+          {% if loop.first %}
+            <p class="article-lead">{{ paragraph }}</p>
+          {% else %}
+            <p>{{ paragraph }}</p>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</article>
+{% endblock %}

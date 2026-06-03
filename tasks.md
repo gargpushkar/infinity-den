@@ -98,7 +98,7 @@
 
 ## Article Pages
 - [x] Create article listing page
-- [ ] Create article detail page
+- [x] Create article detail page
 - [ ] Create related articles section
 - [ ] Add article SEO metadata
 - [ ] Add social sharing section
