@@ -55,6 +55,26 @@
         {% endfor %}
       </div>
     </div>
+
+    {% if related_articles %}
+      <section class="related-articles" aria-labelledby="relatedArticlesTitle" data-reveal>
+        <div class="section-heading section-heading-split">
+          <div>
+            <p class="eyebrow mb-2">Keep reading</p>
+            <h2 id="relatedArticlesTitle">Related articles</h2>
+          </div>
+          <a class="section-link" href="{{ article.category_url }}">Browse {{ article.category }}</a>
+        </div>
+
+        <div class="related-articles-grid">
+          {% for article in related_articles %}
+            <div class="related-articles-item" data-reveal-child>
+              {% include "components/article_card.html" %}
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
   </div>
 </article>
 {% endblock %}

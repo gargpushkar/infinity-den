@@ -4,9 +4,10 @@ from datetime import datetime
 from typing import Any
 from urllib.parse import urlencode
 
-from pymongo import ASCENDING
+from pymongo import ASCENDING, DESCENDING
 from pymongo.errors import PyMongoError
 
+from app.config.constants import ARTICLE_STATUS_PUBLISHED
 from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION
 from app.schemas.article import ArticleQueryParams, ArticleRead
@@ -14,6 +15,7 @@ from app.services.article_service import ArticleService
 
 
 ARTICLE_LISTING_PER_PAGE = 6
+RELATED_ARTICLE_LIMIT = 3
 
 SORT_OPTIONS: tuple[dict[str, str], ...] = (
     {
@@ -113,9 +115,11 @@ async def get_article_detail_context(article_slug: str) -> dict[str, Any] | None
             return None
 
         article_context = _article_to_detail(article, category_lookup)
+        related_articles = await _get_related_articles(db, article, category_lookup)
 
         return {
             "article": article_context,
+            "related_articles": related_articles,
             "categories": [item["name"] for item in category_options],
             "is_database_available": True,
         }
@@ -164,6 +168,79 @@ async def _get_tag_options(db: Any) -> list[dict[str, str]]:
     return tags
 
 
+async def _get_related_articles(
+    db: Any,
+    article: ArticleRead,
+    category_lookup: dict[str, str],
+) -> list[dict[str, Any]]:
+    related_filters: list[dict[str, Any]] = []
+    if article.category_id:
+        related_filters.append({"category_id": article.category_id})
+    if article.tags:
+        related_filters.append({"tags": {"$in": article.tags}})
+
+    selected_slugs = {article.slug}
+    related_articles: list[dict[str, Any]] = []
+
+    if related_filters:
+        primary_filter: dict[str, Any] = {
+            "status": ARTICLE_STATUS_PUBLISHED,
+            "slug": {"$ne": article.slug},
+            "$or": related_filters,
+        }
+        related_articles = await _fetch_related_article_cards(
+            db,
+            primary_filter,
+            category_lookup,
+            RELATED_ARTICLE_LIMIT,
+        )
+        selected_slugs.update(item["slug"] for item in related_articles)
+
+    if len(related_articles) < RELATED_ARTICLE_LIMIT:
+        fallback_filter = {
+            "status": ARTICLE_STATUS_PUBLISHED,
+            "slug": {"$nin": list(selected_slugs)},
+        }
+        related_articles.extend(
+            await _fetch_related_article_cards(
+                db,
+                fallback_filter,
+                category_lookup,
+                RELATED_ARTICLE_LIMIT - len(related_articles),
+            )
+        )
+
+    return related_articles
+
+
+async def _fetch_related_article_cards(
+    db: Any,
+    article_filter: dict[str, Any],
+    category_lookup: dict[str, str],
+    limit: int,
+) -> list[dict[str, Any]]:
+    if limit <= 0:
+        return []
+
+    cursor = (
+        db[ARTICLE_COLLECTION]
+        .find(article_filter)
+        .sort(
+            [
+                ("is_featured", DESCENDING),
+                ("published_at", DESCENDING),
+                ("created_at", DESCENDING),
+            ]
+        )
+        .limit(limit)
+    )
+
+    return [
+        _article_to_card(ArticleRead.model_validate(document), category_lookup)
+        async for document in cursor
+    ]
+
+
 def _article_to_card(
     article: ArticleRead,
     category_lookup: dict[str, str],
@@ -177,6 +254,11 @@ def _article_to_card(
         "url": f"/articles/{article.slug}",
         "excerpt": article.excerpt,
         "category": category_lookup.get(article.category_id or "", "Article"),
+        "category_url": (
+            f"/articles?{urlencode({'category': article.category_id})}"
+            if article.category_id
+            else "/articles"
+        ),
         "read_time": f"{read_time} min read",
         "cover_image": article.cover_image or "/static/images/articles/editorial-default.svg",
         "image_alt": article.title,

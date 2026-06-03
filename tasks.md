@@ -99,7 +99,7 @@
 ## Article Pages
 - [x] Create article listing page
 - [x] Create article detail page
-- [ ] Create related articles section
+- [x] Create related articles section
 - [ ] Add article SEO metadata
 - [ ] Add social sharing section
 - [ ] Add breadcrumbs
