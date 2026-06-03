@@ -32,7 +32,7 @@ class ArticleSlugConflictError(ArticleServiceError):
 
 class ArticleService:
     def __init__(self, database: AsyncIOMotorDatabase | None = None) -> None:
-        self.database = database or get_database()
+        self.database = database if database is not None else get_database()
 
     @property
     def collection(self) -> AsyncIOMotorCollection:

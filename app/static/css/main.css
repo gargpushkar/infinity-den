@@ -1199,6 +1199,189 @@ button:focus-visible,
   line-height: 1.15;
 }
 
+.article-index {
+  padding: 2.25rem 0 5rem;
+}
+
+.article-index-header {
+  align-items: end;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin: 0 auto 1.5rem;
+  max-width: 68rem;
+  padding: clamp(1rem, 4vw, 3rem) 0 1.6rem;
+}
+
+.article-index-header h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.35rem, 6vw, 5rem);
+  font-weight: 900;
+  line-height: 0.98;
+  margin: 0;
+  max-width: 46rem;
+}
+
+.article-index-stat {
+  border-left: 3px solid var(--accent-gold);
+  min-width: 10rem;
+  padding-left: 1rem;
+}
+
+.article-index-stat strong,
+.article-index-stat span {
+  display: block;
+}
+
+.article-index-stat strong {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1;
+}
+
+.article-index-stat span {
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  font-weight: 800;
+  margin-top: 0.4rem;
+}
+
+.article-index-controls {
+  align-items: end;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin: 0 auto 1rem;
+  max-width: 68rem;
+}
+
+.filter-group {
+  min-width: 0;
+}
+
+.filter-label,
+.filter-select-label {
+  color: var(--text-secondary);
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 900;
+  margin-bottom: 0.55rem;
+  text-transform: uppercase;
+}
+
+.filter-scroll {
+  display: flex;
+  gap: 0.55rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scrollbar-width: thin;
+}
+
+.filter-chip {
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.9rem;
+  font-weight: 800;
+  gap: 0.45rem;
+  min-height: 2.55rem;
+  padding: 0.55rem 0.85rem;
+}
+
+.filter-chip span {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.filter-chip:hover,
+.filter-chip:focus-visible,
+.filter-chip.is-active {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--card);
+}
+
+.filter-chip:hover span,
+.filter-chip:focus-visible span,
+.filter-chip.is-active span {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.article-filter-form {
+  align-items: end;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(9rem, 11rem) minmax(9rem, 11rem);
+}
+
+.filter-select {
+  background-color: var(--card);
+  border-color: var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-weight: 800;
+  min-height: 2.85rem;
+}
+
+.article-index-summary {
+  align-items: center;
+  color: var(--text-secondary);
+  display: flex;
+  font-weight: 700;
+  gap: 1rem;
+  justify-content: space-between;
+  margin: 0 auto 1.5rem;
+  max-width: 68rem;
+}
+
+.article-index-summary a {
+  color: var(--accent);
+  flex: 0 0 auto;
+  font-weight: 900;
+}
+
+.article-index-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0 auto;
+  max-width: 68rem;
+}
+
+.article-index-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.article-card-meta {
+  color: var(--text-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 0.5rem 0.85rem;
+  padding: 0.75rem 0.15rem 0;
+}
+
+.article-card-meta span {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.article-card-meta span + span::before {
+  background: var(--text-muted);
+  border-radius: 999px;
+  content: "";
+  height: 0.3rem;
+  width: 0.3rem;
+}
+
 .site-footer {
   background: var(--bg-main);
   padding: 0 0 1rem;
@@ -1298,6 +1481,19 @@ button:focus-visible,
 
   .write-layout {
     grid-template-columns: 1fr;
+  }
+
+  .article-index-controls {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .article-filter-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .article-index-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1473,6 +1669,36 @@ button:focus-visible,
 
   .write-section {
     margin-bottom: 3rem;
+  }
+
+  .article-index {
+    padding: 1rem 0 3rem;
+  }
+
+  .article-index-header {
+    align-items: start;
+    grid-template-columns: 1fr;
+    margin-left: 0.25rem;
+    margin-right: 0.25rem;
+  }
+
+  .article-index-stat {
+    min-width: 0;
+  }
+
+  .article-filter-form {
+    grid-template-columns: 1fr;
+  }
+
+  .article-index-summary {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-left: 0.25rem;
+    margin-right: 0.25rem;
+  }
+
+  .article-index-grid {
+    grid-template-columns: 1fr;
   }
 
   .write-layout {

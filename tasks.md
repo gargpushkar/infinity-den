@@ -97,7 +97,7 @@
 - [x] Add article sorting
 
 ## Article Pages
-- [ ] Create article listing page
+- [x] Create article listing page
 - [ ] Create article detail page
 - [ ] Create related articles section
 - [ ] Add article SEO metadata
