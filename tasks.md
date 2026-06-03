@@ -100,7 +100,7 @@
 - [x] Create article listing page
 - [x] Create article detail page
 - [x] Create related articles section
-- [ ] Add article SEO metadata
+- [x] Add article SEO metadata
 - [ ] Add social sharing section
 - [ ] Add breadcrumbs
 - [ ] Add read time calculation
@@ -196,11 +196,11 @@
 # SEO FEATURES
 
 ## Technical SEO
-- [ ] Add meta title support
-- [ ] Add meta description support
-- [ ] Add OpenGraph tags
-- [ ] Add Twitter cards
-- [ ] Add canonical URLs
+- [x] Add meta title support
+- [x] Add meta description support
+- [x] Add OpenGraph tags
+- [x] Add Twitter cards
+- [x] Add canonical URLs
 - [ ] Generate sitemap.xml
 - [ ] Generate robots.txt
 

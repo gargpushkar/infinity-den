@@ -294,6 +294,7 @@ def _article_to_detail(
         "seo_title": article.seo_title or article.title,
         "seo_description": article.seo_description or article.excerpt,
         "published_iso": article.published_at.isoformat() if article.published_at else "",
+        "updated_iso": article.updated_at.isoformat() if article.updated_at else "",
     }
 
 
