@@ -57,6 +57,43 @@ async def article_detail(
         {
             "app_name": settings.app_name,
             "page_title": detail_context["article"]["seo_title"],
+            **_article_seo_context(request, detail_context["article"]),
             **detail_context,
         },
     )
+
+
+def _article_seo_context(request: Request, article: dict) -> dict[str, str]:
+    canonical_url = str(
+        request.url_for("article_detail", article_slug=article["slug"])
+    )
+    seo_image = _absolute_image_url(request, article.get("cover_image", ""))
+
+    return {
+        "seo_title": article["seo_title"],
+        "seo_description": article["seo_description"],
+        "canonical_url": canonical_url,
+        "open_graph_type": "article",
+        "seo_image": seo_image,
+        "seo_image_alt": article.get("image_alt", article["title"]),
+        "twitter_card": "summary_large_image" if seo_image else "summary",
+    }
+
+
+def _absolute_image_url(request: Request, image_url: str) -> str:
+    clean_image_url = str(image_url or "").strip()
+    if not clean_image_url:
+        return ""
+    if clean_image_url.startswith(("http://", "https://")):
+        return clean_image_url
+    if clean_image_url.startswith("/static/"):
+        return str(
+            request.url_for(
+                "static",
+                path=clean_image_url.removeprefix("/static/"),
+            )
+        )
+    if clean_image_url.startswith("/"):
+        return f"{str(request.base_url).rstrip('/')}{clean_image_url}"
+
+    return f"{str(request.base_url).rstrip('/')}/{clean_image_url}"
