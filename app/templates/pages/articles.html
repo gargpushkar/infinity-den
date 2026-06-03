@@ -1,0 +1,100 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
+{% block meta_description %}Browse published articles from {{ app_name }} by category, tag, and editorial sort order.{% endblock %}
+
+{% block content %}
+<section class="article-index">
+  <div class="container">
+    <header class="article-index-header" data-reveal>
+      <div>
+        <p class="eyebrow mb-3">Article library</p>
+        <h1>Field notes for sharper publishing.</h1>
+      </div>
+      <div class="article-index-stat" aria-label="Published article count">
+        <strong>{{ article_count }}</strong>
+        <span>published articles</span>
+      </div>
+    </header>
+
+    <section class="article-index-controls" aria-label="Article filters" data-reveal>
+      <div class="filter-group">
+        <span class="filter-label">Categories</span>
+        <div class="filter-scroll">
+          <a class="filter-chip {% if not active_category %}is-active{% endif %}" href="/articles?sort={{ sort_options|selectattr('is_active')|map(attribute='value')|first|default('newest') }}">All</a>
+          {% for item in category_filters %}
+            <a class="filter-chip {% if item.is_active %}is-active{% endif %}" href="/articles?category={{ item.slug }}&sort={{ sort_options|selectattr('is_active')|map(attribute='value')|first|default('newest') }}">
+              {{ item.name }}
+              {% if item.total is defined %}
+                <span>{{ item.total }}</span>
+              {% endif %}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <form class="article-filter-form" method="get" action="/articles">
+        {% if category_filters|selectattr('is_active')|list %}
+          <input type="hidden" name="category" value="{{ category_filters|selectattr('is_active')|map(attribute='slug')|first }}">
+        {% endif %}
+        <label class="filter-select-label" for="tagFilter">Tag</label>
+        <select class="form-select filter-select" id="tagFilter" name="tag" onchange="this.form.submit()">
+          <option value="">All tags</option>
+          {% for item in tag_filters %}
+            <option value="{{ item.value }}" {% if item.is_active %}selected{% endif %}>{{ item.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label class="filter-select-label" for="sortFilter">Sort</label>
+        <select class="form-select filter-select" id="sortFilter" name="sort" onchange="this.form.submit()">
+          {% for item in sort_options %}
+            <option value="{{ item.value }}" {% if item.is_active %}selected{% endif %}>{{ item.label }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </section>
+
+    <div class="article-index-summary" data-reveal>
+      {% if active_category or active_tag %}
+        <p class="mb-0">
+          Showing
+          {% if active_category %}<strong>{{ active_category }}</strong>{% endif %}
+          {% if active_category and active_tag %} with {% endif %}
+          {% if active_tag %}<strong>{{ active_tag }}</strong>{% endif %}
+          sorted by <strong>{{ active_sort }}</strong>.
+        </p>
+        <a href="/articles">Clear filters</a>
+      {% else %}
+        <p class="mb-0">Showing all published articles sorted by <strong>{{ active_sort }}</strong>.</p>
+      {% endif %}
+    </div>
+
+    {% if not is_database_available %}
+      {% set empty_title = "Articles are offline" %}
+      {% set empty_message = "The article database is not available right now. Try again after MongoDB is connected." %}
+      {% set empty_hints = ["MongoDB unavailable", "Public route is ready", "Seed data supported"] %}
+      {% include "components/empty_state.html" %}
+    {% elif articles %}
+      <section class="article-index-grid" aria-label="Articles" data-reveal>
+        {% for article in articles %}
+          <div class="article-index-item" data-reveal-child>
+            {% include "components/article_card.html" %}
+            <div class="article-card-meta">
+              <span>{{ article.author }}</span>
+              <span>{{ article.published_label }}</span>
+              <span>{{ article.views }} views</span>
+            </div>
+          </div>
+        {% endfor %}
+      </section>
+
+      {% include "components/pagination.html" %}
+    {% else %}
+      {% set empty_title = "No articles found" %}
+      {% set empty_message = "Try another category, tag, or sort option to bring more stories back into view." %}
+      {% set empty_hints = ["Published only", "Filters active", "Sample data ready"] %}
+      {% include "components/empty_state.html" %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
