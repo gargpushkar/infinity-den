@@ -1569,6 +1569,31 @@ button:focus-visible,
   line-height: 1.28;
 }
 
+.related-articles {
+  border-top: 1px solid var(--line);
+  margin: 3.5rem auto 0;
+  max-width: 68rem;
+  padding-top: 2.25rem;
+}
+
+.related-articles .section-heading {
+  margin-bottom: 1rem;
+}
+
+.related-articles .section-heading h2 {
+  font-size: clamp(1.85rem, 4vw, 2.8rem);
+}
+
+.related-articles-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.related-articles-item {
+  min-width: 0;
+}
+
 .site-footer {
   background: var(--bg-main);
   padding: 0 0 1rem;
@@ -1701,6 +1726,15 @@ button:focus-visible,
 
   .article-detail-aside {
     position: static;
+  }
+
+  .related-articles {
+    margin-left: 0.25rem;
+    margin-right: 0.25rem;
+  }
+
+  .related-articles-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1935,6 +1969,15 @@ button:focus-visible,
   .article-detail-body p {
     font-size: 1rem;
     line-height: 1.75;
+  }
+
+  .related-articles {
+    margin-top: 2.25rem;
+    padding-top: 1.5rem;
+  }
+
+  .related-articles-grid {
+    grid-template-columns: 1fr;
   }
 
   .write-layout {
