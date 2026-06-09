@@ -118,7 +118,7 @@
 
 ## Tags
 - [x] Create tag schema/model
-- [ ] Create tag APIs
+- [x] Create tag APIs
 - [ ] Add tag filtering
 
 ---
