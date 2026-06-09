@@ -28,6 +28,7 @@ Use it alongside `tasks.md`; keep this file focused on the admin area only.
 - [x] Submission review UI
 - [x] Submission accept/reject/reviewing actions
 - [x] Command-line admin creation script
+- [x] Admin user management
 
 ---
 
@@ -60,14 +61,14 @@ Use it alongside `tasks.md`; keep this file focused on the admin area only.
 # ADMIN USER MANAGEMENT
 
 ## Admin Accounts
-- [ ] Create admin user listing page
-- [ ] Create admin user form
-- [ ] Add create admin API
-- [ ] Add update admin role API
-- [ ] Add change password API
-- [ ] Add disable/deactivate admin API
-- [ ] Prevent deleting or disabling the last admin
-- [ ] Show created/updated timestamps for admin users
+- [x] Create admin user listing page
+- [x] Create admin user form
+- [x] Add create admin API
+- [x] Add update admin role API
+- [x] Add change password API
+- [x] Add disable/deactivate admin API
+- [x] Prevent deleting or disabling the last admin
+- [x] Show created/updated timestamps for admin users
 
 ## Current Temporary Workflow
 - [x] Create admins with `scripts/create_admin.py`

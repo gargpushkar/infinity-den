@@ -335,6 +335,23 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/^-+|-+$/g, "")
       .replace(/-{2,}/g, "-");
 
+  const formatAdminDate = (value) => {
+    if (!value) {
+      return "Not recorded";
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return "Not recorded";
+    }
+
+    return new Intl.DateTimeFormat("en", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(date);
+  };
+
   document.querySelectorAll("[data-admin-slug-source]").forEach((source) => {
     const form = source.closest("form");
     const target = form?.querySelector("[data-admin-slug-target]");
@@ -605,6 +622,162 @@ document.addEventListener("DOMContentLoaded", () => {
       form.querySelector("[data-admin-category-heading]").textContent =
         "Edit category";
       form.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth" });
+    });
+  });
+
+  document.querySelectorAll("[data-admin-user-create-form]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const message = form.querySelector("[data-admin-form-message]");
+      const submitButton = form.querySelector("[type='submit']");
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        setAdminMessage(message, "Complete the admin account fields.", "error");
+        return;
+      }
+
+      const formData = new FormData(form);
+      const payload = {
+        username: String(formData.get("username") || "").trim(),
+        password: String(formData.get("password") || ""),
+        role: String(formData.get("role") || "editor"),
+      };
+
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+      setAdminMessage(message, "Creating admin user...");
+
+      try {
+        await adminJsonRequest(form.action, { method: "POST", body: payload });
+        setAdminMessage(message, "Admin user created.", "success");
+        window.setTimeout(() => window.location.reload(), 450);
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-admin-user-role-form]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const adminId = form.getAttribute("data-admin-user-id");
+      const select = form.querySelector("select[name='role']");
+      const message = document.querySelector("[data-admin-users-message]");
+      const submitButton = form.querySelector("[type='submit']");
+      if (!adminId || !select) {
+        return;
+      }
+
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+
+      try {
+        const adminUser = await adminJsonRequest(`/api/admin/users/${adminId}/role`, {
+          method: "PATCH",
+          body: { role: select.value },
+        });
+        const updated = form
+          .closest("[data-admin-user-row]")
+          ?.querySelector("[data-admin-user-updated]");
+        if (updated) {
+          updated.textContent = formatAdminDate(adminUser.updated_at);
+        }
+        setAdminMessage(message, "Role updated.", "success");
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-admin-user-password-form]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const adminId = form.getAttribute("data-admin-user-id");
+      const passwordInput = form.querySelector("input[name='password']");
+      const message = document.querySelector("[data-admin-users-message]");
+      const submitButton = form.querySelector("[type='submit']");
+      if (!adminId || !passwordInput) {
+        return;
+      }
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        setAdminMessage(message, "Enter a password with at least 8 characters.", "error");
+        return;
+      }
+
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+
+      try {
+        await adminJsonRequest(`/api/admin/users/${adminId}/password`, {
+          method: "PATCH",
+          body: { password: passwordInput.value },
+        });
+        form.reset();
+        setAdminMessage(message, "Password updated.", "success");
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-admin-user-status-toggle]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const adminId = button.getAttribute("data-admin-user-id");
+      const isActive = button.getAttribute("data-is-active") === "true";
+      const nextActive = !isActive;
+      const message = document.querySelector("[data-admin-users-message]");
+      if (!adminId) {
+        return;
+      }
+
+      if (!nextActive && !window.confirm("Disable this admin account?")) {
+        return;
+      }
+
+      button.disabled = true;
+      try {
+        const adminUser = await adminJsonRequest(`/api/admin/users/${adminId}/status`, {
+          method: "PATCH",
+          body: { is_active: nextActive },
+        });
+        const row = button.closest("[data-admin-user-row]");
+        const status = row?.querySelector("[data-admin-user-status]");
+        const updated = row?.querySelector("[data-admin-user-updated]");
+
+        button.dataset.isActive = adminUser.is_active ? "true" : "false";
+        button.textContent = adminUser.is_active ? "Disable" : "Reactivate";
+        if (status) {
+          status.textContent = adminUser.is_active ? "Active" : "Disabled";
+        }
+        if (updated) {
+          updated.textContent = formatAdminDate(adminUser.updated_at);
+        }
+        setAdminMessage(message, "Account status updated.", "success");
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
+      } finally {
+        button.disabled = false;
+      }
     });
   });
 

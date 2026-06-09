@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -37,6 +38,9 @@ class AdminRead(BaseModel):
     id: str = Field(alias="_id")
     username: str
     role: AdminRole
+    is_active: bool = True
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
     @field_validator("id", mode="before")
     @classmethod
@@ -70,3 +74,27 @@ class AdminPasswordChange(BaseModel):
 
 class AdminArticleFeatureUpdate(BaseModel):
     is_featured: bool
+
+
+class AdminRoleUpdate(BaseModel):
+    role: AdminRole
+
+    @field_validator("role", mode="before")
+    @classmethod
+    def validate_role(cls, value: Any) -> AdminRole:
+        return normalize_admin_role(str(value or "").strip().lower())
+
+
+class AdminPasswordUpdate(BaseModel):
+    password: str = Field(min_length=8, max_length=128)
+
+
+class AdminStatusUpdate(BaseModel):
+    is_active: bool
+
+
+class AdminListResponse(BaseModel):
+    items: list[AdminRead]
+    total: int = Field(ge=0)
+    active_admins: int = Field(ge=0)
+    active_editors: int = Field(ge=0)
