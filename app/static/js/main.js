@@ -77,10 +77,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.querySelectorAll("[data-newsletter-form]").forEach((form) => {
-    form.addEventListener("submit", (event) => {
+    form.addEventListener("submit", async (event) => {
       event.preventDefault();
 
       const message = form.querySelector("[data-newsletter-message]");
+      const emailInput = form.querySelector("input[name='email']");
+      const submitButton = form.querySelector("[type='submit']");
       if (!message) {
         return;
       }
@@ -94,9 +96,55 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      message.textContent = "You're on the list. Watch for the next briefing.";
-      message.classList.add("is-success");
-      form.reset();
+      const email = emailInput?.value?.trim();
+      if (!email) {
+        message.textContent = "Enter a valid email to join the briefing.";
+        message.classList.add("is-error");
+        return;
+      }
+
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.setAttribute("aria-busy", "true");
+      }
+      message.textContent = "Subscribing...";
+
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        });
+        const payload = await response.json().catch(() => ({}));
+
+        if (response.ok) {
+          message.textContent = "You're on the list. Watch for the next briefing.";
+          message.classList.add("is-success");
+          form.reset();
+          return;
+        }
+
+        if (response.status === 409) {
+          message.textContent = "You're already on the list.";
+          message.classList.add("is-success");
+          return;
+        }
+
+        message.textContent =
+          payload?.error?.message || "We could not save that email right now.";
+        message.classList.add("is-error");
+      } catch (error) {
+        message.textContent = "Connection issue. Try again in a moment.";
+        message.classList.add("is-error");
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.removeAttribute("aria-busy");
+        }
+      }
     });
   });
 

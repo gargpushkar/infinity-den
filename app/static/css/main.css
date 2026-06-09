@@ -1108,6 +1108,11 @@ button:focus-visible,
   white-space: nowrap;
 }
 
+.newsletter-submit:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
 .newsletter-note {
   color: rgba(255, 255, 255, 0.68);
   font-size: 0.9rem;

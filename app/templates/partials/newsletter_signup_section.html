@@ -6,7 +6,7 @@
       <p>One concise briefing on publishing systems, search momentum, and contributor workflows.</p>
     </div>
 
-    <form class="newsletter-form" action="#" method="post" data-newsletter-form>
+    <form class="newsletter-form" action="/api/newsletter/subscribe" method="post" data-newsletter-form>
       <label class="visually-hidden" for="newsletterEmail">Email address</label>
       <div class="newsletter-form-row">
         <input
@@ -20,7 +20,7 @@
         >
         <button class="btn btn-dark newsletter-submit" type="submit">Subscribe</button>
       </div>
-      <p class="newsletter-note" data-newsletter-message>Weekly. Useful. Easy to leave.</p>
+      <p class="newsletter-note" data-newsletter-message role="status">Weekly. Useful. Easy to leave.</p>
     </form>
   </div>
 </section>
