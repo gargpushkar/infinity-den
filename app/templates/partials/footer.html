@@ -1,24 +1,67 @@
 <footer class="site-footer">
   <div class="container">
     <div class="footer-panel">
-      <h2 class="footer-title">{{ app_name }}</h2>
-      <div class="row g-4 align-items-end">
-        <div class="col-md-6">
-          <ul class="footer-links">
-            <li><a href="/">About us</a></li>
-            <li><a href="mailto:hello@infinityden.dev">Contact us</a></li>
-            <li><a href="mailto:partnerships@infinityden.dev">Partner with us</a></li>
-            <li><a href="/#newsletterSignup">Subscribe to our newsletter</a></li>
-            <li><a href="/search">Trending topics</a></li>
-          </ul>
-        </div>
-        <div class="col-md-6">
-          <div class="social-block">
-            <p>Explore</p>
-            <a href="/articles">Articles</a>
-            <a href="/categories">Topics</a>
-            <a href="/search">Search</a>
+      <div class="footer-main">
+        <section class="footer-brand" aria-label="{{ app_name }} footer summary">
+          <a class="footer-logo" href="/" aria-label="{{ app_name }} home">
+            <span>ID</span>
+            <strong>{{ app_name }}</strong>
+          </a>
+          <p>Publishing systems, editorial operations, and search-ready storytelling for teams that want calmer growth.</p>
+          <div class="footer-topic-strip" aria-label="Popular footer topics">
+            <a href="/articles?category=content-strategy">Strategy</a>
+            <a href="/articles?category=editorial-ops">Editorial Ops</a>
+            <a href="/articles?category=search-growth">Search Growth</a>
           </div>
+        </section>
+
+        <nav class="footer-link-grid" aria-label="Footer navigation">
+          <div>
+            <h2>Explore</h2>
+            <ul class="footer-links">
+              <li><a href="/articles">Articles</a></li>
+              <li><a href="/categories">Topics</a></li>
+              <li><a href="/search">Search</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h2>Contribute</h2>
+            <ul class="footer-links">
+              <li><a href="/#writeForUs">Write for us</a></li>
+              <li><a href="mailto:partnerships@infinityden.dev">Partner with us</a></li>
+              <li><a href="mailto:hello@infinityden.dev">Contact</a></li>
+            </ul>
+          </div>
+        </nav>
+
+        <section class="footer-newsletter" aria-labelledby="footerNewsletterTitle">
+          <p class="eyebrow mb-2">Newsletter</p>
+          <h2 id="footerNewsletterTitle">Get the next editorial briefing.</h2>
+          <form action="/api/newsletter" method="post" data-newsletter-form>
+            <label class="visually-hidden" for="footerNewsletterEmail">Email address</label>
+            <div class="footer-newsletter-field">
+              <input
+                class="form-control"
+                id="footerNewsletterEmail"
+                name="email"
+                type="email"
+                placeholder="you@example.com"
+                autocomplete="email"
+                required
+              >
+              <button class="btn btn-primary" type="submit">Join</button>
+            </div>
+            <p class="footer-newsletter-note" data-newsletter-message role="status">One useful dispatch. No clutter.</p>
+          </form>
+        </section>
+      </div>
+
+      <div class="footer-bottom">
+        <p>{{ app_name }} is built for focused content teams.</p>
+        <div>
+          <a href="/#newsletterSignup">Subscribe</a>
+          <a href="/admin/login">Admin</a>
         </div>
       </div>
     </div>
