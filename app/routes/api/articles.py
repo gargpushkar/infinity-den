@@ -14,6 +14,12 @@ from app.schemas.article import (
     ArticleUpdate,
     SortDirection,
 )
+from app.schemas.admin import AdminRead
+from app.services.admin_csrf import verify_admin_csrf
+from app.services.admin_permissions import (
+    require_article_writer,
+    require_destructive_admin,
+)
 from app.services.article_service import (
     ArticleNotFoundError,
     ArticleService,
@@ -85,6 +91,8 @@ async def list_articles(
 )
 async def create_article(
     payload: ArticleCreate,
+    _admin: AdminRead = Depends(require_article_writer),
+    _csrf: None = Depends(verify_admin_csrf),
     article_service: ArticleService = Depends(get_articles_service),
 ) -> ArticleRead:
     try:
@@ -123,6 +131,8 @@ async def get_article_detail(
 async def update_article(
     article_id: str,
     payload: ArticleUpdate,
+    _admin: AdminRead = Depends(require_article_writer),
+    _csrf: None = Depends(verify_admin_csrf),
     article_service: ArticleService = Depends(get_articles_service),
 ) -> ArticleRead:
     try:
@@ -142,6 +152,8 @@ async def update_article(
 @router.delete("/{article_id}", status_code=http_status.HTTP_204_NO_CONTENT)
 async def delete_article(
     article_id: str,
+    _admin: AdminRead = Depends(require_destructive_admin),
+    _csrf: None = Depends(verify_admin_csrf),
     article_service: ArticleService = Depends(get_articles_service),
 ) -> Response:
     was_deleted = await article_service.delete_article(article_id)

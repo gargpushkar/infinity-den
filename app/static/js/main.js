@@ -278,13 +278,27 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  const getAdminCsrfToken = () =>
+    document
+      .querySelector("meta[name='admin-csrf-token']")
+      ?.getAttribute("content") || "";
+
   const adminJsonRequest = async (url, options = {}) => {
+    const method = options.method || "GET";
+    const headers = {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    };
+    if (!["GET", "HEAD", "OPTIONS"].includes(method.toUpperCase())) {
+      const csrfToken = getAdminCsrfToken();
+      if (csrfToken) {
+        headers["X-CSRF-Token"] = csrfToken;
+      }
+    }
+
     const response = await fetch(url, {
-      method: options.method || "GET",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
+      method,
+      headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
     const payload = await response.json().catch(() => ({}));
@@ -352,7 +366,7 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
 
-      await fetch(form.action, { method: "POST" }).catch(() => null);
+      await adminJsonRequest(form.action, { method: "POST" }).catch(() => null);
       window.location.assign("/admin/login");
     });
   });
@@ -491,11 +505,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       button.disabled = true;
       try {
-        await fetch(deleteUrl, { method: "DELETE" }).then((response) => {
-          if (!response.ok) {
-            throw new Error("Delete failed.");
-          }
-        });
+        await adminJsonRequest(deleteUrl, { method: "DELETE" });
         button.closest("tr, [data-admin-category-row]")?.remove();
         setAdminMessage(message, "Deleted.", "success");
       } catch (error) {

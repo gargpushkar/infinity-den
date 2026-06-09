@@ -34,26 +34,26 @@ Use it alongside `tasks.md`; keep this file focused on the admin area only.
 # IMMEDIATE PRIORITY
 
 ## 1. Secure Admin Mutations
-- [ ] Protect article create/update/delete APIs with admin authentication
-- [ ] Protect category create/update/delete APIs with admin authentication
-- [ ] Protect tag create/update/delete APIs with admin authentication
-- [ ] Keep public read APIs available without login
-- [ ] Return consistent `401` responses for unauthenticated admin writes
-- [ ] Return consistent `403` responses for insufficient role access
+- [x] Protect article create/update/delete APIs with admin authentication
+- [x] Protect category create/update/delete APIs with admin authentication
+- [x] Protect tag create/update/delete APIs with admin authentication
+- [x] Keep public read APIs available without login
+- [x] Return consistent `401` responses for unauthenticated admin writes
+- [x] Return consistent `403` responses for insufficient role access
 
 ## 2. CSRF Protection
-- [ ] Add CSRF token generation for admin sessions
-- [ ] Render CSRF token into admin pages
-- [ ] Send CSRF token with admin fetch requests
-- [ ] Validate CSRF token on POST/PATCH/DELETE admin routes
-- [ ] Keep login/logout behavior safe and predictable
+- [x] Add CSRF token generation for admin sessions
+- [x] Render CSRF token into admin pages
+- [x] Send CSRF token with admin fetch requests
+- [x] Validate CSRF token on POST/PATCH/DELETE admin routes
+- [x] Keep login/logout behavior safe and predictable
 
 ## 3. Role Permissions
-- [ ] Define role capabilities for `admin`
-- [ ] Define role capabilities for `editor`
-- [ ] Restrict admin-user management to `admin`
-- [ ] Restrict destructive actions if needed
-- [ ] Add role checks as reusable dependencies
+- [x] Define role capabilities for `admin`
+- [x] Define role capabilities for `editor`
+- [x] Restrict admin-user management to `admin`
+- [x] Restrict destructive actions if needed
+- [x] Add role checks as reusable dependencies
 
 ---
 

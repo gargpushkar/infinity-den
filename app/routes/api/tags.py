@@ -11,6 +11,12 @@ from app.schemas.tag import (
     TagSortField,
     TagUpdate,
 )
+from app.schemas.admin import AdminRead
+from app.services.admin_csrf import verify_admin_csrf
+from app.services.admin_permissions import (
+    require_content_manager,
+    require_destructive_admin,
+)
 from app.services.tag_service import (
     TagNotFoundError,
     TagService,
@@ -58,6 +64,8 @@ async def list_tags(
 )
 async def create_tag(
     payload: TagCreate,
+    _admin: AdminRead = Depends(require_content_manager),
+    _csrf: None = Depends(verify_admin_csrf),
     tag_service: TagService = Depends(get_tags_service),
 ) -> TagRead:
     try:
@@ -96,6 +104,8 @@ async def get_tag_detail(
 async def update_tag(
     tag_id: str,
     payload: TagUpdate,
+    _admin: AdminRead = Depends(require_content_manager),
+    _csrf: None = Depends(verify_admin_csrf),
     tag_service: TagService = Depends(get_tags_service),
 ) -> TagRead:
     try:
@@ -115,6 +125,8 @@ async def update_tag(
 @router.delete("/{tag_id}", status_code=http_status.HTTP_204_NO_CONTENT)
 async def delete_tag(
     tag_id: str,
+    _admin: AdminRead = Depends(require_destructive_admin),
+    _csrf: None = Depends(verify_admin_csrf),
     tag_service: TagService = Depends(get_tags_service),
 ) -> Response:
     was_deleted = await tag_service.delete_tag(tag_id)

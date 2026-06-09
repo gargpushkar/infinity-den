@@ -15,6 +15,7 @@ from app.services.admin_dashboard_service import (
     get_admin_dashboard_context,
     get_admin_submissions_context,
 )
+from app.services.admin_csrf import ADMIN_CSRF_COOKIE, issue_admin_csrf_token
 from app.services.admin_session import get_current_admin
 from app.services.article_service import ArticleService
 
@@ -149,7 +150,8 @@ def _admin_template(
     page_title: str,
     context: dict[str, Any],
 ):
-    return templates.TemplateResponse(
+    csrf_token = issue_admin_csrf_token()
+    response = templates.TemplateResponse(
         request,
         template_name,
         {
@@ -160,10 +162,20 @@ def _admin_template(
             "robots": "noindex, nofollow",
             "use_admin_chrome": True,
             "admin": admin,
+            "csrf_token": csrf_token,
             "active_nav": active_nav,
             **context,
         },
     )
+    response.set_cookie(
+        ADMIN_CSRF_COOKIE,
+        csrf_token,
+        httponly=False,
+        secure=settings.auth_cookie_secure,
+        samesite="lax",
+    )
+
+    return response
 
 
 async def _load_admin_article(article_identifier: str) -> ArticleRead | None:

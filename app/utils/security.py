@@ -11,6 +11,7 @@ JWT_ALGORITHM = "HS256"
 PASSWORD_HASH_ALGORITHM = "pbkdf2_sha256"
 PASSWORD_HASH_ITERATIONS = 210_000
 PASSWORD_SALT_BYTES = 16
+CSRF_TOKEN_BYTES = 32
 
 
 class SecurityError(Exception):
@@ -118,6 +119,30 @@ def decode_access_token(token: str, secret_key: str) -> dict[str, Any]:
         raise TokenValidationError("Token has expired.")
 
     return payload
+
+
+def create_csrf_token(secret_key: str) -> str:
+    if not secret_key:
+        raise SecurityError("AUTH_SECRET_KEY must be configured.")
+
+    nonce = _base64url_encode(secrets.token_bytes(CSRF_TOKEN_BYTES))
+    signature = _sign(nonce, secret_key)
+
+    return f"{nonce}.{signature}"
+
+
+def verify_csrf_token(token: str, secret_key: str) -> bool:
+    if not secret_key:
+        raise SecurityError("AUTH_SECRET_KEY must be configured.")
+
+    try:
+        nonce, signature = token.split(".", 1)
+    except ValueError:
+        return False
+
+    expected_signature = _sign(nonce, secret_key)
+
+    return hmac.compare_digest(signature, expected_signature)
 
 
 def _sign(signing_input: str, secret_key: str) -> str:
