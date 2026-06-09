@@ -138,10 +138,10 @@
 
 ## Search Features
 - [x] Create search API
-- [ ] Create search page
-- [ ] Add article keyword search
-- [ ] Add category/tag filters
-- [ ] Add paginated search results
+- [x] Create search page
+- [x] Add article keyword search
+- [x] Add category/tag filters
+- [x] Add paginated search results
 
 ---
 

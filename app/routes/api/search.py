@@ -20,6 +20,8 @@ def get_public_search_service() -> SearchService:
 )
 async def search_articles(
     q: str = Query(min_length=2, max_length=120),
+    category: str | None = Query(default=None, max_length=120),
+    tag: str | None = Query(default=None, max_length=64),
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=12, ge=1, le=100),
     sort_by: ArticleSortField = Query(default="published_at"),
@@ -35,6 +37,8 @@ async def search_articles(
 
     query = SearchQueryParams(
         q=clean_query,
+        category=category,
+        tag=tag,
         page=page,
         per_page=per_page,
         sort_by=sort_by,

@@ -1,0 +1,155 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
+{% block meta_description %}Search {{ app_name }} articles by keyword, category, and tag.{% endblock %}
+
+{% block content %}
+<section class="search-page">
+  <div class="container">
+    {% include "components/breadcrumbs.html" %}
+
+    <header class="search-hero" data-reveal>
+      <div class="search-hero-copy">
+        <p class="eyebrow mb-3">Search desk</p>
+        <h1>Find the exact article lane.</h1>
+        <p>Search published articles, then narrow the result set with topic and tag filters.</p>
+      </div>
+
+      <div class="search-hero-stat" aria-label="Search result count">
+        <strong>{{ result_count }}</strong>
+        <span>{% if result_count == 1 %}result{% else %}results{% endif %}</span>
+      </div>
+    </header>
+
+    <section class="search-panel" aria-label="Search articles" data-reveal>
+      <form class="search-form" method="get" action="/search">
+        {% if active_category_slug %}
+          <input type="hidden" name="category" value="{{ active_category_slug }}">
+        {% endif %}
+        {% if active_tag_slug %}
+          <input type="hidden" name="tag" value="{{ active_tag_slug }}">
+        {% endif %}
+        <input type="hidden" name="sort" value="{{ sort_options|selectattr('is_active')|map(attribute='value')|first|default('newest') }}">
+
+        <label class="visually-hidden" for="searchQuery">Search articles</label>
+        <input
+          class="search-input"
+          id="searchQuery"
+          name="q"
+          type="search"
+          value="{{ raw_search_query }}"
+          placeholder="Search topics, workflows, or editorial problems"
+          autocomplete="off"
+        >
+        <button class="btn btn-primary search-submit" type="submit">Search</button>
+      </form>
+
+      <div class="search-controls" aria-label="Search filters">
+        <div class="search-filter-rails">
+          <div class="filter-group">
+            <span class="filter-label">Categories</span>
+            <div class="filter-scroll">
+              <a class="filter-chip {% if not active_category_slug %}is-active{% endif %}" href="/search?{% if search_query %}q={{ search_query|urlencode }}&{% endif %}{% if active_tag_slug %}tag={{ active_tag_slug }}&{% endif %}sort={{ sort_options|selectattr('is_active')|map(attribute='value')|first|default('newest') }}">All</a>
+              {% for item in category_filters %}
+                <a class="filter-chip {% if item.is_active %}is-active{% endif %}" href="{{ item.url }}">
+                  {{ item.name }}
+                  <span>{{ item.total }}</span>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Tags</span>
+            <div class="filter-scroll">
+              <a class="filter-chip {% if not active_tag_slug %}is-active{% endif %}" href="/search?{% if search_query %}q={{ search_query|urlencode }}&{% endif %}{% if active_category_slug %}category={{ active_category_slug }}&{% endif %}sort={{ sort_options|selectattr('is_active')|map(attribute='value')|first|default('newest') }}">All tags</a>
+              {% for item in tag_filters %}
+                <a class="filter-chip {% if item.is_active %}is-active{% endif %}" href="{{ item.url }}">
+                  {{ item.name }}
+                  <span>{{ item.total }}</span>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <form class="search-sort-form" method="get" action="/search">
+          {% if search_query %}
+            <input type="hidden" name="q" value="{{ search_query }}">
+          {% endif %}
+          {% if active_category_slug %}
+            <input type="hidden" name="category" value="{{ active_category_slug }}">
+          {% endif %}
+          {% if active_tag_slug %}
+            <input type="hidden" name="tag" value="{{ active_tag_slug }}">
+          {% endif %}
+
+          <div class="article-sort-field">
+            <label class="filter-select-label" for="searchSort">Sort</label>
+            <select class="form-select filter-select" id="searchSort" name="sort" onchange="this.form.submit()">
+              {% for item in sort_options %}
+                <option value="{{ item.value }}" {% if item.is_active %}selected{% endif %}>{{ item.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <div class="search-summary" data-reveal>
+      {% if has_search_query and not is_query_too_short %}
+        <p class="mb-0">
+          Showing results for <strong>{{ search_query }}</strong>
+          {% if active_category %} in <strong>{{ active_category }}</strong>{% endif %}
+          {% if active_tag %} tagged <strong>{{ active_tag }}</strong>{% endif %}
+          sorted by <strong>{{ active_sort }}</strong>.
+        </p>
+        {% if is_filter_active %}
+          <a href="/search?q={{ search_query|urlencode }}">Clear filters</a>
+        {% endif %}
+      {% elif is_query_too_short %}
+        <p class="mb-0">Enter at least two characters to search the article library.</p>
+      {% else %}
+        <p class="mb-0">Start with a keyword, then use category and tag filters to tighten the result set.</p>
+      {% endif %}
+    </div>
+
+    {% if not is_database_available %}
+      {% set empty_state_title = "Search is offline" %}
+      {% set empty_state_message = "The article database is not available right now. Try again after MongoDB is connected." %}
+      {% set empty_state_hints = ["MongoDB unavailable", "Search route is ready", "Sample data supported"] %}
+      {% include "components/empty_state.html" %}
+    {% elif is_query_too_short %}
+      {% set empty_state_title = "Search term is too short" %}
+      {% set empty_state_message = "Use at least two characters so the search index can return useful article matches." %}
+      {% set empty_state_hints = ["Minimum 2 characters", "Published articles only", "Filters stay ready"] %}
+      {% include "components/empty_state.html" %}
+    {% elif not has_search_query %}
+      {% set empty_state_title = "Search the article library" %}
+      {% set empty_state_message = "Enter a keyword above to search titles, excerpts, and article body copy." %}
+      {% set empty_state_hints = ["Keyword search", "Category filters", "Tag filters"] %}
+      {% include "components/empty_state.html" %}
+    {% elif articles %}
+      <section class="search-results-grid" aria-label="Search results" data-reveal>
+        {% for article in articles %}
+          <div class="article-index-item" data-reveal-child>
+            {% include "components/article_card.html" %}
+            <div class="article-card-meta">
+              <span>{{ article.author }}</span>
+              <span>{{ article.published_label }}</span>
+              <span>{{ article.views }} views</span>
+            </div>
+          </div>
+        {% endfor %}
+      </section>
+
+      {% include "components/pagination.html" %}
+    {% else %}
+      {% set empty_state_title = "No search results" %}
+      {% set empty_state_message = "Try a broader keyword or remove one of the active filters." %}
+      {% set empty_state_hints = ["Published only", "Filters active", "Text index ready"] %}
+      {% include "components/empty_state.html" %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
