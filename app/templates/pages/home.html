@@ -64,10 +64,11 @@
         <h2 id="categoryShowcaseTitle">Give every reader a clear path in.</h2>
       </div>
       <div class="category-showcase-grid">
-        {% for category in categories %}
-          <a class="category-showcase-item" href="/categories" data-reveal-child>
+        {% for category_item in category_links %}
+          {% set category = category_item.name %}
+          <a class="category-showcase-item" href="{{ category_item.url }}" data-reveal-child>
             {% include "components/category_pill.html" %}
-            <span>Browse {{ category|lower }} articles</span>
+            <span>Browse {{ category_item.name|lower }} articles</span>
           </a>
         {% endfor %}
       </div>
