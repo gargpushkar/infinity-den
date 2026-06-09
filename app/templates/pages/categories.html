@@ -1,0 +1,60 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
+{% block meta_description %}Browse {{ app_name }} topic hubs by category and explore published article collections.{% endblock %}
+
+{% block content %}
+<section class="category-index">
+  <div class="container">
+    {% include "components/breadcrumbs.html" %}
+
+    <header class="category-index-header" data-reveal>
+      <div>
+        <p class="eyebrow mb-3">Topic hubs</p>
+        <h1>Choose a lane before you start reading.</h1>
+      </div>
+      <div class="category-index-stats" aria-label="Category summary">
+        <div class="category-index-stat">
+          <strong>{{ category_count }}</strong>
+          <span>categories</span>
+        </div>
+        <div class="category-index-stat">
+          <strong>{{ total_published_articles }}</strong>
+          <span>published articles</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="category-index-summary" data-reveal>
+      <p class="mb-0">Browse editorial lanes and jump into the article collections behind each topic.</p>
+      <a href="/articles">View all articles</a>
+    </div>
+
+    {% if not is_database_available %}
+      {% set empty_state_eyebrow = "Categories unavailable" %}
+      {% set empty_state_title = "Topic hubs are offline" %}
+      {% set empty_state_message = "The category database is not available right now. Try again after MongoDB is connected." %}
+      {% set empty_state_hints = ["MongoDB unavailable", "Public route is ready", "Category API supported"] %}
+      {% include "components/empty_state.html" %}
+    {% elif category_cards %}
+      <section class="category-index-grid" aria-label="Categories" data-reveal>
+        {% for category in category_cards %}
+          <div class="category-index-item" data-reveal-child>
+            {% include "components/category_card.html" %}
+          </div>
+        {% endfor %}
+      </section>
+
+      {% include "components/pagination.html" %}
+    {% else %}
+      {% set empty_state_eyebrow = "No topic hubs" %}
+      {% set empty_state_title = "No categories found" %}
+      {% set empty_state_message = "Create categories through the category API to start organizing published articles." %}
+      {% set empty_state_action_label = "View articles" %}
+      {% set empty_state_action_href = "/articles" %}
+      {% set empty_state_hints = ["Reusable cards ready", "Pagination ready", "Article counts ready"] %}
+      {% include "components/empty_state.html" %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

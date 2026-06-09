@@ -1,0 +1,23 @@
+{% set category_name = category.name|default("Category", true) %}
+{% set category_description = category.description|default("", true) %}
+{% set category_image = category.image|default("/static/images/articles/editorial-default.svg", true) %}
+{% set category_image_alt = category.image_alt|default(category_name, true) %}
+{% set category_articles_url = category.articles_url|default("/articles", true) %}
+{% set category_article_count = category.article_count_label|default("0 articles", true) %}
+
+<article class="category-card">
+  <a class="category-card-media" href="{{ category_articles_url }}" aria-label="Browse {{ category_name }} articles">
+    <img src="{{ category_image }}" alt="{{ category_image_alt }}" loading="lazy">
+  </a>
+
+  <div class="category-card-body">
+    <div class="category-card-topline">
+      <span>{{ category_article_count }}</span>
+    </div>
+    <h2>
+      <a href="{{ category_articles_url }}">{{ category_name }}</a>
+    </h2>
+    <p>{{ category_description }}</p>
+    <a class="read-link" href="{{ category_articles_url }}">Browse articles</a>
+  </div>
+</article>
