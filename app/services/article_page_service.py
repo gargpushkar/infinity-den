@@ -12,6 +12,7 @@ from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION
 from app.schemas.article import ArticleQueryParams, ArticleRead
 from app.services.article_service import ArticleService
+from app.utils.reading_time import calculate_reading_time
 
 
 ARTICLE_LISTING_PER_PAGE = 6
@@ -246,7 +247,7 @@ def _article_to_card(
     category_lookup: dict[str, str],
 ) -> dict[str, Any]:
     published_at = _format_date(article.published_at)
-    read_time = max(1, round(len(article.content.split()) / 220))
+    reading_time = calculate_reading_time(article.content)
 
     return {
         "title": article.title,
@@ -259,7 +260,10 @@ def _article_to_card(
             if article.category_id
             else "/articles"
         ),
-        "read_time": f"{read_time} min read",
+        "read_time": reading_time.label,
+        "read_time_minutes": reading_time.minutes,
+        "word_count": reading_time.word_count,
+        "word_count_label": _format_word_count(reading_time.word_count),
         "cover_image": article.cover_image or "/static/images/articles/editorial-default.svg",
         "image_alt": article.title,
         "author": article.author,
@@ -367,6 +371,13 @@ def _format_date(value: datetime | None) -> str:
         return "Draft"
 
     return f"{value:%b} {value.day}, {value:%Y}"
+
+
+def _format_word_count(word_count: int) -> str:
+    if word_count == 1:
+        return "1 word"
+
+    return f"{word_count:,} words"
 
 
 def _empty_listing_context() -> dict[str, Any]:

@@ -29,7 +29,10 @@
         <div class="article-detail-meta" aria-label="Article metadata">
           <span>{{ article.author }}</span>
           <time datetime="{{ article.published_iso }}">{{ article.published_label }}</time>
-          <span>{{ article.read_time }}</span>
+          <span
+            aria-label="{{ article.read_time }} based on {{ article.word_count_label }}"
+            title="{{ article.word_count_label }}"
+          >{{ article.read_time }}</span>
           <span>{{ article.views }} views</span>
         </div>
       </div>

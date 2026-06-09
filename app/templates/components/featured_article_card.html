@@ -3,6 +3,7 @@
 {% set article_excerpt = article.excerpt|default("", true) %}
 {% set article_category = article.category|default("Featured", true) %}
 {% set article_read_time = article.read_time|default("5 min read", true) %}
+{% set article_word_count = article.word_count_label|default("", true) %}
 {% set article_image = article.cover_image|default(article.image|default("/static/images/articles/editorial-default.svg", true), true) %}
 {% set article_image_alt = article.image_alt|default(article_title, true) %}
 
@@ -22,7 +23,11 @@
       <div class="featured-article-body">
         <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
           {% include "components/category_badge.html" %}
-          <span class="article-read-time text-secondary small fw-semibold">{{ article_read_time }}</span>
+          <span
+            class="article-read-time text-secondary small fw-semibold"
+            {% if article_word_count %}aria-label="{{ article_read_time }} based on {{ article_word_count }}"{% endif %}
+            {% if article_word_count %}title="{{ article_word_count }}"{% endif %}
+          >{{ article_read_time }}</span>
         </div>
 
         <h3>
