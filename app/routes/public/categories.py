@@ -19,8 +19,16 @@ templates = Jinja2Templates(directory="app/templates")
 async def category_listing(
     request: Request,
     page: int = Query(default=1, ge=1),
+    search: str | None = Query(default=None, max_length=120),
+    article_state: str = Query(default="all", max_length=20),
+    sort: str = Query(default="name_asc", max_length=40),
 ):
-    listing_context = await get_category_listing_context(page=page)
+    listing_context = await get_category_listing_context(
+        page=page,
+        search=search,
+        article_state=article_state,
+        sort=sort,
+    )
 
     return templates.TemplateResponse(
         request,

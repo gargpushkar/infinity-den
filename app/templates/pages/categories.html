@@ -26,8 +26,19 @@
     </header>
 
     <div class="category-index-summary" data-reveal>
-      <p class="mb-0">Browse editorial lanes and jump into the article collections behind each topic.</p>
-      <a href="/articles">View all articles</a>
+      {% if is_category_filter_active %}
+        <p class="mb-0">
+          Showing <strong>{{ category_count }}</strong> category hubs
+          {% if active_search %}matching <strong>{{ active_search }}</strong>{% endif %}
+          {% if active_article_state == "active" %}with <strong>published articles</strong>{% endif %}
+          {% if active_article_state == "empty" %}with <strong>no published articles</strong>{% endif %}
+          sorted by <strong>{{ active_sort }}</strong>.
+        </p>
+        <a href="/categories">Clear filters</a>
+      {% else %}
+        <p class="mb-0">Browse editorial lanes and jump into the article collections behind each topic.</p>
+        <a href="/articles">View all articles</a>
+      {% endif %}
     </div>
 
     {% if not is_database_available %}
@@ -36,7 +47,51 @@
       {% set empty_state_message = "The category database is not available right now. Try again after MongoDB is connected." %}
       {% set empty_state_hints = ["MongoDB unavailable", "Public route is ready", "Category API supported"] %}
       {% include "components/empty_state.html" %}
-    {% elif category_cards %}
+    {% else %}
+      <section class="category-index-controls" aria-label="Category filters" data-reveal>
+        <div class="filter-group">
+          <span class="filter-label">Article coverage</span>
+          <div class="filter-scroll">
+            {% for item in article_state_filters %}
+              <a class="filter-chip {% if item.is_active %}is-active{% endif %}" href="{{ item.url }}">
+                {{ item.label }}
+                <span>{{ item.count }}</span>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+
+        <form class="category-filter-form" method="get" action="/categories">
+          {% if active_article_state != "all" %}
+            <input type="hidden" name="article_state" value="{{ active_article_state }}">
+          {% endif %}
+          <div class="category-filter-field category-search-field">
+            <label class="filter-select-label" for="categorySearch">Search</label>
+            <input
+              class="form-control filter-search-input"
+              id="categorySearch"
+              name="search"
+              type="search"
+              value="{{ active_search }}"
+              placeholder="Search categories"
+            >
+          </div>
+
+          <div class="category-filter-field">
+            <label class="filter-select-label" for="categorySort">Sort</label>
+            <select class="form-select filter-select" id="categorySort" name="sort" onchange="this.form.submit()">
+              {% for item in sort_options %}
+                <option value="{{ item.value }}" {% if item.is_active %}selected{% endif %}>{{ item.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <button class="btn btn-primary category-filter-submit" type="submit">Apply</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if is_database_available and category_cards %}
       <section class="category-index-grid" aria-label="Categories" data-reveal>
         {% for category in category_cards %}
           <div class="category-index-item" data-reveal-child>
@@ -46,12 +101,18 @@
       </section>
 
       {% include "components/pagination.html" %}
-    {% else %}
+    {% elif is_database_available %}
       {% set empty_state_eyebrow = "No topic hubs" %}
       {% set empty_state_title = "No categories found" %}
-      {% set empty_state_message = "Create categories through the category API to start organizing published articles." %}
-      {% set empty_state_action_label = "View articles" %}
-      {% set empty_state_action_href = "/articles" %}
+      {% if is_category_filter_active %}
+        {% set empty_state_message = "No category hubs match the current filters." %}
+        {% set empty_state_action_label = "Clear filters" %}
+        {% set empty_state_action_href = "/categories" %}
+      {% else %}
+        {% set empty_state_message = "Create categories through the category API to start organizing published articles." %}
+        {% set empty_state_action_label = "View articles" %}
+        {% set empty_state_action_href = "/articles" %}
+      {% endif %}
       {% set empty_state_hints = ["Reusable cards ready", "Pagination ready", "Article counts ready"] %}
       {% include "components/empty_state.html" %}
     {% endif %}
