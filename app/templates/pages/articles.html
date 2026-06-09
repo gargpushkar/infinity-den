@@ -20,18 +20,35 @@
     </header>
 
     <section class="article-index-controls" aria-label="Article filters" data-reveal>
-      <div class="filter-group">
-        <span class="filter-label">Categories</span>
-        <div class="filter-scroll">
-          <a class="filter-chip {% if not active_category %}is-active{% endif %}" href="/articles?sort={{ sort_options|selectattr('is_active')|map(attribute='value')|first|default('newest') }}">All</a>
-          {% for item in category_filters %}
-            <a class="filter-chip {% if item.is_active %}is-active{% endif %}" href="/articles?category={{ item.slug }}&sort={{ sort_options|selectattr('is_active')|map(attribute='value')|first|default('newest') }}">
-              {{ item.name }}
-              {% if item.total is defined %}
-                <span>{{ item.total }}</span>
-              {% endif %}
-            </a>
-          {% endfor %}
+      <div class="article-filter-rails">
+        <div class="filter-group">
+          <span class="filter-label">Categories</span>
+          <div class="filter-scroll">
+            <a class="filter-chip {% if not active_category %}is-active{% endif %}" href="/articles?{% if active_tag_slug %}tag={{ active_tag_slug }}&{% endif %}sort={{ sort_options|selectattr('is_active')|map(attribute='value')|first|default('newest') }}">All</a>
+            {% for item in category_filters %}
+              <a class="filter-chip {% if item.is_active %}is-active{% endif %}" href="{{ item.url }}">
+                {{ item.name }}
+                {% if item.total is defined %}
+                  <span>{{ item.total }}</span>
+                {% endif %}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">Tags</span>
+          <div class="filter-scroll">
+            <a class="filter-chip {% if not active_tag %}is-active{% endif %}" href="/articles?{% if category_filters|selectattr('is_active')|list %}category={{ category_filters|selectattr('is_active')|map(attribute='slug')|first }}&{% endif %}sort={{ sort_options|selectattr('is_active')|map(attribute='value')|first|default('newest') }}">All tags</a>
+            {% for item in tag_filters %}
+              <a class="filter-chip {% if item.is_active %}is-active{% endif %}" href="{{ item.url }}">
+                {{ item.name }}
+                {% if item.total is defined %}
+                  <span>{{ item.total }}</span>
+                {% endif %}
+              </a>
+            {% endfor %}
+          </div>
         </div>
       </div>
 
@@ -39,20 +56,18 @@
         {% if category_filters|selectattr('is_active')|list %}
           <input type="hidden" name="category" value="{{ category_filters|selectattr('is_active')|map(attribute='slug')|first }}">
         {% endif %}
-        <label class="filter-select-label" for="tagFilter">Tag</label>
-        <select class="form-select filter-select" id="tagFilter" name="tag" onchange="this.form.submit()">
-          <option value="">All tags</option>
-          {% for item in tag_filters %}
-            <option value="{{ item.value }}" {% if item.is_active %}selected{% endif %}>{{ item.name }}</option>
-          {% endfor %}
-        </select>
+        {% if active_tag_slug %}
+          <input type="hidden" name="tag" value="{{ active_tag_slug }}">
+        {% endif %}
 
-        <label class="filter-select-label" for="sortFilter">Sort</label>
-        <select class="form-select filter-select" id="sortFilter" name="sort" onchange="this.form.submit()">
-          {% for item in sort_options %}
-            <option value="{{ item.value }}" {% if item.is_active %}selected{% endif %}>{{ item.label }}</option>
-          {% endfor %}
-        </select>
+        <div class="article-sort-field">
+          <label class="filter-select-label" for="sortFilter">Sort</label>
+          <select class="form-select filter-select" id="sortFilter" name="sort" onchange="this.form.submit()">
+            {% for item in sort_options %}
+              <option value="{{ item.value }}" {% if item.is_active %}selected{% endif %}>{{ item.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
       </form>
     </section>
 
@@ -72,9 +87,9 @@
     </div>
 
     {% if not is_database_available %}
-      {% set empty_title = "Articles are offline" %}
-      {% set empty_message = "The article database is not available right now. Try again after MongoDB is connected." %}
-      {% set empty_hints = ["MongoDB unavailable", "Public route is ready", "Seed data supported"] %}
+      {% set empty_state_title = "Articles are offline" %}
+      {% set empty_state_message = "The article database is not available right now. Try again after MongoDB is connected." %}
+      {% set empty_state_hints = ["MongoDB unavailable", "Public route is ready", "Seed data supported"] %}
       {% include "components/empty_state.html" %}
     {% elif articles %}
       <section class="article-index-grid" aria-label="Articles" data-reveal>
@@ -92,9 +107,9 @@
 
       {% include "components/pagination.html" %}
     {% else %}
-      {% set empty_title = "No articles found" %}
-      {% set empty_message = "Try another category, tag, or sort option to bring more stories back into view." %}
-      {% set empty_hints = ["Published only", "Filters active", "Sample data ready"] %}
+      {% set empty_state_title = "No articles found" %}
+      {% set empty_state_message = "Try another category, tag, or sort option to bring more stories back into view." %}
+      {% set empty_state_hints = ["Published only", "Filters active", "Sample data ready"] %}
       {% include "components/empty_state.html" %}
     {% endif %}
   </div>

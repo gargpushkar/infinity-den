@@ -1255,6 +1255,12 @@ button:focus-visible,
   max-width: 68rem;
 }
 
+.article-filter-rails {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
 .filter-group {
   min-width: 0;
 }
@@ -1315,7 +1321,11 @@ button:focus-visible,
   align-items: end;
   display: grid;
   gap: 0.75rem;
-  grid-template-columns: minmax(9rem, 11rem) minmax(9rem, 11rem);
+  grid-template-columns: minmax(9rem, 11rem);
+}
+
+.article-sort-field {
+  min-width: 0;
 }
 
 .filter-select {
