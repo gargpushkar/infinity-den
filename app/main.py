@@ -11,6 +11,7 @@ from app.database.indexes import create_indexes
 from app.database.mongodb import close_mongo_connection, connect_to_mongo
 from app.middleware.exception_handlers import register_exception_handlers
 from app.routes.api.articles import router as articles_router
+from app.routes.api.categories import router as categories_router
 from app.routes.api.health import router as health_router
 from app.routes.public.articles import router as public_articles_router
 from app.routes.public.home import router as home_router
@@ -51,6 +52,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 register_exception_handlers(app)
 app.include_router(articles_router)
+app.include_router(categories_router)
 app.include_router(health_router)
 app.include_router(public_articles_router)
 app.include_router(home_router)
