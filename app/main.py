@@ -13,6 +13,7 @@ from app.middleware.exception_handlers import register_exception_handlers
 from app.routes.api.articles import router as articles_router
 from app.routes.api.categories import router as categories_router
 from app.routes.api.health import router as health_router
+from app.routes.api.newsletter import router as newsletter_router
 from app.routes.api.search import router as search_router
 from app.routes.api.tags import router as tags_router
 from app.routes.public.articles import router as public_articles_router
@@ -58,6 +59,7 @@ register_exception_handlers(app)
 app.include_router(articles_router)
 app.include_router(categories_router)
 app.include_router(health_router)
+app.include_router(newsletter_router)
 app.include_router(search_router)
 app.include_router(tags_router)
 app.include_router(public_articles_router)

@@ -148,11 +148,11 @@
 # NEWSLETTER SYSTEM
 
 ## Newsletter
-- [ ] Create newsletter schema
-- [ ] Create newsletter API
-- [ ] Create newsletter subscription form
-- [ ] Add email validation
-- [ ] Prevent duplicate subscriptions
+- [x] Create newsletter schema
+- [x] Create newsletter API
+- [x] Create newsletter subscription form
+- [x] Add email validation
+- [x] Prevent duplicate subscriptions
 
 ---
 

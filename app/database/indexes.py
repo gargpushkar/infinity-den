@@ -4,6 +4,7 @@ from pymongo import ASCENDING, DESCENDING, TEXT
 from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION
 from app.models.category import CATEGORY_COLLECTION
+from app.models.newsletter import NEWSLETTER_SUBSCRIBER_COLLECTION
 from app.models.tag import TAG_COLLECTION
 
 
@@ -14,7 +15,10 @@ async def create_indexes() -> None:
 
     await db[CATEGORY_COLLECTION].create_index([("slug", ASCENDING)], unique=True)
     await db[TAG_COLLECTION].create_index([("slug", ASCENDING)], unique=True)
-    await db.newsletter_subscribers.create_index([("email", ASCENDING)], unique=True)
+    await db[NEWSLETTER_SUBSCRIBER_COLLECTION].create_index(
+        [("email", ASCENDING)],
+        unique=True,
+    )
 
 
 async def _create_article_indexes(db: AsyncIOMotorDatabase) -> None:
