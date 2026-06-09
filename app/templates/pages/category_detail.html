@@ -1,0 +1,69 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ category.seo_title }} | {{ app_name }}{% endblock %}
+{% block meta_description %}{{ category.seo_description }}{% endblock %}
+
+{% block content %}
+<section class="category-detail">
+  <div class="container">
+    {% include "components/breadcrumbs.html" %}
+
+    <header class="category-detail-hero" data-reveal>
+      <div class="category-detail-copy">
+        <p class="eyebrow mb-3">Topic hub</p>
+        <h1>{{ category.name }}</h1>
+        <p class="category-detail-dek">{{ category.description }}</p>
+        <div class="category-detail-meta" aria-label="Category metadata">
+          <span>{{ category.article_count_label }}</span>
+          <span>Newest articles first</span>
+        </div>
+        <div class="category-detail-actions">
+          <a class="btn btn-primary px-4" href="{{ category.articles_url }}">Filtered articles</a>
+          <a class="btn btn-outline-primary px-4" href="/categories">All categories</a>
+        </div>
+      </div>
+
+      <figure class="category-detail-media">
+        <img src="{{ category.image }}" alt="{{ category.image_alt }}" loading="eager">
+      </figure>
+    </header>
+
+    <section class="category-detail-articles" aria-labelledby="categoryArticlesTitle" data-reveal>
+      <div class="section-heading section-heading-split">
+        <div>
+          <p class="eyebrow mb-2">Latest in {{ category.name }}</p>
+          <h2 id="categoryArticlesTitle">Articles in this lane</h2>
+        </div>
+        <a class="section-link" href="/articles">View all articles</a>
+      </div>
+
+      {% if articles %}
+        <div class="category-detail-grid">
+          {% for article in articles %}
+            <div class="category-detail-item" data-reveal-child>
+              {% include "components/article_card.html" %}
+              <div class="article-card-meta">
+                <span>{{ article.author }}</span>
+                <span>{{ article.published_label }}</span>
+                <span>{{ article.views }} views</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        {% include "components/pagination.html" %}
+      {% else %}
+        {% set empty_state_eyebrow = "No articles yet" %}
+        {% set empty_state_title = "This category is ready for its first story" %}
+        {% set empty_state_message = "Published articles assigned to this category will appear here automatically." %}
+        {% set empty_state_action_label = "View all articles" %}
+        {% set empty_state_action_href = "/articles" %}
+        {% set empty_state_secondary_label = "All categories" %}
+        {% set empty_state_secondary_href = "/categories" %}
+        {% set empty_state_hints = ["Category exists", "Public page ready", "Pagination ready"] %}
+        {% include "components/empty_state.html" %}
+      {% endif %}
+    </section>
+  </div>
+</section>
+{% endblock %}
