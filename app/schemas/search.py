@@ -17,6 +17,8 @@ def _as_optional_string(value: Any) -> str | None:
 
 class SearchQueryParams(BaseModel):
     q: str = Field(min_length=2, max_length=120)
+    category: str | None = Field(default=None, max_length=120)
+    tag: str | None = Field(default=None, max_length=64)
     page: int = Field(default=1, ge=1)
     per_page: int = Field(default=12, ge=1, le=100)
     sort_by: ArticleSortField = "published_at"
@@ -26,6 +28,11 @@ class SearchQueryParams(BaseModel):
     @classmethod
     def normalize_query(cls, value: Any) -> str:
         return _as_optional_string(value) or ""
+
+    @field_validator("category", "tag", mode="before")
+    @classmethod
+    def normalize_optional_filters(cls, value: Any) -> str | None:
+        return _as_optional_string(value)
 
 
 class SearchArticleResult(BaseModel):
@@ -58,6 +65,8 @@ class SearchArticleResult(BaseModel):
 
 class SearchResponse(BaseModel):
     query: str
+    category: str | None = None
+    tag: str | None = None
     items: list[SearchArticleResult]
     total: int = Field(ge=0)
     page: int = Field(ge=1)

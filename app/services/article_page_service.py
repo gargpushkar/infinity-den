@@ -336,8 +336,9 @@ def _article_to_card(
 def article_to_card_context(
     article: ArticleRead,
     category_lookup: dict[str, str],
+    tag_lookup: dict[str, str] | None = None,
 ) -> dict[str, Any]:
-    return _article_to_card(article, category_lookup)
+    return _article_to_card(article, category_lookup, tag_lookup)
 
 
 def _article_to_detail(
