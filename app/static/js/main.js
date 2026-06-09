@@ -352,6 +352,474 @@ document.addEventListener("DOMContentLoaded", () => {
     }).format(date);
   };
 
+  const splitAdminTags = (value) =>
+    String(value || "")
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+      .filter((tag, index, tags) => (
+        tags.findIndex((candidate) => candidate.toLowerCase() === tag.toLowerCase()) ===
+        index
+      ));
+
+  const escapeHtml = (value) =>
+    String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
+  const renderInlineMarkdown = (value) => {
+    let html = escapeHtml(value);
+    html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+    html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    html = html.replace(/_([^_]+)_/g, "<em>$1</em>");
+    html = html.replace(
+      /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>',
+    );
+    return html;
+  };
+
+  const renderMarkdownPreview = (value) => {
+    const lines = String(value || "").split(/\r?\n/);
+    const html = [];
+    let listItems = [];
+
+    const flushList = () => {
+      if (!listItems.length) {
+        return;
+      }
+      html.push(`<ul>${listItems.map((item) => `<li>${item}</li>`).join("")}</ul>`);
+      listItems = [];
+    };
+
+    lines.forEach((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        flushList();
+        return;
+      }
+
+      if (trimmed.startsWith("- ")) {
+        listItems.push(renderInlineMarkdown(trimmed.slice(2)));
+        return;
+      }
+
+      flushList();
+      if (trimmed.startsWith("### ")) {
+        html.push(`<h3>${renderInlineMarkdown(trimmed.slice(4))}</h3>`);
+        return;
+      }
+      if (trimmed.startsWith("## ")) {
+        html.push(`<h2>${renderInlineMarkdown(trimmed.slice(3))}</h2>`);
+        return;
+      }
+      if (trimmed.startsWith("> ")) {
+        html.push(`<blockquote>${renderInlineMarkdown(trimmed.slice(2))}</blockquote>`);
+        return;
+      }
+      html.push(`<p>${renderInlineMarkdown(trimmed)}</p>`);
+    });
+    flushList();
+
+    return html.join("") || '<p class="admin-empty">Preview will appear here.</p>';
+  };
+
+  const insertMarkdown = (textarea, action) => {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const value = textarea.value;
+    const selected = value.slice(start, end);
+    let nextText = selected;
+    let selectionOffset = 0;
+
+    if (action === "bold") {
+      nextText = `**${selected || "bold text"}**`;
+      selectionOffset = selected ? nextText.length : 2;
+    }
+    if (action === "italic") {
+      nextText = `_${selected || "italic text"}_`;
+      selectionOffset = selected ? nextText.length : 1;
+    }
+    if (action === "link") {
+      nextText = `[${selected || "link text"}](https://example.com)`;
+      selectionOffset = selected ? nextText.length : 1;
+    }
+    if (action === "heading") {
+      nextText = selected
+        ? selected
+            .split(/\r?\n/)
+            .map((line) => `## ${line}`)
+            .join("\n")
+        : "## Heading";
+      selectionOffset = nextText.length;
+    }
+    if (action === "quote") {
+      nextText = selected
+        ? selected
+            .split(/\r?\n/)
+            .map((line) => `> ${line}`)
+            .join("\n")
+        : "> Quote";
+      selectionOffset = nextText.length;
+    }
+    if (action === "list") {
+      nextText = selected
+        ? selected
+            .split(/\r?\n/)
+            .map((line) => `- ${line}`)
+            .join("\n")
+        : "- List item";
+      selectionOffset = nextText.length;
+    }
+
+    textarea.value = `${value.slice(0, start)}${nextText}${value.slice(end)}`;
+    textarea.focus();
+    if (selected) {
+      textarea.setSelectionRange(start, start + nextText.length);
+    } else {
+      textarea.setSelectionRange(start + selectionOffset, start + nextText.length);
+    }
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  };
+
+  const serializeArticleEditorDraft = (form) => {
+    const data = {};
+    form.querySelectorAll("input[name], textarea[name], select[name]").forEach((field) => {
+      if (field.type === "checkbox") {
+        data[field.name] = field.checked;
+        return;
+      }
+      data[field.name] = field.value;
+    });
+    return data;
+  };
+
+  const applyArticleEditorDraft = (form, data) => {
+    Object.entries(data || {}).forEach(([name, value]) => {
+      const field = Array.from(form.querySelectorAll("input[name], textarea[name], select[name]"))
+        .find((candidate) => candidate.name === name);
+      if (!field) {
+        return;
+      }
+      if (field.type === "checkbox") {
+        field.checked = Boolean(value);
+        return;
+      }
+      field.value = value || "";
+    });
+    form.dispatchEvent(new CustomEvent("admin:editor-draft-applied"));
+  };
+
+  const setupAdminValidationSummary = (form) => {
+    const summary = form.querySelector("[data-admin-validation-summary]");
+    const list = summary?.querySelector("ul");
+
+    const clear = () => {
+      if (!summary || !list) {
+        return;
+      }
+      list.innerHTML = "";
+      summary.hidden = true;
+    };
+
+    const show = (messages) => {
+      if (!summary || !list || !messages.length) {
+        return;
+      }
+      list.innerHTML = messages.map((message) => `<li>${escapeHtml(message)}</li>`).join("");
+      summary.hidden = false;
+    };
+
+    return { clear, show };
+  };
+
+  const fieldLabel = (field) => {
+    const id = field.getAttribute("id");
+    if (!id) {
+      return field.name || "Field";
+    }
+    return Array.from(document.querySelectorAll("label"))
+      .find((label) => label.getAttribute("for") === id)
+      ?.textContent || field.name;
+  };
+
+  const collectArticleValidationMessages = (form) => {
+    const messages = [];
+    form.querySelectorAll("input[name], textarea[name], select[name]").forEach((field) => {
+      if (field.type === "hidden" || field.checkValidity()) {
+        return;
+      }
+
+      const label = fieldLabel(field);
+      if (field.validity.valueMissing) {
+        messages.push(`${label} is required.`);
+        return;
+      }
+      if (field.validity.tooShort) {
+        messages.push(`${label} is too short.`);
+        return;
+      }
+      if (field.validity.tooLong) {
+        messages.push(`${label} is too long.`);
+        return;
+      }
+      if (field.validity.patternMismatch) {
+        messages.push(`${label} has an invalid format.`);
+        return;
+      }
+      messages.push(`${label} needs attention.`);
+    });
+
+    const tags = splitAdminTags(form.querySelector("[data-admin-tags-value]")?.value);
+    if (tags.length > 20) {
+      messages.push("Tags must be limited to 20 items.");
+    }
+
+    return messages;
+  };
+
+  const setupAdminTagEditor = (form) => {
+    const hiddenInput = form.querySelector("[data-admin-tags-value]");
+    const tagInput = form.querySelector("[data-admin-tag-input]");
+    const tagList = form.querySelector("[data-admin-tag-list]");
+    if (!hiddenInput || !tagInput || !tagList) {
+      return { sync: () => splitAdminTags(hiddenInput?.value) };
+    }
+
+    let tags = splitAdminTags(hiddenInput.value);
+
+    const sync = () => {
+      hiddenInput.value = tags.join(", ");
+      hiddenInput.dispatchEvent(new Event("input", { bubbles: true }));
+      return tags;
+    };
+
+    const render = () => {
+      tagList.innerHTML = tags
+        .map(
+          (tag) => `
+            <span class="admin-tag-chip">
+              ${escapeHtml(tag)}
+              <button type="button" data-admin-remove-tag="${escapeHtml(tag)}" aria-label="Remove ${escapeHtml(tag)}">x</button>
+            </span>
+          `,
+        )
+        .join("");
+      sync();
+    };
+
+    const addTag = (value) => {
+      const cleanTag = String(value || "").trim();
+      if (!cleanTag || cleanTag.length > 64 || tags.length >= 20) {
+        return;
+      }
+      if (tags.some((tag) => tag.toLowerCase() === cleanTag.toLowerCase())) {
+        return;
+      }
+      tags.push(cleanTag);
+      tagInput.value = "";
+      render();
+    };
+
+    tagInput.addEventListener("keydown", (event) => {
+      if (!["Enter", ","].includes(event.key)) {
+        return;
+      }
+      event.preventDefault();
+      addTag(tagInput.value);
+    });
+
+    tagInput.addEventListener("blur", () => addTag(tagInput.value));
+
+    tagList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-admin-remove-tag]");
+      if (!button) {
+        return;
+      }
+      tags = tags.filter((tag) => tag !== button.getAttribute("data-admin-remove-tag"));
+      render();
+    });
+
+    form.addEventListener("admin:editor-draft-applied", () => {
+      tags = splitAdminTags(hiddenInput.value);
+      render();
+    });
+
+    render();
+    return { sync };
+  };
+
+  const setupAdminCategorySelector = (form) => {
+    const filter = form.querySelector("[data-admin-category-filter]");
+    const select = form.querySelector("select[name='category_id']");
+    const note = form.querySelector("[data-admin-category-note]");
+    if (!select) {
+      return;
+    }
+
+    const updateNote = () => {
+      if (!note) {
+        return;
+      }
+      const option = select.selectedOptions[0];
+      const name = option?.getAttribute("data-category-name") || option?.textContent || "Uncategorized";
+      const description = option?.getAttribute("data-category-description") || "";
+      note.textContent = description ? `${name}: ${description}` : name.trim();
+    };
+
+    filter?.addEventListener("input", () => {
+      const query = filter.value.trim().toLowerCase();
+      Array.from(select.options).forEach((option) => {
+        const text = `${option.textContent || ""} ${option.getAttribute("data-category-description") || ""}`.toLowerCase();
+        option.hidden = Boolean(query) && !text.includes(query);
+      });
+    });
+
+    select.addEventListener("change", updateNote);
+    form.addEventListener("admin:editor-draft-applied", updateNote);
+    updateNote();
+  };
+
+  const setupAdminMarkdownEditor = (form) => {
+    const textarea = form.querySelector("textarea[name='content']");
+    const preview = form.querySelector("[data-admin-editor-pane='preview']");
+    const modeLabel = form.querySelector("[data-admin-editor-mode-label]");
+    if (!textarea || !preview) {
+      return;
+    }
+
+    const updatePreview = () => {
+      preview.innerHTML = renderMarkdownPreview(textarea.value);
+    };
+
+    form.querySelectorAll("[data-markdown-action]").forEach((button) => {
+      button.addEventListener("click", () => {
+        insertMarkdown(textarea, button.getAttribute("data-markdown-action"));
+        updatePreview();
+      });
+    });
+
+    form.querySelectorAll("[data-admin-editor-tab]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const nextView = button.getAttribute("data-admin-editor-tab");
+        form.querySelectorAll("[data-admin-editor-tab]").forEach((tab) => {
+          const isActive = tab === button;
+          tab.classList.toggle("is-active", isActive);
+          tab.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+        form.querySelectorAll("[data-admin-editor-pane]").forEach((pane) => {
+          const isActive = pane.getAttribute("data-admin-editor-pane") === nextView;
+          pane.classList.toggle("is-active", isActive);
+          pane.hidden = !isActive;
+        });
+        if (modeLabel) {
+          modeLabel.textContent = nextView === "preview" ? "Previewing" : "Writing";
+        }
+        if (nextView === "preview") {
+          updatePreview();
+        }
+      });
+    });
+
+    textarea.addEventListener("input", updatePreview);
+    form.addEventListener("admin:editor-draft-applied", updatePreview);
+    updatePreview();
+  };
+
+  const setupArticleAutosave = (form) => {
+    const key = form.getAttribute("data-autosave-key");
+    const status = form.querySelector("[data-admin-autosave-status]");
+    const restoreButton = form.querySelector("[data-admin-autosave-restore]");
+    const discardButton = form.querySelector("[data-admin-autosave-discard]");
+    if (!key || !window.localStorage) {
+      return {
+        markSaved: () => {},
+        markDirty: () => {},
+        isDirty: () => false,
+      };
+    }
+
+    let dirty = false;
+    let lastSavedSnapshot = JSON.stringify(serializeArticleEditorDraft(form));
+
+    const setStatus = (text) => {
+      if (status) {
+        status.textContent = text;
+      }
+    };
+
+    const storedDraft = window.localStorage.getItem(key);
+    if (storedDraft) {
+      restoreButton.hidden = false;
+      discardButton.hidden = false;
+      setStatus("Autosaved draft available");
+    }
+
+    const markDirty = () => {
+      dirty = JSON.stringify(serializeArticleEditorDraft(form)) !== lastSavedSnapshot;
+    };
+
+    const saveDraft = () => {
+      if (!dirty) {
+        return;
+      }
+      const payload = {
+        saved_at: new Date().toISOString(),
+        fields: serializeArticleEditorDraft(form),
+      };
+      window.localStorage.setItem(key, JSON.stringify(payload));
+      const time = new Intl.DateTimeFormat("en", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(new Date());
+      setStatus(`Autosaved ${time}`);
+    };
+
+    const markSaved = () => {
+      dirty = false;
+      lastSavedSnapshot = JSON.stringify(serializeArticleEditorDraft(form));
+      window.localStorage.removeItem(key);
+      restoreButton.hidden = true;
+      discardButton.hidden = true;
+      setStatus("Saved");
+    };
+
+    form.addEventListener("input", markDirty);
+    form.addEventListener("change", markDirty);
+    window.setInterval(saveDraft, 1800);
+
+    restoreButton?.addEventListener("click", () => {
+      const draft = JSON.parse(window.localStorage.getItem(key) || "{}");
+      applyArticleEditorDraft(form, draft.fields || {});
+      markDirty();
+      setStatus("Draft restored");
+    });
+
+    discardButton?.addEventListener("click", () => {
+      window.localStorage.removeItem(key);
+      restoreButton.hidden = true;
+      discardButton.hidden = true;
+      setStatus("Autosave cleared");
+    });
+
+    window.addEventListener("beforeunload", (event) => {
+      if (!dirty) {
+        return;
+      }
+      event.preventDefault();
+      event.returnValue = "";
+    });
+
+    return {
+      markSaved,
+      markDirty,
+      isDirty: () => dirty,
+    };
+  };
+
   document.querySelectorAll("[data-admin-slug-source]").forEach((source) => {
     const form = source.closest("form");
     const target = form?.querySelector("[data-admin-slug-target]");
@@ -389,11 +857,28 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.querySelectorAll("[data-admin-article-editor]").forEach((form) => {
+    const tagEditor = setupAdminTagEditor(form);
+    setupAdminCategorySelector(form);
+    setupAdminMarkdownEditor(form);
+    const validationSummary = setupAdminValidationSummary(form);
+    const autosave = setupArticleAutosave(form);
+
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
 
       const message = form.querySelector("[data-admin-form-message]");
       const submitButton = form.querySelector("[type='submit']");
+      tagEditor.sync();
+      validationSummary.clear();
+
+      const validationMessages = collectArticleValidationMessages(form);
+      if (validationMessages.length) {
+        validationSummary.show(validationMessages);
+        form.reportValidity();
+        setAdminMessage(message, "Resolve the highlighted editor issues.", "error");
+        return;
+      }
+
       if (!form.checkValidity()) {
         form.reportValidity();
         setAdminMessage(message, "Complete the required article fields.", "error");
@@ -410,10 +895,7 @@ document.addEventListener("DOMContentLoaded", () => {
         cover_image: String(formData.get("cover_image") || "").trim() || null,
         author: String(formData.get("author") || "").trim(),
         category_id: String(formData.get("category_id") || "").trim() || null,
-        tags: String(formData.get("tags") || "")
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter(Boolean),
+        tags: splitAdminTags(formData.get("tags")),
         is_featured: formData.get("is_featured") === "true",
         status,
         seo_title: String(formData.get("seo_title") || "").trim() || null,
@@ -436,6 +918,7 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const method = form.dataset.editorMode === "update" ? "PATCH" : "POST";
         const article = await adminJsonRequest(form.action, { method, body: payload });
+        autosave.markSaved();
         setAdminMessage(message, "Article saved.", "success");
 
         if (form.dataset.editorMode !== "update") {

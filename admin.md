@@ -29,6 +29,7 @@ Use it alongside `tasks.md`; keep this file focused on the admin area only.
 - [x] Submission accept/reject/reviewing actions
 - [x] Command-line admin creation script
 - [x] Admin user management
+- [x] Article editor experience improvements
 
 ---
 
@@ -84,13 +85,13 @@ venv/bin/python scripts/create_admin.py
 # ARTICLE EDITOR IMPROVEMENTS
 
 ## Editor Experience
-- [ ] Add markdown editor or rich text editor
-- [ ] Add preview mode
-- [ ] Add draft autosave
-- [ ] Add unsaved changes warning
-- [ ] Add editor validation summary
-- [ ] Improve tag entry UX
-- [ ] Improve category selector UX
+- [x] Add markdown editor or rich text editor
+- [x] Add preview mode
+- [x] Add draft autosave
+- [x] Add unsaved changes warning
+- [x] Add editor validation summary
+- [x] Improve tag entry UX
+- [x] Improve category selector UX
 
 ## Publishing Workflow
 - [ ] Add scheduled publishing

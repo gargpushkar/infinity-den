@@ -19,8 +19,16 @@
   method="post"
   data-admin-article-editor
   data-editor-mode="{{ editor_mode }}"
+  data-autosave-key="article-editor:{{ article.id if article else 'new' }}"
 >
   <section class="admin-panel admin-editor-main">
+    <div class="admin-editor-statusbar">
+      <span class="admin-pill" data-admin-editor-mode-label>Writing</span>
+      <span data-admin-autosave-status>Autosave ready</span>
+      <button class="admin-link-button" type="button" data-admin-autosave-restore hidden>Restore draft</button>
+      <button class="admin-link-button" type="button" data-admin-autosave-discard hidden>Discard draft</button>
+    </div>
+
     <div class="admin-field">
       <label for="articleTitle">Title</label>
       <input class="form-control" id="articleTitle" name="title" value="{{ article.title if article else '' }}" minlength="3" maxlength="160" required data-admin-slug-source>
@@ -38,11 +46,33 @@
 
     <div class="admin-field">
       <label for="articleContent">Content</label>
-      <textarea class="form-control admin-content-editor" id="articleContent" name="content" rows="16" required>{{ article.content if article else '' }}</textarea>
+      <div class="admin-editor-toolbar" aria-label="Markdown formatting">
+        <button type="button" data-markdown-action="heading" aria-label="Heading">H2</button>
+        <button type="button" data-markdown-action="bold" aria-label="Bold"><strong>B</strong></button>
+        <button type="button" data-markdown-action="italic" aria-label="Italic"><em>I</em></button>
+        <button type="button" data-markdown-action="quote" aria-label="Quote">Quote</button>
+        <button type="button" data-markdown-action="list" aria-label="List">List</button>
+        <button type="button" data-markdown-action="link" aria-label="Link">Link</button>
+      </div>
+      <div class="admin-editor-tabs" role="tablist" aria-label="Editor view">
+        <button class="is-active" type="button" role="tab" aria-selected="true" data-admin-editor-tab="write">Write</button>
+        <button type="button" role="tab" aria-selected="false" data-admin-editor-tab="preview">Preview</button>
+      </div>
+      <div class="admin-editor-pane is-active" data-admin-editor-pane="write">
+        <textarea class="form-control admin-content-editor" id="articleContent" name="content" rows="18" required>{{ article.content if article else '' }}</textarea>
+      </div>
+      <div class="admin-editor-pane admin-markdown-preview" data-admin-editor-pane="preview" hidden>
+        <p class="admin-empty">Preview will appear here.</p>
+      </div>
     </div>
   </section>
 
   <aside class="admin-panel admin-editor-side">
+    <div class="admin-validation-summary" data-admin-validation-summary hidden>
+      <p class="admin-kicker mb-1">Validation</p>
+      <ul></ul>
+    </div>
+
     <div class="admin-field">
       <label for="articleAuthor">Author</label>
       <input class="form-control" id="articleAuthor" name="author" value="{{ article.author if article else admin.username }}" minlength="2" maxlength="120" required>
@@ -50,17 +80,30 @@
 
     <div class="admin-field">
       <label for="articleCategory">Category</label>
+      <input class="form-control admin-filter-input" type="search" placeholder="Filter categories" data-admin-category-filter aria-label="Filter categories">
       <select class="form-select" id="articleCategory" name="category_id">
         <option value="">Uncategorized</option>
         {% for category in categories %}
-          <option value="{{ category.slug }}" {% if article and article.category_id == category.slug %}selected{% endif %}>{{ category.name }}</option>
+          <option
+            value="{{ category.slug }}"
+            data-category-name="{{ category.name }}"
+            data-category-description="{{ category.description if category.description else '' }}"
+            {% if article and article.category_id == category.slug %}selected{% endif %}
+          >
+            {{ category.name }}
+          </option>
         {% endfor %}
       </select>
+      <p class="admin-field-note" data-admin-category-note>Uncategorized</p>
     </div>
 
     <div class="admin-field">
       <label for="articleTags">Tags</label>
-      <input class="form-control" id="articleTags" name="tags" value="{{ article.tags|join(', ') if article else '' }}" maxlength="500" placeholder="Strategy, SEO, Ops">
+      <div class="admin-tag-editor" data-admin-tag-editor>
+        <div class="admin-tag-list" data-admin-tag-list></div>
+        <input class="form-control" id="articleTagsInput" data-admin-tag-input maxlength="64" placeholder="Add tag">
+      </div>
+      <input type="hidden" id="articleTags" name="tags" value="{{ article.tags|join(', ') if article else '' }}" data-admin-tags-value>
     </div>
 
     <div class="admin-field">

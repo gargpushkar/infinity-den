@@ -1962,6 +1962,173 @@ button:focus-visible,
   line-height: 1.7;
 }
 
+.admin-editor-statusbar {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 0.55rem;
+  justify-content: space-between;
+  padding: 0.65rem;
+}
+
+.admin-editor-statusbar .admin-link-button {
+  font-size: 0.78rem;
+}
+
+.admin-editor-toolbar,
+.admin-editor-tabs {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.5rem;
+}
+
+.admin-editor-toolbar {
+  border-radius: 8px 8px 0 0;
+}
+
+.admin-editor-tabs {
+  border-top: 0;
+}
+
+.admin-editor-toolbar button,
+.admin-editor-tabs button {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 900;
+  min-height: 2.2rem;
+  padding: 0.35rem 0.62rem;
+}
+
+.admin-editor-toolbar button:hover,
+.admin-editor-tabs button:hover,
+.admin-editor-tabs button.is-active {
+  border-color: var(--accent);
+  color: var(--accent-hover);
+}
+
+.admin-editor-pane .admin-content-editor {
+  border-radius: 0 0 8px 8px;
+}
+
+.admin-markdown-preview {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 0 0 8px 8px;
+  color: var(--text);
+  min-height: 32rem;
+  padding: clamp(1rem, 2vw, 1.4rem);
+}
+
+.admin-markdown-preview h2,
+.admin-markdown-preview h3 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 900;
+  margin: 1.2rem 0 0.65rem;
+}
+
+.admin-markdown-preview p,
+.admin-markdown-preview li,
+.admin-markdown-preview blockquote {
+  color: var(--text-secondary);
+  font-weight: 700;
+  line-height: 1.75;
+}
+
+.admin-markdown-preview blockquote {
+  border-left: 3px solid var(--accent);
+  margin: 1rem 0;
+  padding-left: 1rem;
+}
+
+.admin-validation-summary {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  padding: 0.85rem;
+}
+
+.admin-validation-summary ul {
+  color: #a64022;
+  font-weight: 800;
+  margin: 0.45rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.admin-field-note {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.5;
+  margin: 0.45rem 0 0;
+}
+
+.admin-filter-input {
+  margin-bottom: 0.45rem;
+}
+
+.admin-tag-editor {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.5rem;
+}
+
+.admin-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-height: 0.25rem;
+}
+
+.admin-tag-chip {
+  align-items: center;
+  background: #eef2ff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 900;
+  gap: 0.35rem;
+  padding: 0.35rem 0.45rem 0.35rem 0.65rem;
+}
+
+.admin-tag-chip button {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 900;
+  height: 1.35rem;
+  justify-content: center;
+  line-height: 1;
+  width: 1.35rem;
+}
+
+.admin-tag-editor .form-control {
+  border: 0;
+  min-height: 2.35rem;
+  padding-left: 0.25rem;
+}
+
 .admin-check {
   align-items: center;
   background: #f8fafc;
