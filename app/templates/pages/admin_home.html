@@ -1,0 +1,40 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
+{% block meta_description %}Protected admin area for {{ app_name }}.{% endblock %}
+
+{% block content %}
+<section class="admin-shell-page">
+  <div class="container">
+    <header class="admin-shell-header" data-reveal>
+      <div>
+        <p class="eyebrow mb-3">Admin</p>
+        <h1>Welcome back, {{ admin.username }}.</h1>
+        <p>This protected area is ready for the dashboard tools coming next.</p>
+      </div>
+      <div class="admin-shell-badge" aria-label="Admin role">
+        <span>Role</span>
+        <strong>{{ admin.role }}</strong>
+      </div>
+    </header>
+
+    <section class="admin-shell-grid" aria-label="Admin readiness" data-reveal>
+      <article class="admin-shell-card" data-reveal-child>
+        <span>01</span>
+        <h2>Authentication active</h2>
+        <p>JWT validation and the admin cookie gate this route.</p>
+      </article>
+      <article class="admin-shell-card" data-reveal-child>
+        <span>02</span>
+        <h2>Dashboard next</h2>
+        <p>The next section can build the sidebar, navbar, and dashboard modules here.</p>
+      </article>
+      <article class="admin-shell-card" data-reveal-child>
+        <span>03</span>
+        <h2>Public site safe</h2>
+        <p>Admin pages are marked noindex and separated from public routes.</p>
+      </article>
+    </section>
+  </div>
+</section>
+{% endblock %}

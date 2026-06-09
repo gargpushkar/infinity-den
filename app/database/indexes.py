@@ -2,6 +2,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from pymongo import ASCENDING, DESCENDING, TEXT
 
 from app.database.mongodb import get_database
+from app.models.admin import ADMIN_COLLECTION
 from app.models.article import ARTICLE_COLLECTION
 from app.models.category import CATEGORY_COLLECTION
 from app.models.newsletter import NEWSLETTER_SUBSCRIBER_COLLECTION
@@ -26,6 +27,7 @@ async def create_indexes() -> None:
     await db[ARTICLE_SUBMISSION_COLLECTION].create_index(
         [("email", ASCENDING), ("created_at", DESCENDING)]
     )
+    await db[ADMIN_COLLECTION].create_index([("username", ASCENDING)], unique=True)
 
 
 async def _create_article_indexes(db: AsyncIOMotorDatabase) -> None:

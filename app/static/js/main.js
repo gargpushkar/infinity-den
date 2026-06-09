@@ -214,6 +214,70 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  document.querySelectorAll("[data-admin-login-form]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const message = form.querySelector("[data-admin-login-message]");
+      const submitButton = form.querySelector("[type='submit']");
+      if (!message) {
+        return;
+      }
+
+      message.classList.remove("is-success", "is-error");
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        message.textContent = "Enter your username and password.";
+        message.classList.add("is-error");
+        return;
+      }
+
+      const formData = new FormData(form);
+      const payload = {
+        username: String(formData.get("username") || "").trim(),
+        password: String(formData.get("password") || ""),
+      };
+
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.setAttribute("aria-busy", "true");
+      }
+      message.textContent = "Signing in...";
+
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+        const responsePayload = await response.json().catch(() => ({}));
+
+        if (response.ok) {
+          message.textContent = "Access granted. Opening admin.";
+          message.classList.add("is-success");
+          window.location.assign("/admin");
+          return;
+        }
+
+        message.textContent =
+          responsePayload?.error?.message || "Sign in failed.";
+        message.classList.add("is-error");
+      } catch (error) {
+        message.textContent = "Connection issue. Try again in a moment.";
+        message.classList.add("is-error");
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.removeAttribute("aria-busy");
+        }
+      }
+    });
+  });
+
   document.querySelectorAll("[data-share-copy]").forEach((button) => {
     button.addEventListener("click", async () => {
       const shareUrl = button.getAttribute("data-share-url");

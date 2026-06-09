@@ -1306,6 +1306,202 @@ button:focus-visible,
   color: #a64022;
 }
 
+.admin-auth-page,
+.admin-shell-page {
+  padding: 2.25rem 0 5rem;
+}
+
+.admin-auth-layout {
+  align-items: stretch;
+  border-bottom: 1px solid var(--line);
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.85fr);
+  margin: 0 auto;
+  max-width: 68rem;
+  padding: clamp(2rem, 5vw, 4rem) 0;
+}
+
+.admin-auth-copy h1,
+.admin-shell-header h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.35rem, 6vw, 5rem);
+  font-weight: 900;
+  line-height: 0.98;
+  margin: 0;
+  max-width: 44rem;
+}
+
+.admin-auth-copy p:not(.eyebrow),
+.admin-shell-header p:not(.eyebrow),
+.admin-shell-card p {
+  color: var(--text-secondary);
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.admin-auth-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1.5rem;
+}
+
+.admin-auth-points span {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 0.55rem 0.75rem;
+}
+
+.admin-login-form {
+  align-self: center;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.admin-login-topline {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 0.85rem;
+}
+
+.admin-login-topline span,
+.admin-login-label,
+.admin-shell-badge span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-login-topline strong {
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.admin-login-label {
+  display: block;
+  margin-bottom: 0.45rem;
+}
+
+.admin-login-input {
+  border-color: var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-weight: 800;
+  min-height: 3rem;
+}
+
+.admin-login-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 0.2rem rgba(15, 79, 73, 0.15);
+}
+
+.admin-login-submit {
+  border-radius: 8px;
+  font-weight: 900;
+  min-height: 3rem;
+}
+
+.admin-login-submit:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.admin-login-note {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.admin-login-note.is-success {
+  color: #176e3c;
+}
+
+.admin-login-note.is-error {
+  color: #a64022;
+}
+
+.admin-shell-header {
+  align-items: end;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin: 0 auto 1.5rem;
+  max-width: 68rem;
+  padding: clamp(1rem, 4vw, 3rem) 0 1.6rem;
+}
+
+.admin-shell-badge {
+  border-left: 3px solid var(--accent);
+  min-width: 9rem;
+  padding-left: 1rem;
+}
+
+.admin-shell-badge span,
+.admin-shell-badge strong {
+  display: block;
+}
+
+.admin-shell-badge strong {
+  color: var(--text);
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1;
+  margin-top: 0.45rem;
+  text-transform: capitalize;
+}
+
+.admin-shell-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0 auto;
+  max-width: 68rem;
+}
+
+.admin-shell-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.admin-shell-card span {
+  align-items: center;
+  background: rgba(15, 79, 73, 0.12);
+  border-radius: 8px;
+  color: var(--accent);
+  display: inline-flex;
+  font-weight: 900;
+  height: 2.5rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+  width: 2.5rem;
+}
+
+.admin-shell-card h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.3rem;
+  font-weight: 900;
+  margin-bottom: 0.65rem;
+}
+
 .article-index {
   padding: 2.25rem 0 5rem;
 }
@@ -2371,6 +2567,12 @@ button:focus-visible,
     grid-template-columns: 1fr;
   }
 
+  .admin-auth-layout,
+  .admin-shell-header,
+  .admin-shell-grid {
+    grid-template-columns: 1fr;
+  }
+
   .article-index-controls {
     align-items: stretch;
     grid-template-columns: 1fr;
@@ -2630,6 +2832,21 @@ button:focus-visible,
 
   .write-section {
     margin-bottom: 3rem;
+  }
+
+  .admin-auth-page,
+  .admin-shell-page {
+    padding: 1rem 0 3rem;
+  }
+
+  .admin-auth-layout,
+  .admin-shell-header {
+    margin-left: 0.25rem;
+    margin-right: 0.25rem;
+  }
+
+  .admin-login-submit {
+    width: 100%;
   }
 
   .article-index {
