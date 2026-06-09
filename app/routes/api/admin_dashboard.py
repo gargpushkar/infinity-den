@@ -7,7 +7,11 @@ from app.config.constants import ARTICLE_STATUS_DRAFT, ARTICLE_STATUS_PUBLISHED
 from app.schemas.admin import AdminArticleFeatureUpdate, AdminRead
 from app.schemas.article import ArticleRead, ArticleUpdate
 from app.schemas.submission import ArticleSubmissionRead, ArticleSubmissionUpdate
-from app.services.admin_session import get_current_admin
+from app.services.admin_csrf import verify_admin_csrf
+from app.services.admin_permissions import (
+    require_article_writer,
+    require_submission_reviewer,
+)
 from app.services.article_service import (
     ArticleNotFoundError,
     ArticleService,
@@ -38,7 +42,8 @@ def get_admin_submission_service() -> SubmissionService:
 )
 async def publish_article(
     article_id: str,
-    _admin: AdminRead = Depends(get_current_admin),
+    _admin: AdminRead = Depends(require_article_writer),
+    _csrf: None = Depends(verify_admin_csrf),
     article_service: ArticleService = Depends(get_admin_article_service),
 ) -> ArticleRead:
     try:
@@ -63,7 +68,8 @@ async def publish_article(
 )
 async def move_article_to_draft(
     article_id: str,
-    _admin: AdminRead = Depends(get_current_admin),
+    _admin: AdminRead = Depends(require_article_writer),
+    _csrf: None = Depends(verify_admin_csrf),
     article_service: ArticleService = Depends(get_admin_article_service),
 ) -> ArticleRead:
     try:
@@ -86,7 +92,8 @@ async def move_article_to_draft(
 async def update_article_feature_state(
     article_id: str,
     payload: AdminArticleFeatureUpdate,
-    _admin: AdminRead = Depends(get_current_admin),
+    _admin: AdminRead = Depends(require_article_writer),
+    _csrf: None = Depends(verify_admin_csrf),
     article_service: ArticleService = Depends(get_admin_article_service),
 ) -> ArticleRead:
     try:
@@ -109,7 +116,8 @@ async def update_article_feature_state(
 async def update_submission_status(
     submission_id: str,
     payload: ArticleSubmissionUpdate,
-    _admin: AdminRead = Depends(get_current_admin),
+    _admin: AdminRead = Depends(require_submission_reviewer),
+    _csrf: None = Depends(verify_admin_csrf),
     submission_service: SubmissionService = Depends(get_admin_submission_service),
 ) -> ArticleSubmissionRead:
     try:

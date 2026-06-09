@@ -11,6 +11,12 @@ from app.schemas.category import (
     CategoryUpdate,
     SortDirection,
 )
+from app.schemas.admin import AdminRead
+from app.services.admin_csrf import verify_admin_csrf
+from app.services.admin_permissions import (
+    require_content_manager,
+    require_destructive_admin,
+)
 from app.services.category_service import (
     CategoryNotFoundError,
     CategoryService,
@@ -58,6 +64,8 @@ async def list_categories(
 )
 async def create_category(
     payload: CategoryCreate,
+    _admin: AdminRead = Depends(require_content_manager),
+    _csrf: None = Depends(verify_admin_csrf),
     category_service: CategoryService = Depends(get_categories_service),
 ) -> CategoryRead:
     try:
@@ -96,6 +104,8 @@ async def get_category_detail(
 async def update_category(
     category_id: str,
     payload: CategoryUpdate,
+    _admin: AdminRead = Depends(require_content_manager),
+    _csrf: None = Depends(verify_admin_csrf),
     category_service: CategoryService = Depends(get_categories_service),
 ) -> CategoryRead:
     try:
@@ -115,6 +125,8 @@ async def update_category(
 @router.delete("/{category_id}", status_code=http_status.HTTP_204_NO_CONTENT)
 async def delete_category(
     category_id: str,
+    _admin: AdminRead = Depends(require_destructive_admin),
+    _csrf: None = Depends(verify_admin_csrf),
     category_service: CategoryService = Depends(get_categories_service),
 ) -> Response:
     was_deleted = await category_service.delete_category(category_id)

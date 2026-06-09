@@ -8,6 +8,7 @@ from app.services.admin_auth_service import (
     AdminInvalidCredentialsError,
     get_admin_auth_service,
 )
+from app.services.admin_csrf import ADMIN_CSRF_COOKIE, verify_admin_csrf
 from app.services.admin_session import ADMIN_AUTH_COOKIE, get_current_admin
 from app.utils.security import SecurityError
 
@@ -65,8 +66,12 @@ async def login_admin(
 
 
 @router.post("/logout", status_code=http_status.HTTP_204_NO_CONTENT)
-async def logout_admin(response: Response) -> Response:
+async def logout_admin(
+    response: Response,
+    _csrf: None = Depends(verify_admin_csrf),
+) -> Response:
     response.delete_cookie(ADMIN_AUTH_COOKIE)
+    response.delete_cookie(ADMIN_CSRF_COOKIE)
     response.status_code = http_status.HTTP_204_NO_CONTENT
     return response
 

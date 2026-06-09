@@ -56,7 +56,9 @@
                   <a href="/admin/articles/{{ article.id }}/edit">Edit</a>
                   <button type="button" data-admin-article-status-action data-article-id="{{ article.id }}" data-status-action="publish">Publish</button>
                   <button type="button" data-admin-article-status-action data-article-id="{{ article.id }}" data-status-action="draft">Draft</button>
-                  <button type="button" data-admin-delete-resource data-delete-url="/api/articles/{{ article.id }}" data-delete-label="{{ article.title }}">Delete</button>
+                  {% if admin.role == "admin" %}
+                    <button type="button" data-admin-delete-resource data-delete-url="/api/articles/{{ article.id }}" data-delete-label="{{ article.title }}">Delete</button>
+                  {% endif %}
                 </div>
               </td>
             </tr>

@@ -10,40 +10,52 @@
 </section>
 
 <section class="admin-split">
-  <form class="admin-panel admin-resource-form" action="/api/categories" method="post" data-admin-category-form>
-    <div class="admin-panel-header">
-      <div>
-        <p class="admin-kicker mb-1">Category form</p>
-        <h2 data-admin-category-heading>Create category</h2>
+  {% if admin.role == "admin" %}
+    <form class="admin-panel admin-resource-form" action="/api/categories" method="post" data-admin-category-form>
+      <div class="admin-panel-header">
+        <div>
+          <p class="admin-kicker mb-1">Category form</p>
+          <h2 data-admin-category-heading>Create category</h2>
+        </div>
+        <button class="admin-link-button" type="button" data-admin-category-reset>Reset</button>
       </div>
-      <button class="admin-link-button" type="button" data-admin-category-reset>Reset</button>
-    </div>
 
-    <input type="hidden" name="category_id" value="">
+      <input type="hidden" name="category_id" value="">
 
-    <div class="admin-field">
-      <label for="categoryName">Name</label>
-      <input class="form-control" id="categoryName" name="name" minlength="2" maxlength="120" required data-admin-slug-source>
-    </div>
+      <div class="admin-field">
+        <label for="categoryName">Name</label>
+        <input class="form-control" id="categoryName" name="name" minlength="2" maxlength="120" required data-admin-slug-source>
+      </div>
 
-    <div class="admin-field">
-      <label for="categorySlug">Slug</label>
-      <input class="form-control" id="categorySlug" name="slug" minlength="2" maxlength="120" pattern="^[a-z0-9]+(?:-[a-z0-9]+)*$" required data-admin-slug-target>
-    </div>
+      <div class="admin-field">
+        <label for="categorySlug">Slug</label>
+        <input class="form-control" id="categorySlug" name="slug" minlength="2" maxlength="120" pattern="^[a-z0-9]+(?:-[a-z0-9]+)*$" required data-admin-slug-target>
+      </div>
 
-    <div class="admin-field">
-      <label for="categoryDescription">Description</label>
-      <textarea class="form-control" id="categoryDescription" name="description" rows="4" maxlength="320"></textarea>
-    </div>
+      <div class="admin-field">
+        <label for="categoryDescription">Description</label>
+        <textarea class="form-control" id="categoryDescription" name="description" rows="4" maxlength="320"></textarea>
+      </div>
 
-    <div class="admin-field">
-      <label for="categoryImage">Image URL</label>
-      <input class="form-control" id="categoryImage" name="image" maxlength="500">
-    </div>
+      <div class="admin-field">
+        <label for="categoryImage">Image URL</label>
+        <input class="form-control" id="categoryImage" name="image" maxlength="500">
+      </div>
 
-    <p class="admin-form-message" data-admin-form-message role="status">Ready to save.</p>
-    <button class="btn btn-primary w-100" type="submit">Save category</button>
-  </form>
+      <p class="admin-form-message" data-admin-form-message role="status">Ready to save.</p>
+      <button class="btn btn-primary w-100" type="submit">Save category</button>
+    </form>
+  {% else %}
+    <section class="admin-panel">
+      <div class="admin-panel-header">
+        <div>
+          <p class="admin-kicker mb-1">Read-only access</p>
+          <h2>Category management is admin-only.</h2>
+        </div>
+      </div>
+      <p class="admin-muted mb-0">Editors can review the directory, but taxonomy changes require an admin account.</p>
+    </section>
+  {% endif %}
 
   <section class="admin-panel">
     <div class="admin-panel-header">
@@ -72,10 +84,12 @@
                 <p>{{ category.description }}</p>
               {% endif %}
             </div>
-            <div class="admin-row-actions">
-              <button type="button" data-admin-edit-category>Edit</button>
-              <button type="button" data-admin-delete-resource data-delete-url="/api/categories/{{ category.id }}" data-delete-label="{{ category.name }}">Delete</button>
-            </div>
+            {% if admin.role == "admin" %}
+              <div class="admin-row-actions">
+                <button type="button" data-admin-edit-category>Edit</button>
+                <button type="button" data-admin-delete-resource data-delete-url="/api/categories/{{ category.id }}" data-delete-label="{{ category.name }}">Delete</button>
+              </div>
+            {% endif %}
           </article>
         {% endfor %}
       </div>

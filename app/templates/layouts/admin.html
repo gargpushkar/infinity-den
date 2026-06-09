@@ -2,6 +2,10 @@
 
 {% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
 {% block meta_description %}Protected admin area for {{ app_name }}.{% endblock %}
+{% block extra_meta %}
+  {{ super() }}
+  <meta name="admin-csrf-token" content="{{ csrf_token }}">
+{% endblock %}
 
 {% block content %}
 <section class="admin-console" data-admin-console>
