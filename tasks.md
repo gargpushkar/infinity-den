@@ -137,7 +137,7 @@
 # SEARCH SYSTEM
 
 ## Search Features
-- [ ] Create search API
+- [x] Create search API
 - [ ] Create search page
 - [ ] Add article keyword search
 - [ ] Add category/tag filters
