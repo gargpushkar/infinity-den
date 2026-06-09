@@ -103,7 +103,7 @@
 - [x] Add article SEO metadata
 - [x] Add social sharing section
 - [x] Add breadcrumbs
-- [ ] Add read time calculation
+- [x] Add read time calculation
 
 ---
 
