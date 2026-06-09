@@ -280,6 +280,13 @@ def _article_to_card(
     }
 
 
+def article_to_card_context(
+    article: ArticleRead,
+    category_lookup: dict[str, str],
+) -> dict[str, Any]:
+    return _article_to_card(article, category_lookup)
+
+
 def _article_to_detail(
     article: ArticleRead,
     category_lookup: dict[str, str],
