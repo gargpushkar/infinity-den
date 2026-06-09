@@ -5,6 +5,7 @@ from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION
 from app.models.category import CATEGORY_COLLECTION
 from app.models.newsletter import NEWSLETTER_SUBSCRIBER_COLLECTION
+from app.models.submission import ARTICLE_SUBMISSION_COLLECTION
 from app.models.tag import TAG_COLLECTION
 
 
@@ -18,6 +19,12 @@ async def create_indexes() -> None:
     await db[NEWSLETTER_SUBSCRIBER_COLLECTION].create_index(
         [("email", ASCENDING)],
         unique=True,
+    )
+    await db[ARTICLE_SUBMISSION_COLLECTION].create_index(
+        [("status", ASCENDING), ("created_at", DESCENDING)]
+    )
+    await db[ARTICLE_SUBMISSION_COLLECTION].create_index(
+        [("email", ASCENDING), ("created_at", DESCENDING)]
     )
 
 
