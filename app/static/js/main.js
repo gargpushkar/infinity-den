@@ -99,4 +99,42 @@ document.addEventListener("DOMContentLoaded", () => {
       form.reset();
     });
   });
+
+  document.querySelectorAll("[data-share-copy]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const shareUrl = button.getAttribute("data-share-url");
+      const sharePanel = button.closest(".article-share-panel");
+      const status = sharePanel?.querySelector("[data-share-status]");
+      if (!shareUrl || !status) {
+        return;
+      }
+
+      const writeToClipboard = async () => {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(shareUrl);
+          return;
+        }
+
+        const textArea = document.createElement("textarea");
+        textArea.value = shareUrl;
+        textArea.setAttribute("readonly", "");
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        textArea.remove();
+      };
+
+      try {
+        await writeToClipboard();
+        status.textContent = "Copied";
+        window.setTimeout(() => {
+          status.textContent = "";
+        }, 2200);
+      } catch (error) {
+        status.textContent = "Copy failed";
+      }
+    });
+  });
 });

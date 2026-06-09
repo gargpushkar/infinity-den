@@ -1,0 +1,35 @@
+{% if share_actions %}
+  <section class="article-share-panel" aria-labelledby="articleShareTitle">
+    <div class="article-share-heading">
+      <span id="articleShareTitle">Share</span>
+      <small data-share-status aria-live="polite"></small>
+    </div>
+    <div class="article-share-actions">
+      {% for action in share_actions %}
+        {% if action.action|default("") == "copy" %}
+          <button
+            class="share-action-button"
+            type="button"
+            data-share-copy
+            data-share-url="{{ action.url }}"
+            aria-label="{{ action.name }}"
+            title="{{ action.name }}"
+          >
+            {{ action.label }}
+          </button>
+        {% else %}
+          <a
+            class="share-action-button"
+            href="{{ action.url }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="{{ action.name }}"
+            title="{{ action.name }}"
+          >
+            {{ action.label }}
+          </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}

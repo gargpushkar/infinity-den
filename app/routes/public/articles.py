@@ -1,3 +1,6 @@
+from typing import Any
+from urllib.parse import urlencode
+
 from fastapi import APIRouter, HTTPException, Path, Query, Request
 from fastapi import status as http_status
 from fastapi.templating import Jinja2Templates
@@ -58,6 +61,10 @@ async def article_detail(
             "app_name": settings.app_name,
             "page_title": detail_context["article"]["seo_title"],
             **_article_seo_context(request, detail_context["article"]),
+            "share_actions": _article_share_actions(
+                request,
+                detail_context["article"],
+            ),
             **detail_context,
         },
     )
@@ -78,6 +85,48 @@ def _article_seo_context(request: Request, article: dict) -> dict[str, str]:
         "seo_image_alt": article.get("image_alt", article["title"]),
         "twitter_card": "summary_large_image" if seo_image else "summary",
     }
+
+
+def _article_share_actions(
+    request: Request,
+    article: dict[str, Any],
+) -> list[dict[str, str]]:
+    article_url = str(request.url_for("article_detail", article_slug=article["slug"]))
+    article_title = str(article["title"])
+    email_body = f"{article['excerpt']}\n\nRead it here: {article_url}"
+
+    return [
+        {
+            "label": "X",
+            "name": "Share on X",
+            "url": "https://twitter.com/intent/tweet?"
+            + urlencode({"url": article_url, "text": article_title}),
+        },
+        {
+            "label": "in",
+            "name": "Share on LinkedIn",
+            "url": "https://www.linkedin.com/sharing/share-offsite/?"
+            + urlencode({"url": article_url}),
+        },
+        {
+            "label": "f",
+            "name": "Share on Facebook",
+            "url": "https://www.facebook.com/sharer/sharer.php?"
+            + urlencode({"u": article_url}),
+        },
+        {
+            "label": "@",
+            "name": "Share by email",
+            "url": "mailto:?"
+            + urlencode({"subject": article_title, "body": email_body}),
+        },
+        {
+            "label": "cp",
+            "name": "Copy article link",
+            "url": article_url,
+            "action": "copy",
+        },
+    ]
 
 
 def _absolute_image_url(request: Request, image_url: str) -> str:

@@ -101,7 +101,7 @@
 - [x] Create article detail page
 - [x] Create related articles section
 - [x] Add article SEO metadata
-- [ ] Add social sharing section
+- [x] Add social sharing section
 - [ ] Add breadcrumbs
 - [ ] Add read time calculation
 
