@@ -66,3 +66,7 @@ class AdminPasswordChange(BaseModel):
             raise ValueError("New password must be different from current password.")
 
         return self
+
+
+class AdminArticleFeatureUpdate(BaseModel):
+    is_featured: bool

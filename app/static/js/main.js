@@ -278,6 +278,360 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  const adminJsonRequest = async (url, options = {}) => {
+    const response = await fetch(url, {
+      method: options.method || "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined,
+    });
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const message =
+        payload?.error?.message || payload?.detail || "Admin action failed.";
+      throw new Error(message);
+    }
+
+    return payload;
+  };
+
+  const setAdminMessage = (element, text, type = "neutral") => {
+    if (!element) {
+      return;
+    }
+
+    element.classList.remove("is-success", "is-error");
+    if (type === "success") {
+      element.classList.add("is-success");
+    }
+    if (type === "error") {
+      element.classList.add("is-error");
+    }
+    element.textContent = text;
+  };
+
+  const slugify = (value) =>
+    String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .replace(/-{2,}/g, "-");
+
+  document.querySelectorAll("[data-admin-slug-source]").forEach((source) => {
+    const form = source.closest("form");
+    const target = form?.querySelector("[data-admin-slug-target]");
+    if (!target) {
+      return;
+    }
+
+    source.addEventListener("input", () => {
+      if (target.dataset.slugTouched === "true") {
+        return;
+      }
+
+      target.value = slugify(source.value);
+    });
+
+    target.addEventListener("input", () => {
+      target.dataset.slugTouched = "true";
+      target.value = slugify(target.value);
+    });
+  });
+
+  document.querySelectorAll("[data-admin-sidebar-toggle]").forEach((button) => {
+    button.addEventListener("click", () => {
+      document.body.classList.toggle("admin-nav-open");
+    });
+  });
+
+  document.querySelectorAll("[data-admin-logout-form]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      await fetch(form.action, { method: "POST" }).catch(() => null);
+      window.location.assign("/admin/login");
+    });
+  });
+
+  document.querySelectorAll("[data-admin-article-editor]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const message = form.querySelector("[data-admin-form-message]");
+      const submitButton = form.querySelector("[type='submit']");
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        setAdminMessage(message, "Complete the required article fields.", "error");
+        return;
+      }
+
+      const formData = new FormData(form);
+      const status = String(formData.get("status") || "draft");
+      const payload = {
+        title: String(formData.get("title") || "").trim(),
+        slug: slugify(formData.get("slug")),
+        excerpt: String(formData.get("excerpt") || "").trim(),
+        content: String(formData.get("content") || "").trim(),
+        cover_image: String(formData.get("cover_image") || "").trim() || null,
+        author: String(formData.get("author") || "").trim(),
+        category_id: String(formData.get("category_id") || "").trim() || null,
+        tags: String(formData.get("tags") || "")
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+        is_featured: formData.get("is_featured") === "true",
+        status,
+        seo_title: String(formData.get("seo_title") || "").trim() || null,
+        seo_description:
+          String(formData.get("seo_description") || "").trim() || null,
+      };
+
+      if (status === "published") {
+        payload.published_at = new Date().toISOString();
+      }
+      if (status === "draft") {
+        payload.published_at = null;
+      }
+
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+      setAdminMessage(message, "Saving article...");
+
+      try {
+        const method = form.dataset.editorMode === "update" ? "PATCH" : "POST";
+        const article = await adminJsonRequest(form.action, { method, body: payload });
+        setAdminMessage(message, "Article saved.", "success");
+
+        if (form.dataset.editorMode !== "update") {
+          window.location.assign(`/admin/articles/${article.id}/edit`);
+        }
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-admin-article-status-action]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const articleId = button.getAttribute("data-article-id");
+      const statusAction = button.getAttribute("data-status-action");
+      const row = button.closest("[data-admin-article-row]");
+      const statusLabel = row?.querySelector("[data-admin-article-status]");
+      const message = document.querySelector("[data-admin-table-message]");
+      if (!articleId || !statusAction) {
+        return;
+      }
+
+      button.disabled = true;
+      try {
+        const article = await adminJsonRequest(
+          `/api/admin/articles/${articleId}/${statusAction}`,
+          { method: "PATCH" },
+        );
+        if (statusLabel) {
+          statusLabel.textContent = article.status;
+        }
+        setAdminMessage(message, `Article moved to ${article.status}.`, "success");
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-admin-article-feature]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const articleId = button.getAttribute("data-article-id");
+      const nextFeatured = button.getAttribute("data-featured") !== "true";
+      const message = document.querySelector("[data-admin-table-message]");
+      if (!articleId) {
+        return;
+      }
+
+      button.disabled = true;
+      try {
+        const article = await adminJsonRequest(
+          `/api/admin/articles/${articleId}/feature`,
+          {
+            method: "PATCH",
+            body: { is_featured: nextFeatured },
+          },
+        );
+        button.dataset.featured = article.is_featured ? "true" : "false";
+        button.textContent = article.is_featured ? "On" : "Off";
+        setAdminMessage(message, "Featured state updated.", "success");
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-admin-delete-resource]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const deleteUrl = button.getAttribute("data-delete-url");
+      const label = button.getAttribute("data-delete-label") || "this item";
+      const message =
+        document.querySelector("[data-admin-table-message]") ||
+        document.querySelector("[data-admin-form-message]");
+      if (!deleteUrl || !window.confirm(`Delete ${label}?`)) {
+        return;
+      }
+
+      button.disabled = true;
+      try {
+        await fetch(deleteUrl, { method: "DELETE" }).then((response) => {
+          if (!response.ok) {
+            throw new Error("Delete failed.");
+          }
+        });
+        button.closest("tr, [data-admin-category-row]")?.remove();
+        setAdminMessage(message, "Deleted.", "success");
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-admin-category-form]").forEach((form) => {
+    const heading = form.querySelector("[data-admin-category-heading]");
+    const resetButton = form.querySelector("[data-admin-category-reset]");
+    const message = form.querySelector("[data-admin-form-message]");
+    const idInput = form.querySelector("input[name='category_id']");
+
+    const resetForm = () => {
+      form.reset();
+      if (idInput) {
+        idInput.value = "";
+      }
+      const slugTarget = form.querySelector("[data-admin-slug-target]");
+      if (slugTarget) {
+        delete slugTarget.dataset.slugTouched;
+      }
+      if (heading) {
+        heading.textContent = "Create category";
+      }
+      setAdminMessage(message, "Ready to save.");
+    };
+
+    resetButton?.addEventListener("click", resetForm);
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        setAdminMessage(message, "Complete the required category fields.", "error");
+        return;
+      }
+
+      const formData = new FormData(form);
+      const categoryId = String(formData.get("category_id") || "");
+      const payload = {
+        name: String(formData.get("name") || "").trim(),
+        slug: slugify(formData.get("slug")),
+        description: String(formData.get("description") || "").trim() || null,
+        image: String(formData.get("image") || "").trim() || null,
+      };
+      const submitButton = form.querySelector("[type='submit']");
+
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+      setAdminMessage(message, "Saving category...");
+
+      try {
+        await adminJsonRequest(
+          categoryId ? `/api/categories/${categoryId}` : "/api/categories",
+          {
+            method: categoryId ? "PATCH" : "POST",
+            body: payload,
+          },
+        );
+        setAdminMessage(message, "Category saved.", "success");
+        window.setTimeout(() => window.location.reload(), 450);
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-admin-edit-category]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const row = button.closest("[data-admin-category-row]");
+      const form = document.querySelector("[data-admin-category-form]");
+      if (!row || !form) {
+        return;
+      }
+
+      form.querySelector("input[name='category_id']").value =
+        row.getAttribute("data-category-id") || "";
+      form.querySelector("input[name='name']").value =
+        row.getAttribute("data-category-name") || "";
+      form.querySelector("input[name='slug']").value =
+        row.getAttribute("data-category-slug") || "";
+      form.querySelector("textarea[name='description']").value =
+        row.getAttribute("data-category-description") || "";
+      form.querySelector("input[name='image']").value =
+        row.getAttribute("data-category-image") || "";
+      form.querySelector("[data-admin-slug-target]").dataset.slugTouched = "true";
+      form.querySelector("[data-admin-category-heading]").textContent =
+        "Edit category";
+      form.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth" });
+    });
+  });
+
+  document
+    .querySelectorAll("[data-admin-submission-status-action]")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        const submissionId = button.getAttribute("data-submission-id");
+        const status = button.getAttribute("data-status");
+        const card = button.closest("[data-admin-submission-card]");
+        const label = card?.querySelector("[data-admin-submission-status]");
+        const message = document.querySelector("[data-admin-submission-message]");
+        if (!submissionId || !status) {
+          return;
+        }
+
+        button.disabled = true;
+        try {
+          const submission = await adminJsonRequest(
+            `/api/admin/submissions/${submissionId}/status`,
+            {
+              method: "PATCH",
+              body: { status },
+            },
+          );
+          if (label) {
+            label.textContent = submission.status;
+          }
+          setAdminMessage(message, `Submission marked ${submission.status}.`, "success");
+        } catch (error) {
+          setAdminMessage(message, error.message, "error");
+        } finally {
+          button.disabled = false;
+        }
+      });
+    });
+
   document.querySelectorAll("[data-share-copy]").forEach((button) => {
     button.addEventListener("click", async () => {
       const shareUrl = button.getAttribute("data-share-url");

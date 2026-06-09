@@ -11,7 +11,9 @@ from app.database.indexes import create_indexes
 from app.database.mongodb import close_mongo_connection, connect_to_mongo
 from app.middleware.exception_handlers import register_exception_handlers
 from app.routes.admin.auth import router as admin_auth_pages_router
+from app.routes.admin.dashboard import router as admin_dashboard_router
 from app.routes.api.admin_auth import router as admin_auth_router
+from app.routes.api.admin_dashboard import router as admin_dashboard_api_router
 from app.routes.api.articles import router as articles_router
 from app.routes.api.categories import router as categories_router
 from app.routes.api.health import router as health_router
@@ -60,6 +62,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 register_exception_handlers(app)
 app.include_router(admin_auth_router)
+app.include_router(admin_dashboard_api_router)
 app.include_router(articles_router)
 app.include_router(categories_router)
 app.include_router(health_router)
@@ -72,3 +75,4 @@ app.include_router(public_categories_router)
 app.include_router(home_router)
 app.include_router(public_search_router)
 app.include_router(admin_auth_pages_router)
+app.include_router(admin_dashboard_router)

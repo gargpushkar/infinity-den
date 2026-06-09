@@ -1,0 +1,87 @@
+{% extends "layouts/admin.html" %}
+
+{% block admin_content %}
+<section class="admin-section-header">
+  <div>
+    <p class="admin-kicker mb-2">Category management</p>
+    <h2>Maintain the topic lanes readers browse.</h2>
+  </div>
+  <p class="admin-muted mb-0">{{ stats.categories }} categories available</p>
+</section>
+
+<section class="admin-split">
+  <form class="admin-panel admin-resource-form" action="/api/categories" method="post" data-admin-category-form>
+    <div class="admin-panel-header">
+      <div>
+        <p class="admin-kicker mb-1">Category form</p>
+        <h2 data-admin-category-heading>Create category</h2>
+      </div>
+      <button class="admin-link-button" type="button" data-admin-category-reset>Reset</button>
+    </div>
+
+    <input type="hidden" name="category_id" value="">
+
+    <div class="admin-field">
+      <label for="categoryName">Name</label>
+      <input class="form-control" id="categoryName" name="name" minlength="2" maxlength="120" required data-admin-slug-source>
+    </div>
+
+    <div class="admin-field">
+      <label for="categorySlug">Slug</label>
+      <input class="form-control" id="categorySlug" name="slug" minlength="2" maxlength="120" pattern="^[a-z0-9]+(?:-[a-z0-9]+)*$" required data-admin-slug-target>
+    </div>
+
+    <div class="admin-field">
+      <label for="categoryDescription">Description</label>
+      <textarea class="form-control" id="categoryDescription" name="description" rows="4" maxlength="320"></textarea>
+    </div>
+
+    <div class="admin-field">
+      <label for="categoryImage">Image URL</label>
+      <input class="form-control" id="categoryImage" name="image" maxlength="500">
+    </div>
+
+    <p class="admin-form-message" data-admin-form-message role="status">Ready to save.</p>
+    <button class="btn btn-primary w-100" type="submit">Save category</button>
+  </form>
+
+  <section class="admin-panel">
+    <div class="admin-panel-header">
+      <div>
+        <p class="admin-kicker mb-1">Directory</p>
+        <h2>Existing categories</h2>
+      </div>
+    </div>
+
+    {% if categories %}
+      <div class="admin-list admin-category-list">
+        {% for category in categories %}
+          <article
+            class="admin-resource-row"
+            data-admin-category-row
+            data-category-id="{{ category.id }}"
+            data-category-name="{{ category.name }}"
+            data-category-slug="{{ category.slug }}"
+            data-category-description="{{ category.description if category.description else '' }}"
+            data-category-image="{{ category.image if category.image else '' }}"
+          >
+            <div>
+              <strong>{{ category.name }}</strong>
+              <small>{{ category.slug }}</small>
+              {% if category.description %}
+                <p>{{ category.description }}</p>
+              {% endif %}
+            </div>
+            <div class="admin-row-actions">
+              <button type="button" data-admin-edit-category>Edit</button>
+              <button type="button" data-admin-delete-resource data-delete-url="/api/categories/{{ category.id }}" data-delete-label="{{ category.name }}">Delete</button>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="admin-empty">No categories exist yet.</p>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

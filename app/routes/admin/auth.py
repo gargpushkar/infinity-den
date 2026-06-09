@@ -30,25 +30,3 @@ async def admin_login_page(
             "robots": "noindex, nofollow",
         },
     )
-
-
-@router.get("/admin")
-async def admin_home_page(
-    request: Request,
-    admin: AdminRead | None = Depends(get_optional_current_admin),
-):
-    if admin is None:
-        return RedirectResponse("/admin/login", status_code=303)
-
-    return templates.TemplateResponse(
-        request,
-        "pages/admin_home.html",
-        {
-            "app_name": settings.app_name,
-            "page_title": "Admin",
-            "seo_title": "Admin",
-            "seo_description": "Protected admin area for Infinity Den.",
-            "robots": "noindex, nofollow",
-            "admin": admin,
-        },
-    )

@@ -22,7 +22,7 @@
 - [x] Reusable frontend components
 - [ ] Article system implementation
 - [ ] Category system
-- [ ] Admin dashboard
+- [x] Admin dashboard
 
 ---
 
@@ -171,25 +171,25 @@
 # ADMIN DASHBOARD
 
 ## Dashboard UI
-- [ ] Create admin dashboard layout
-- [ ] Create admin sidebar
-- [ ] Create admin navbar
-- [ ] Create dashboard homepage
+- [x] Create admin dashboard layout
+- [x] Create admin sidebar
+- [x] Create admin navbar
+- [x] Create dashboard homepage
 
 ## Article Management
-- [ ] Create article management table
-- [ ] Create article editor page
-- [ ] Add article publishing
-- [ ] Add draft support
-- [ ] Add feature article toggle
+- [x] Create article management table
+- [x] Create article editor page
+- [x] Add article publishing
+- [x] Add draft support
+- [x] Add feature article toggle
 
 ## Category Management
-- [ ] Create category management UI
-- [ ] Add category CRUD operations
+- [x] Create category management UI
+- [x] Add category CRUD operations
 
 ## Submission Management
-- [ ] Create submission review UI
-- [ ] Add approve/reject actions
+- [x] Create submission review UI
+- [x] Add approve/reject actions
 
 ---
 

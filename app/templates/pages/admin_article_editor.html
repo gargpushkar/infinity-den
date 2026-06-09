@@ -1,0 +1,99 @@
+{% extends "layouts/admin.html" %}
+
+{% block admin_content %}
+<section class="admin-section-header">
+  <div>
+    <p class="admin-kicker mb-2">Article editor</p>
+    {% if article %}
+      <h2>Edit and publish "{{ article.title }}".</h2>
+    {% else %}
+      <h2>Create a draft with SEO and publishing controls.</h2>
+    {% endif %}
+  </div>
+  <a class="btn btn-outline-primary" href="/admin/articles">Back to articles</a>
+</section>
+
+<form
+  class="admin-editor-grid"
+  action="{% if article %}/api/articles/{{ article.id }}{% else %}/api/articles{% endif %}"
+  method="post"
+  data-admin-article-editor
+  data-editor-mode="{{ editor_mode }}"
+>
+  <section class="admin-panel admin-editor-main">
+    <div class="admin-field">
+      <label for="articleTitle">Title</label>
+      <input class="form-control" id="articleTitle" name="title" value="{{ article.title if article else '' }}" minlength="3" maxlength="160" required data-admin-slug-source>
+    </div>
+
+    <div class="admin-field">
+      <label for="articleSlug">Slug</label>
+      <input class="form-control" id="articleSlug" name="slug" value="{{ article.slug if article else '' }}" minlength="3" maxlength="180" pattern="^[a-z0-9]+(?:-[a-z0-9]+)*$" required data-admin-slug-target>
+    </div>
+
+    <div class="admin-field">
+      <label for="articleExcerpt">Excerpt</label>
+      <textarea class="form-control" id="articleExcerpt" name="excerpt" rows="3" minlength="10" maxlength="320" required>{{ article.excerpt if article else '' }}</textarea>
+    </div>
+
+    <div class="admin-field">
+      <label for="articleContent">Content</label>
+      <textarea class="form-control admin-content-editor" id="articleContent" name="content" rows="16" required>{{ article.content if article else '' }}</textarea>
+    </div>
+  </section>
+
+  <aside class="admin-panel admin-editor-side">
+    <div class="admin-field">
+      <label for="articleAuthor">Author</label>
+      <input class="form-control" id="articleAuthor" name="author" value="{{ article.author if article else admin.username }}" minlength="2" maxlength="120" required>
+    </div>
+
+    <div class="admin-field">
+      <label for="articleCategory">Category</label>
+      <select class="form-select" id="articleCategory" name="category_id">
+        <option value="">Uncategorized</option>
+        {% for category in categories %}
+          <option value="{{ category.slug }}" {% if article and article.category_id == category.slug %}selected{% endif %}>{{ category.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="admin-field">
+      <label for="articleTags">Tags</label>
+      <input class="form-control" id="articleTags" name="tags" value="{{ article.tags|join(', ') if article else '' }}" maxlength="500" placeholder="Strategy, SEO, Ops">
+    </div>
+
+    <div class="admin-field">
+      <label for="articleStatus">Status</label>
+      <select class="form-select" id="articleStatus" name="status">
+        <option value="draft" {% if not article or article.status == "draft" %}selected{% endif %}>Draft</option>
+        <option value="published" {% if article and article.status == "published" %}selected{% endif %}>Published</option>
+        <option value="archived" {% if article and article.status == "archived" %}selected{% endif %}>Archived</option>
+      </select>
+    </div>
+
+    <label class="admin-check">
+      <input type="checkbox" name="is_featured" value="true" {% if article and article.is_featured %}checked{% endif %}>
+      <span>Feature this article</span>
+    </label>
+
+    <div class="admin-field">
+      <label for="articleCover">Cover image URL</label>
+      <input class="form-control" id="articleCover" name="cover_image" value="{{ article.cover_image if article and article.cover_image else '' }}" maxlength="500">
+    </div>
+
+    <div class="admin-field">
+      <label for="articleSeoTitle">SEO title</label>
+      <input class="form-control" id="articleSeoTitle" name="seo_title" value="{{ article.seo_title if article and article.seo_title else '' }}" maxlength="70">
+    </div>
+
+    <div class="admin-field">
+      <label for="articleSeoDescription">SEO description</label>
+      <textarea class="form-control" id="articleSeoDescription" name="seo_description" rows="3" maxlength="160">{{ article.seo_description if article and article.seo_description else '' }}</textarea>
+    </div>
+
+    <p class="admin-form-message" data-admin-form-message role="status">Ready to save.</p>
+    <button class="btn btn-primary w-100" type="submit">{{ "Update article" if article else "Create article" }}</button>
+  </aside>
+</form>
+{% endblock %}

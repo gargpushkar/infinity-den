@@ -1,0 +1,18 @@
+<header class="admin-topbar">
+  <button class="admin-menu-toggle" type="button" data-admin-sidebar-toggle aria-label="Toggle admin navigation">
+    <span></span>
+    <span></span>
+  </button>
+
+  <div>
+    <p class="admin-kicker mb-1">{{ active_nav|replace("_", " ") }}</p>
+    <h1>{{ page_title }}</h1>
+  </div>
+
+  <div class="admin-topbar-actions">
+    <a class="btn btn-outline-primary admin-preview-link" href="/" target="_blank" rel="noopener">View site</a>
+    <form action="/api/admin/logout" method="post" data-admin-logout-form>
+      <button class="btn btn-primary" type="submit">Logout</button>
+    </form>
+  </div>
+</header>

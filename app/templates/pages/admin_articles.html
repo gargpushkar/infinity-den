@@ -1,0 +1,71 @@
+{% extends "layouts/admin.html" %}
+
+{% block admin_content %}
+<section class="admin-section-header">
+  <div>
+    <p class="admin-kicker mb-2">Article management</p>
+    <h2>Draft, publish, feature, and edit stories.</h2>
+  </div>
+  <a class="btn btn-primary" href="/admin/articles/new">Create article</a>
+</section>
+
+<section class="admin-panel">
+  <div class="admin-panel-header">
+    <div>
+      <p class="admin-kicker mb-1">Library</p>
+      <h2>{{ stats.articles }} articles</h2>
+    </div>
+    <p class="admin-muted mb-0" data-admin-table-message role="status">Showing latest {{ articles|length }} records.</p>
+  </div>
+
+  {% if articles %}
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Featured</th>
+            <th>Updated</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for article in articles %}
+            <tr data-admin-article-row>
+              <td>
+                <a class="admin-table-title" href="/admin/articles/{{ article.id }}/edit">{{ article.title }}</a>
+                <small>{{ article.slug }}</small>
+              </td>
+              <td><span class="admin-pill" data-admin-article-status>{{ article.status }}</span></td>
+              <td>
+                <button
+                  class="admin-icon-action"
+                  type="button"
+                  data-admin-article-feature
+                  data-article-id="{{ article.id }}"
+                  data-featured="{{ 'true' if article.is_featured else 'false' }}"
+                  aria-label="Toggle featured state for {{ article.title }}"
+                >
+                  {{ "On" if article.is_featured else "Off" }}
+                </button>
+              </td>
+              <td>{{ article.updated_at.strftime("%d %b %Y") }}</td>
+              <td>
+                <div class="admin-row-actions">
+                  <a href="/admin/articles/{{ article.id }}/edit">Edit</a>
+                  <button type="button" data-admin-article-status-action data-article-id="{{ article.id }}" data-status-action="publish">Publish</button>
+                  <button type="button" data-admin-article-status-action data-article-id="{{ article.id }}" data-status-action="draft">Draft</button>
+                  <button type="button" data-admin-delete-resource data-delete-url="/api/articles/{{ article.id }}" data-delete-label="{{ article.title }}">Delete</button>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="admin-empty">No articles exist yet. Create the first draft to populate this table.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,30 @@
+<aside class="admin-sidebar" aria-label="Admin navigation">
+  <a class="admin-brand" href="/admin" aria-label="{{ app_name }} admin dashboard">
+    <span>ID</span>
+    <strong>{{ app_name }}</strong>
+  </a>
+
+  <nav class="admin-nav">
+    <a class="{% if active_nav == 'dashboard' %}is-active{% endif %}" href="/admin">
+      <span>01</span>
+      Dashboard
+    </a>
+    <a class="{% if active_nav == 'articles' %}is-active{% endif %}" href="/admin/articles">
+      <span>02</span>
+      Articles
+    </a>
+    <a class="{% if active_nav == 'categories' %}is-active{% endif %}" href="/admin/categories">
+      <span>03</span>
+      Categories
+    </a>
+    <a class="{% if active_nav == 'submissions' %}is-active{% endif %}" href="/admin/submissions">
+      <span>04</span>
+      Submissions
+    </a>
+  </nav>
+
+  <div class="admin-sidebar-note">
+    <span>Signed in</span>
+    <strong>{{ admin.username }}</strong>
+  </div>
+</aside>

@@ -1,0 +1,25 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
+{% block meta_description %}Protected admin area for {{ app_name }}.{% endblock %}
+
+{% block content %}
+<section class="admin-console" data-admin-console>
+  {% include "partials/admin_sidebar.html" %}
+
+  <div class="admin-workspace">
+    {% include "partials/admin_topbar.html" %}
+
+    <div class="admin-content">
+      {% if not is_database_available %}
+        <div class="admin-alert" role="status">
+          <strong>Database offline</strong>
+          <span>Admin screens are ready, but MongoDB data could not be loaded.</span>
+        </div>
+      {% endif %}
+
+      {% block admin_content %}{% endblock %}
+    </div>
+  </div>
+</section>
+{% endblock %}
