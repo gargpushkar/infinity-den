@@ -114,7 +114,7 @@
 - [x] Create category APIs
 - [x] Create category listing page
 - [x] Create category detail page
-- [ ] Add category filtering
+- [x] Add category filtering
 
 ## Tags
 - [ ] Create tag schema/model
