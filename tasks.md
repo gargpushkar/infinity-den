@@ -111,7 +111,7 @@
 
 ## Categories
 - [x] Create category schema/model
-- [ ] Create category APIs
+- [x] Create category APIs
 - [ ] Create category listing page
 - [ ] Create category detail page
 - [ ] Add category filtering
