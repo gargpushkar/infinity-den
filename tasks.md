@@ -159,12 +159,12 @@
 # ADMIN AUTHENTICATION
 
 ## JWT Authentication
-- [ ] Create admin schema/model
-- [ ] Setup JWT authentication
-- [ ] Create login API
-- [ ] Create login page
-- [ ] Add password hashing
-- [ ] Add protected admin routes
+- [x] Create admin schema/model
+- [x] Setup JWT authentication
+- [x] Create login API
+- [x] Create login page
+- [x] Add password hashing
+- [x] Add protected admin routes
 
 ---
 

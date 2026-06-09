@@ -1,0 +1,61 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
+{% block meta_description %}Sign in to the {{ app_name }} admin area.{% endblock %}
+
+{% block content %}
+<section class="admin-auth-page">
+  <div class="container">
+    <div class="admin-auth-layout" data-reveal>
+      <div class="admin-auth-copy">
+        <p class="eyebrow mb-3">Admin access</p>
+        <h1>Editorial control room.</h1>
+        <p>Sign in to manage protected publishing workflows, reviews, and admin-only tools.</p>
+
+        <div class="admin-auth-points" aria-label="Admin security notes">
+          <span>JWT session</span>
+          <span>HTTP-only cookie</span>
+          <span>Password hash</span>
+        </div>
+      </div>
+
+      <form class="admin-login-form" action="/api/admin/login" method="post" data-admin-login-form>
+        <div class="admin-login-topline">
+          <span>Secure sign in</span>
+          <strong>{{ app_name }}</strong>
+        </div>
+
+        <div>
+          <label class="admin-login-label" for="adminUsername">Username</label>
+          <input
+            class="form-control admin-login-input"
+            id="adminUsername"
+            name="username"
+            type="text"
+            autocomplete="username"
+            minlength="3"
+            maxlength="80"
+            required
+          >
+        </div>
+
+        <div>
+          <label class="admin-login-label" for="adminPassword">Password</label>
+          <input
+            class="form-control admin-login-input"
+            id="adminPassword"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            maxlength="128"
+            required
+          >
+        </div>
+
+        <button class="btn btn-primary admin-login-submit" type="submit">Sign in</button>
+        <p class="admin-login-note" data-admin-login-message role="status">Use your admin credentials to continue.</p>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -23,6 +23,17 @@ class Settings:
         cast=int,
         default=2000,
     )
+    auth_secret_key: str = config("AUTH_SECRET_KEY", default="")
+    auth_token_expire_minutes: int = config(
+        "AUTH_TOKEN_EXPIRE_MINUTES",
+        cast=int,
+        default=60,
+    )
+    auth_cookie_secure: bool = config(
+        "AUTH_COOKIE_SECURE",
+        cast=bool,
+        default=False,
+    )
 
 
 settings = Settings()
