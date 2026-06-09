@@ -19,13 +19,7 @@
 {% block content %}
 <article class="article-detail">
   <div class="container">
-    <nav class="article-breadcrumb" aria-label="Breadcrumb" data-reveal>
-      <a href="/">Home</a>
-      <span aria-hidden="true">/</span>
-      <a href="/articles">Articles</a>
-      <span aria-hidden="true">/</span>
-      <span>{{ article.category }}</span>
-    </nav>
+    {% include "components/breadcrumbs.html" %}
 
     <header class="article-detail-hero" data-reveal>
       <div class="article-detail-copy">

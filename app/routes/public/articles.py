@@ -37,6 +37,10 @@ async def article_listing(
         {
             "app_name": settings.app_name,
             "page_title": "Articles",
+            **_breadcrumb_context(
+                request,
+                _article_listing_breadcrumbs(listing_context),
+            ),
             **listing_context,
         },
     )
@@ -54,6 +58,8 @@ async def article_detail(
             detail="Article was not found.",
         )
 
+    breadcrumbs = _article_detail_breadcrumbs(detail_context["article"])
+
     return templates.TemplateResponse(
         request,
         "pages/article_detail.html",
@@ -61,6 +67,7 @@ async def article_detail(
             "app_name": settings.app_name,
             "page_title": detail_context["article"]["seo_title"],
             **_article_seo_context(request, detail_context["article"]),
+            **_breadcrumb_context(request, breadcrumbs),
             "share_actions": _article_share_actions(
                 request,
                 detail_context["article"],
@@ -68,6 +75,94 @@ async def article_detail(
             **detail_context,
         },
     )
+
+
+def _article_listing_breadcrumbs(context: dict[str, Any]) -> list[dict[str, Any]]:
+    active_category = context.get("active_category")
+    active_tag = context.get("active_tag")
+    breadcrumbs: list[dict[str, Any]] = [
+        {"label": "Home", "url": "/", "is_current": False},
+    ]
+
+    if active_category or active_tag:
+        breadcrumbs.append(
+            {"label": "Articles", "url": "/articles", "is_current": False}
+        )
+        if active_category:
+            breadcrumbs.append(
+                {
+                    "label": str(active_category),
+                    "url": None if not active_tag else _category_url(context),
+                    "is_current": not active_tag,
+                }
+            )
+        if active_tag:
+            breadcrumbs.append(
+                {
+                    "label": f"Tag: {active_tag}",
+                    "url": None,
+                    "is_current": True,
+                }
+            )
+    else:
+        breadcrumbs.append({"label": "Articles", "url": None, "is_current": True})
+
+    return breadcrumbs
+
+
+def _article_detail_breadcrumbs(article: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        {"label": "Home", "url": "/", "is_current": False},
+        {"label": "Articles", "url": "/articles", "is_current": False},
+        {
+            "label": article["category"],
+            "url": article["category_url"],
+            "is_current": False,
+        },
+        {"label": article["title"], "url": None, "is_current": True},
+    ]
+
+
+def _breadcrumb_context(
+    request: Request,
+    breadcrumbs: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "breadcrumbs": breadcrumbs,
+        "breadcrumb_schema": _breadcrumb_schema(request, breadcrumbs),
+    }
+
+
+def _breadcrumb_schema(
+    request: Request,
+    breadcrumbs: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": index,
+                "name": breadcrumb["label"],
+                **(
+                    {"item": _absolute_site_url(request, breadcrumb["url"])}
+                    if breadcrumb.get("url")
+                    else {}
+                ),
+            }
+            for index, breadcrumb in enumerate(breadcrumbs, start=1)
+        ],
+    }
+
+
+def _category_url(context: dict[str, Any]) -> str:
+    active_category = context.get("active_category")
+    for category in context.get("category_filters", []):
+        if category.get("name") == active_category:
+            return str(category["url"])
+
+    return "/articles"
 
 
 def _article_seo_context(request: Request, article: dict) -> dict[str, str]:
@@ -146,3 +241,13 @@ def _absolute_image_url(request: Request, image_url: str) -> str:
         return f"{str(request.base_url).rstrip('/')}{clean_image_url}"
 
     return f"{str(request.base_url).rstrip('/')}/{clean_image_url}"
+
+
+def _absolute_site_url(request: Request, url: str) -> str:
+    clean_url = str(url or "").strip()
+    if clean_url.startswith(("http://", "https://")):
+        return clean_url
+    if clean_url.startswith("/"):
+        return f"{str(request.base_url).rstrip('/')}{clean_url}"
+
+    return f"{str(request.base_url).rstrip('/')}/{clean_url}"

@@ -102,7 +102,7 @@
 - [x] Create related articles section
 - [x] Add article SEO metadata
 - [x] Add social sharing section
-- [ ] Add breadcrumbs
+- [x] Add breadcrumbs
 - [ ] Add read time calculation
 
 ---
@@ -206,7 +206,7 @@
 
 ## Structured Data
 - [ ] Add article schema markup
-- [ ] Add breadcrumb schema
+- [x] Add breadcrumb schema
 - [ ] Add organization schema
 
 ---
