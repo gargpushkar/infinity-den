@@ -110,7 +110,7 @@
 # CATEGORY SYSTEM
 
 ## Categories
-- [ ] Create category schema/model
+- [x] Create category schema/model
 - [ ] Create category APIs
 - [ ] Create category listing page
 - [ ] Create category detail page
