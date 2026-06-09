@@ -10,6 +10,7 @@ from pymongo.errors import PyMongoError
 from app.config.constants import ARTICLE_STATUS_PUBLISHED
 from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION
+from app.models.tag import TAG_COLLECTION
 from app.schemas.article import ArticleQueryParams, ArticleRead
 from app.services.article_service import ArticleService
 from app.utils.reading_time import calculate_reading_time
@@ -56,24 +57,27 @@ async def get_article_listing_context(
     try:
         db = get_database()
         category_options = await _get_category_options(db)
-        tag_options = await _get_tag_options(db)
         sort_option = _resolve_sort_option(sort)
         category_filter = _clean_optional_slug(category)
-        tag_filter = _clean_optional_tag(tag)
+        tag_options = await _get_tag_options(db, category=category_filter)
+        tag_filter = _resolve_tag_filter(tag, tag_options)
+        tag_filter_name = tag_filter["name"] if tag_filter else None
+        tag_filter_slug = tag_filter["slug"] if tag_filter else None
 
         query = ArticleQueryParams(
             page=page,
             per_page=ARTICLE_LISTING_PER_PAGE,
             status="published",
             category_id=category_filter,
-            tag=tag_filter,
+            tag=tag_filter_name,
             sort_by=sort_option["sort_by"],
             sort_direction=sort_option["sort_direction"],
         )
         article_list = await ArticleService(database=db).list_articles(query)
         category_lookup = {item["slug"]: item["name"] for item in category_options}
+        tag_lookup = {item["name"].lower(): item["slug"] for item in tag_options}
         articles = [
-            _article_to_card(article, category_lookup)
+            _article_to_card(article, category_lookup, tag_lookup)
             for article in article_list.items
         ]
 
@@ -87,16 +91,27 @@ async def get_article_listing_context(
                 "per_page": article_list.per_page,
                 "url_template": _pagination_url_template(
                     category_filter,
-                    tag_filter,
+                    tag_filter_slug,
                     sort_option["value"],
                 ),
                 "aria_label": "Article pages",
             },
-            "category_filters": _mark_active_filter(category_options, category_filter),
-            "tag_filters": _mark_active_filter(tag_options, tag_filter),
+            "category_filters": _category_filters(
+                category_options,
+                active_category=category_filter,
+                active_tag=tag_filter_slug,
+                sort=sort_option["value"],
+            ),
+            "tag_filters": _tag_filters(
+                tag_options,
+                active_tag=tag_filter_slug,
+                category=category_filter,
+                sort=sort_option["value"],
+            ),
             "sort_options": _mark_active_filter(list(SORT_OPTIONS), sort_option["value"]),
             "active_category": category_lookup.get(category_filter or ""),
-            "active_tag": tag_filter,
+            "active_tag": tag_filter["name"] if tag_filter else None,
+            "active_tag_slug": tag_filter_slug,
             "active_sort": sort_option["label"],
             "categories": [item["name"] for item in category_options],
             "is_database_available": True,
@@ -110,13 +125,20 @@ async def get_article_detail_context(article_slug: str) -> dict[str, Any] | None
         db = get_database()
         category_options = await _get_category_options(db)
         category_lookup = {item["slug"]: item["name"] for item in category_options}
+        tag_options = await _get_tag_options(db)
+        tag_lookup = {item["name"].lower(): item["slug"] for item in tag_options}
         article = await ArticleService(database=db).get_article_detail(article_slug)
 
         if article is None or article.status != "published":
             return None
 
-        article_context = _article_to_detail(article, category_lookup)
-        related_articles = await _get_related_articles(db, article, category_lookup)
+        article_context = _article_to_detail(article, category_lookup, tag_lookup)
+        related_articles = await _get_related_articles(
+            db,
+            article,
+            category_lookup,
+            tag_lookup,
+        )
 
         return {
             "article": article_context,
@@ -154,9 +176,13 @@ async def _get_category_options(db: Any) -> list[dict[str, Any]]:
     return categories
 
 
-async def _get_tag_options(db: Any) -> list[dict[str, str]]:
+async def _get_tag_options(
+    db: Any,
+    *,
+    category: str | None = None,
+) -> list[dict[str, Any]]:
     tags = []
-    cursor = db.tags.find({}, {"_id": 0}).sort("name", ASCENDING)
+    cursor = db[TAG_COLLECTION].find({}, {"_id": 0}).sort("name", ASCENDING)
 
     async for tag in cursor:
         slug = str(tag.get("slug", "")).strip()
@@ -164,7 +190,23 @@ async def _get_tag_options(db: Any) -> list[dict[str, str]]:
         if not slug or not name:
             continue
 
-        tags.append({"name": name, "slug": slug, "value": name})
+        article_filter: dict[str, Any] = {
+            "status": ARTICLE_STATUS_PUBLISHED,
+            "tags": name,
+        }
+        if category:
+            article_filter["category_id"] = category
+
+        total = await db[ARTICLE_COLLECTION].count_documents(article_filter)
+
+        tags.append(
+            {
+                "name": name,
+                "slug": slug,
+                "value": slug,
+                "total": total,
+            }
+        )
 
     return tags
 
@@ -173,6 +215,7 @@ async def _get_related_articles(
     db: Any,
     article: ArticleRead,
     category_lookup: dict[str, str],
+    tag_lookup: dict[str, str],
 ) -> list[dict[str, Any]]:
     related_filters: list[dict[str, Any]] = []
     if article.category_id:
@@ -193,6 +236,7 @@ async def _get_related_articles(
             db,
             primary_filter,
             category_lookup,
+            tag_lookup,
             RELATED_ARTICLE_LIMIT,
         )
         selected_slugs.update(item["slug"] for item in related_articles)
@@ -207,6 +251,7 @@ async def _get_related_articles(
                 db,
                 fallback_filter,
                 category_lookup,
+                tag_lookup,
                 RELATED_ARTICLE_LIMIT - len(related_articles),
             )
         )
@@ -218,6 +263,7 @@ async def _fetch_related_article_cards(
     db: Any,
     article_filter: dict[str, Any],
     category_lookup: dict[str, str],
+    tag_lookup: dict[str, str],
     limit: int,
 ) -> list[dict[str, Any]]:
     if limit <= 0:
@@ -237,7 +283,11 @@ async def _fetch_related_article_cards(
     )
 
     return [
-        _article_to_card(ArticleRead.model_validate(document), category_lookup)
+        _article_to_card(
+            ArticleRead.model_validate(document),
+            category_lookup,
+            tag_lookup,
+        )
         async for document in cursor
     ]
 
@@ -245,9 +295,11 @@ async def _fetch_related_article_cards(
 def _article_to_card(
     article: ArticleRead,
     category_lookup: dict[str, str],
+    tag_lookup: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     published_at = _format_date(article.published_at)
     reading_time = calculate_reading_time(article.content)
+    tag_lookup = tag_lookup or {}
 
     return {
         "title": article.title,
@@ -273,7 +325,8 @@ def _article_to_card(
         "tag_links": [
             {
                 "name": tag,
-                "url": f"/articles?{urlencode({'tag': tag})}",
+                "slug": _tag_slug(tag, tag_lookup),
+                "url": f"/articles?{urlencode({'tag': _tag_slug(tag, tag_lookup)})}",
             }
             for tag in article.tags
         ],
@@ -290,8 +343,9 @@ def article_to_card_context(
 def _article_to_detail(
     article: ArticleRead,
     category_lookup: dict[str, str],
+    tag_lookup: dict[str, str],
 ) -> dict[str, Any]:
-    card = _article_to_card(article, category_lookup)
+    card = _article_to_card(article, category_lookup, tag_lookup)
     paragraphs = [
         paragraph.strip()
         for paragraph in article.content.split("\n\n")
@@ -343,6 +397,48 @@ def _mark_active_filter(
     ]
 
 
+def _category_filters(
+    options: list[dict[str, Any]],
+    *,
+    active_category: str | None,
+    active_tag: str | None,
+    sort: str,
+) -> list[dict[str, Any]]:
+    return [
+        {
+            **option,
+            "is_active": option.get("value") == active_category,
+            "url": _article_filter_url(
+                category=option.get("slug"),
+                tag=active_tag,
+                sort=sort,
+            ),
+        }
+        for option in options
+    ]
+
+
+def _tag_filters(
+    options: list[dict[str, Any]],
+    *,
+    active_tag: str | None,
+    category: str | None,
+    sort: str,
+) -> list[dict[str, Any]]:
+    return [
+        {
+            **option,
+            "is_active": option.get("value") == active_tag,
+            "url": _article_filter_url(
+                category=category,
+                tag=option.get("slug"),
+                sort=sort,
+            ),
+        }
+        for option in options
+    ]
+
+
 def _pagination_url_template(
     category: str | None,
     tag: str | None,
@@ -355,6 +451,21 @@ def _pagination_url_template(
         params["tag"] = tag
 
     return f"/articles?{urlencode(params)}".replace("__page__", "{page}")
+
+
+def _article_filter_url(
+    *,
+    category: str | None,
+    tag: str | None,
+    sort: str,
+) -> str:
+    params = {"sort": sort}
+    if category:
+        params["category"] = category
+    if tag:
+        params["tag"] = tag
+
+    return f"/articles?{urlencode(params)}"
 
 
 def _clean_optional_slug(value: str | None) -> str | None:
@@ -371,6 +482,29 @@ def _clean_optional_tag(value: str | None) -> str | None:
 
     clean_value = value.strip()
     return clean_value or None
+
+
+def _resolve_tag_filter(
+    value: str | None,
+    tag_options: list[dict[str, Any]],
+) -> dict[str, str] | None:
+    clean_value = _clean_optional_tag(value)
+    if clean_value is None:
+        return None
+
+    normalized_value = clean_value.lower()
+    for tag in tag_options:
+        slug = str(tag.get("slug", "")).lower()
+        name = str(tag.get("name", ""))
+        if normalized_value in {slug, name.lower()}:
+            return {"name": name, "slug": slug}
+
+    return {"name": clean_value, "slug": normalized_value}
+
+
+def _tag_slug(tag: str, tag_lookup: dict[str, str]) -> str:
+    clean_tag = str(tag or "").strip()
+    return tag_lookup.get(clean_tag.lower(), clean_tag)
 
 
 def _format_date(value: datetime | None) -> str:
@@ -404,6 +538,7 @@ def _empty_listing_context() -> dict[str, Any]:
         "sort_options": _mark_active_filter(list(SORT_OPTIONS), "newest"),
         "active_category": None,
         "active_tag": None,
+        "active_tag_slug": None,
         "active_sort": "Newest",
         "categories": [],
         "is_database_available": False,
