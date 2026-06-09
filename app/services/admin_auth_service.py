@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from bson import ObjectId
 from bson.errors import InvalidId
 from motor.motor_asyncio import AsyncIOMotorCollection, AsyncIOMotorDatabase
-from pymongo import DESCENDING, ReturnDocument
+from pymongo import ASCENDING, DESCENDING, ReturnDocument
 from pymongo.errors import DuplicateKeyError
 
 from app.config.settings import settings
