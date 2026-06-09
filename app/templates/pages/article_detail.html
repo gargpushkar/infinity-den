@@ -48,6 +48,7 @@
     <div class="article-detail-layout">
       <aside class="article-detail-aside" aria-label="Article tools" data-reveal>
         <a class="back-link" href="/articles">Back to articles</a>
+        {% include "components/share_actions.html" %}
         {% if article.tag_links %}
           <div class="article-tag-list">
             <span>Topics</span>
