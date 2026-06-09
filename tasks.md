@@ -123,6 +123,17 @@
 
 ---
 
+# WRITE FOR US SYSTEM
+
+## Submission System
+- [ ] Create article submission schema
+- [ ] Create submission API
+- [ ] Create submission form
+- [ ] Add validation
+- [ ] Add success/error states
+
+---
+
 # SEARCH SYSTEM
 
 ## Search Features
@@ -142,17 +153,6 @@
 - [ ] Create newsletter subscription form
 - [ ] Add email validation
 - [ ] Prevent duplicate subscriptions
-
----
-
-# WRITE FOR US SYSTEM
-
-## Submission System
-- [ ] Create article submission schema
-- [ ] Create submission API
-- [ ] Create submission form
-- [ ] Add validation
-- [ ] Add success/error states
 
 ---
 
