@@ -112,7 +112,7 @@
 ## Categories
 - [x] Create category schema/model
 - [x] Create category APIs
-- [ ] Create category listing page
+- [x] Create category listing page
 - [ ] Create category detail page
 - [ ] Add category filtering
 
