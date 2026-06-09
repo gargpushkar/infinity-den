@@ -1,4 +1,26 @@
 async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
+    category_links = [
+        {
+            "name": "Content Strategy",
+            "url": "/articles?category=content-strategy",
+        },
+        {
+            "name": "Search Growth",
+            "url": "/articles?category=search-growth",
+        },
+        {
+            "name": "Editorial Ops",
+            "url": "/articles?category=editorial-ops",
+        },
+        {
+            "name": "Audience Building",
+            "url": "/articles?category=audience-building",
+        },
+        {
+            "name": "Newsletter",
+            "url": "/search?q=newsletter",
+        },
+    ]
     hero_metrics = [
         {"value": "5", "label": "Editorial channels"},
         {"value": "24h", "label": "Publishing rhythm"},
@@ -8,7 +30,7 @@ async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
     top_articles = [
         {
             "title": "Editorial systems that scale with your audience",
-            "slug": "#",
+            "url": "/articles?category=editorial-ops",
             "excerpt": "A practical look at building a publishing rhythm, review process, and SEO workflow without slowing the team down.",
             "category": "Editorial",
             "read_time": "8 min read",
@@ -17,7 +39,7 @@ async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
         },
         {
             "title": "How to turn category pages into growth assets",
-            "slug": "#",
+            "url": "/categories",
             "excerpt": "Use focused topic hubs to make discovery easier for readers and search engines.",
             "category": "SEO",
             "read_time": "6 min read",
@@ -26,7 +48,7 @@ async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
         },
         {
             "title": "A cleaner intake process for guest contributors",
-            "slug": "#",
+            "url": "/#writeForUs",
             "excerpt": "Collect ideas, triage submissions, and protect the quality bar from the first message.",
             "category": "Community",
             "read_time": "5 min read",
@@ -38,7 +60,7 @@ async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
     featured_articles = [
         {
             "title": "Build a sharper content engine",
-            "slug": "#",
+            "url": "/articles?category=content-strategy",
             "excerpt": "Plan, publish, and optimize editorial work from one clean platform.",
             "category": "Strategy",
             "cover_image": "/static/images/articles/content-engine.svg",
@@ -47,7 +69,7 @@ async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
         },
         {
             "title": "Turn expertise into durable search traffic",
-            "slug": "#",
+            "url": "/articles?category=search-growth",
             "excerpt": "A publishing workflow shaped around discoverability and trust.",
             "category": "SEO",
             "cover_image": "/static/images/articles/search-traffic.svg",
@@ -56,7 +78,7 @@ async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
         },
         {
             "title": "Invite expert contributors",
-            "slug": "#",
+            "url": "/#writeForUs",
             "excerpt": "Collect and review article ideas without losing editorial control.",
             "category": "Community",
             "cover_image": "/static/images/articles/contributors.svg",
@@ -65,7 +87,7 @@ async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
         },
         {
             "title": "Create newsletter loops readers trust",
-            "slug": "#",
+            "url": "/#newsletterSignup",
             "excerpt": "Make subscriptions useful with clear themes, reliable cadence, and thoughtful routing.",
             "category": "Newsletter",
             "cover_image": "/static/images/articles/newsletter-loops.svg",
@@ -77,7 +99,7 @@ async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
     latest_articles = [
         {
             "title": "A weekly editorial review that keeps teams aligned",
-            "slug": "#",
+            "url": "/articles?category=editorial-ops",
             "excerpt": "Use a short review ritual to spot stale drafts, unblock approvals, and keep the publishing calendar honest.",
             "category": "Editorial",
             "cover_image": "/static/images/articles/editorial-default.svg",
@@ -86,7 +108,7 @@ async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
         },
         {
             "title": "What to measure before refreshing old content",
-            "slug": "#",
+            "url": "/search?q=content+refresh",
             "excerpt": "Prioritize updates with search intent, decay signals, and conversion context instead of chasing every aging post.",
             "category": "Growth",
             "cover_image": "/static/images/articles/search-traffic.svg",
@@ -95,7 +117,7 @@ async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
         },
         {
             "title": "Turn contributor pitches into a reliable intake queue",
-            "slug": "#",
+            "url": "/#writeForUs",
             "excerpt": "Separate promising ideas from noisy submissions with clear prompts, topic lanes, and review states.",
             "category": "Community",
             "cover_image": "/static/images/articles/contributors.svg",
@@ -104,7 +126,7 @@ async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
         },
         {
             "title": "Newsletter sections that make repeat reading easier",
-            "slug": "#",
+            "url": "/#newsletterSignup",
             "excerpt": "Design recurring newsletter blocks that help subscribers recognize value before they reach the first link.",
             "category": "Newsletter",
             "cover_image": "/static/images/articles/newsletter-loops.svg",
@@ -113,7 +135,7 @@ async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
         },
         {
             "title": "How category pages can guide editorial planning",
-            "slug": "#",
+            "url": "/categories",
             "excerpt": "Use category hubs as living maps for coverage gaps, internal links, and reader journeys.",
             "category": "SEO",
             "cover_image": "/static/images/articles/content-engine.svg",
@@ -127,5 +149,6 @@ async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
         "top_articles": top_articles,
         "featured_articles": featured_articles,
         "latest_articles": latest_articles,
-        "categories": ["Content Marketing", "SEO", "Editorial", "Growth", "Newsletter"],
+        "categories": [category["name"] for category in category_links],
+        "category_links": category_links,
     }

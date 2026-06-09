@@ -6,9 +6,15 @@
       <div class="category-header" aria-label="Featured categories">
         <span class="header-label">Topics</span>
         <div class="category-links">
-          {% for category in (categories | default([]))[:4] %}
-            <a href="/categories">{{ category }}</a>
-          {% endfor %}
+          {% if category_links | default([], true) %}
+            {% for category_item in category_links[:4] %}
+              <a href="{{ category_item.url }}">{{ category_item.name }}</a>
+            {% endfor %}
+          {% else %}
+            {% for category in (categories | default([]))[:4] %}
+              <a href="/categories">{{ category }}</a>
+            {% endfor %}
+          {% endif %}
         </div>
       </div>
 
@@ -33,8 +39,8 @@
       <li><a href="/articles">Articles</a></li>
       <li><a href="/categories">Categories</a></li>
       <li><a href="/search">Search</a></li>
-      <li><a href="#writeForUs">Write for us</a></li>
-      <li><a href="#newsletterSignup">Newsletter</a></li>
+      <li><a href="/#writeForUs">Write for us</a></li>
+      <li><a href="/#newsletterSignup">Newsletter</a></li>
     </ul>
     <div class="menu-categories">
       {% for category in categories | default([]) %}
