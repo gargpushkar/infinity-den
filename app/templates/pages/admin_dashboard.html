@@ -1,0 +1,91 @@
+{% extends "layouts/admin.html" %}
+
+{% block admin_content %}
+<section class="admin-hero-panel" data-reveal>
+  <div>
+    <p class="admin-kicker mb-2">Editorial overview</p>
+    <h2>Keep publishing work moving from one control room.</h2>
+    <p>Track draft flow, category health, contributor pitches, and featured stories without leaving the admin area.</p>
+  </div>
+  <a class="btn btn-primary" href="/admin/articles/new">New article</a>
+</section>
+
+<section class="admin-metric-grid" aria-label="Dashboard metrics" data-reveal>
+  <article class="admin-metric" data-reveal-child>
+    <span>Articles</span>
+    <strong>{{ stats.articles }}</strong>
+    <small>{{ status_counts.published }} published / {{ status_counts.draft }} drafts</small>
+  </article>
+  <article class="admin-metric" data-reveal-child>
+    <span>Categories</span>
+    <strong>{{ stats.categories }}</strong>
+    <small>Topic lanes available</small>
+  </article>
+  <article class="admin-metric" data-reveal-child>
+    <span>Submissions</span>
+    <strong>{{ stats.submissions }}</strong>
+    <small>{{ submission_counts.new }} new pitches</small>
+  </article>
+  <article class="admin-metric" data-reveal-child>
+    <span>Featured</span>
+    <strong>{{ stats.featured }}</strong>
+    <small>Homepage-ready stories</small>
+  </article>
+</section>
+
+<section class="admin-dashboard-grid">
+  <article class="admin-panel">
+    <div class="admin-panel-header">
+      <div>
+        <p class="admin-kicker mb-1">Article flow</p>
+        <h2>Recent work</h2>
+      </div>
+      <a href="/admin/articles">Manage</a>
+    </div>
+    <div class="admin-status-rail" aria-label="Article status counts">
+      <span>Draft <strong>{{ status_counts.draft }}</strong></span>
+      <span>Published <strong>{{ status_counts.published }}</strong></span>
+      <span>Archived <strong>{{ status_counts.archived }}</strong></span>
+    </div>
+    {% if articles %}
+      <div class="admin-list">
+        {% for article in articles %}
+          <a class="admin-list-row" href="/admin/articles/{{ article.id }}/edit">
+            <span>{{ article.title }}</span>
+            <small>{{ article.status }}</small>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="admin-empty">No articles yet.</p>
+    {% endif %}
+  </article>
+
+  <article class="admin-panel">
+    <div class="admin-panel-header">
+      <div>
+        <p class="admin-kicker mb-1">Contributor queue</p>
+        <h2>Submission review</h2>
+      </div>
+      <a href="/admin/submissions">Review</a>
+    </div>
+    <div class="admin-status-rail" aria-label="Submission status counts">
+      <span>New <strong>{{ submission_counts.new }}</strong></span>
+      <span>Reviewing <strong>{{ submission_counts.reviewing }}</strong></span>
+      <span>Accepted <strong>{{ submission_counts.accepted }}</strong></span>
+    </div>
+    {% if submissions %}
+      <div class="admin-list">
+        {% for submission in submissions %}
+          <a class="admin-list-row" href="/admin/submissions">
+            <span>{{ submission.topic }}</span>
+            <small>{{ submission.status }}</small>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="admin-empty">No contributor pitches yet.</p>
+    {% endif %}
+  </article>
+</section>
+{% endblock %}

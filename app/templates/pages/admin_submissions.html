@@ -1,0 +1,47 @@
+{% extends "layouts/admin.html" %}
+
+{% block admin_content %}
+<section class="admin-section-header">
+  <div>
+    <p class="admin-kicker mb-2">Submission review</p>
+    <h2>Approve, reject, or keep contributor pitches in review.</h2>
+  </div>
+  <p class="admin-muted mb-0">{{ submission_counts.new }} new / {{ submission_counts.reviewing }} reviewing</p>
+</section>
+
+<section class="admin-panel">
+  <div class="admin-panel-header">
+    <div>
+      <p class="admin-kicker mb-1">Pitch inbox</p>
+      <h2>{{ stats.submissions }} submissions</h2>
+    </div>
+    <p class="admin-muted mb-0" data-admin-submission-message role="status">Showing latest {{ submissions|length }} pitches.</p>
+  </div>
+
+  {% if submissions %}
+    <div class="admin-submission-grid">
+      {% for submission in submissions %}
+        <article class="admin-submission-card" data-admin-submission-card>
+          <div class="admin-submission-top">
+            <span class="admin-pill" data-admin-submission-status>{{ submission.status }}</span>
+            <small>{{ submission.created_at.strftime("%d %b %Y") }}</small>
+          </div>
+          <h3>{{ submission.topic }}</h3>
+          <p>{{ submission.content_idea }}</p>
+          <div class="admin-submission-author">
+            <strong>{{ submission.name }}</strong>
+            <a href="mailto:{{ submission.email }}">{{ submission.email }}</a>
+          </div>
+          <div class="admin-row-actions">
+            <button type="button" data-admin-submission-status-action data-submission-id="{{ submission.id }}" data-status="reviewing">Reviewing</button>
+            <button type="button" data-admin-submission-status-action data-submission-id="{{ submission.id }}" data-status="accepted">Accept</button>
+            <button type="button" data-admin-submission-status-action data-submission-id="{{ submission.id }}" data-status="rejected">Reject</button>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="admin-empty">No contributor submissions have arrived yet.</p>
+  {% endif %}
+</section>
+{% endblock %}
