@@ -21,6 +21,12 @@
       <span>04</span>
       Submissions
     </a>
+    {% if admin.role == "admin" %}
+      <a class="{% if active_nav == 'users' %}is-active{% endif %}" href="/admin/users">
+        <span>05</span>
+        Users
+      </a>
+    {% endif %}
   </nav>
 
   <div class="admin-sidebar-note">

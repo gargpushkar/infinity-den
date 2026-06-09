@@ -28,6 +28,10 @@ async def create_indexes() -> None:
         [("email", ASCENDING), ("created_at", DESCENDING)]
     )
     await db[ADMIN_COLLECTION].create_index([("username", ASCENDING)], unique=True)
+    await db[ADMIN_COLLECTION].create_index(
+        [("role", ASCENDING), ("is_active", ASCENDING)]
+    )
+    await db[ADMIN_COLLECTION].create_index([("created_at", DESCENDING)])
 
 
 async def _create_article_indexes(db: AsyncIOMotorDatabase) -> None:

@@ -15,7 +15,9 @@ from app.services.admin_dashboard_service import (
     get_admin_dashboard_context,
     get_admin_submissions_context,
 )
+from app.services.admin_auth_service import AdminAuthService
 from app.services.admin_csrf import ADMIN_CSRF_COOKIE, issue_admin_csrf_token
+from app.services.admin_permissions import require_admin_manager
 from app.services.admin_session import get_current_admin
 from app.services.article_service import ArticleService
 
@@ -141,6 +143,23 @@ async def admin_submissions_page(
     )
 
 
+@router.get("/users")
+async def admin_users_page(
+    request: Request,
+    admin: AdminRead = Depends(require_admin_manager),
+):
+    context = await _load_admin_users_context()
+
+    return _admin_template(
+        request,
+        "pages/admin_users.html",
+        admin=admin,
+        active_nav="users",
+        page_title="Admin users",
+        context=context,
+    )
+
+
 def _admin_template(
     request: Request,
     template_name: str,
@@ -184,3 +203,28 @@ async def _load_admin_article(article_identifier: str) -> ArticleRead | None:
         return await ArticleService(database=db).get_article_detail(article_identifier)
     except (RuntimeError, PyMongoError):
         return None
+
+
+async def _load_admin_users_context() -> dict[str, Any]:
+    try:
+        db = get_database()
+        admin_users = await AdminAuthService(database=db).list_admins()
+        return {
+            "is_database_available": True,
+            "admin_users": admin_users.items,
+            "admin_user_stats": {
+                "total": admin_users.total,
+                "active_admins": admin_users.active_admins,
+                "active_editors": admin_users.active_editors,
+            },
+        }
+    except (RuntimeError, PyMongoError):
+        return {
+            "is_database_available": False,
+            "admin_users": [],
+            "admin_user_stats": {
+                "total": 0,
+                "active_admins": 0,
+                "active_editors": 0,
+            },
+        }

@@ -1,0 +1,171 @@
+{% extends "layouts/admin.html" %}
+
+{% macro admin_date(value) -%}
+  {% if value %}
+    {{ value.strftime("%d %b %Y") }}
+  {% else %}
+    Not recorded
+  {% endif %}
+{%- endmacro %}
+
+{% block admin_content %}
+<section class="admin-section-header">
+  <div>
+    <p class="admin-kicker mb-2">Account management</p>
+    <h2>Create admins, assign roles, and disable access.</h2>
+  </div>
+  <p class="admin-muted mb-0" data-admin-users-message role="status">Managing {{ admin_user_stats.total }} admin accounts.</p>
+</section>
+
+<section class="admin-metric-grid" aria-label="Admin user metrics">
+  <article class="admin-metric">
+    <span>Total accounts</span>
+    <strong>{{ admin_user_stats.total }}</strong>
+    <small>All admin users</small>
+  </article>
+  <article class="admin-metric">
+    <span>Active admins</span>
+    <strong>{{ admin_user_stats.active_admins }}</strong>
+    <small>Full account access</small>
+  </article>
+  <article class="admin-metric">
+    <span>Active editors</span>
+    <strong>{{ admin_user_stats.active_editors }}</strong>
+    <small>Editorial workflow access</small>
+  </article>
+  <article class="admin-metric">
+    <span>Current role</span>
+    <strong class="admin-role-metric">{{ admin.role }}</strong>
+    <small>{{ admin.username }}</small>
+  </article>
+</section>
+
+<section class="admin-split admin-users-layout">
+  <form class="admin-panel admin-resource-form" action="/api/admin/users" method="post" data-admin-user-create-form>
+    <div class="admin-panel-header">
+      <div>
+        <p class="admin-kicker mb-1">New account</p>
+        <h2>Create admin user</h2>
+      </div>
+    </div>
+
+    <div class="admin-field">
+      <label for="adminUsername">Username</label>
+      <input class="form-control" id="adminUsername" name="username" minlength="3" maxlength="80" autocomplete="off" required>
+    </div>
+
+    <div class="admin-field">
+      <label for="adminPassword">Password</label>
+      <input class="form-control" id="adminPassword" name="password" type="password" minlength="8" maxlength="128" autocomplete="new-password" required>
+    </div>
+
+    <div class="admin-field">
+      <label for="adminRole">Role</label>
+      <select class="form-select" id="adminRole" name="role" required>
+        <option value="editor" selected>Editor</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+
+    <p class="admin-form-message" data-admin-form-message role="status">Ready to create an account.</p>
+    <button class="btn btn-primary w-100" type="submit">Create user</button>
+  </form>
+
+  <section class="admin-panel">
+    <div class="admin-panel-header">
+      <div>
+        <p class="admin-kicker mb-1">Role guide</p>
+        <h2>Permission levels</h2>
+      </div>
+    </div>
+    <div class="admin-permission-list">
+      <article>
+        <span class="admin-pill">Admin</span>
+        <p>Can manage accounts, taxonomy, destructive article actions, and editorial workflows.</p>
+      </article>
+      <article>
+        <span class="admin-pill">Editor</span>
+        <p>Can create, edit, publish, feature articles, and review contributor submissions.</p>
+      </article>
+      <article>
+        <span class="admin-pill">Disabled</span>
+        <p>Cannot sign in and loses existing session access on the next authenticated request.</p>
+      </article>
+    </div>
+  </section>
+</section>
+
+<section class="admin-panel">
+  <div class="admin-panel-header">
+    <div>
+      <p class="admin-kicker mb-1">Directory</p>
+      <h2>Admin accounts</h2>
+    </div>
+  </div>
+
+  {% if admin_users %}
+    <div class="admin-table-wrap">
+      <table class="admin-table admin-users-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Updated</th>
+            <th>Controls</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for admin_user in admin_users %}
+            <tr data-admin-user-row data-admin-user-id="{{ admin_user.id }}">
+              <td>
+                <strong class="admin-table-title">{{ admin_user.username }}</strong>
+                {% if admin_user.id == admin.id %}
+                  <small>Current session</small>
+                {% else %}
+                  <small>ID {{ admin_user.id }}</small>
+                {% endif %}
+              </td>
+              <td>
+                <form class="admin-inline-form" data-admin-user-role-form data-admin-user-id="{{ admin_user.id }}">
+                  <select class="form-select" name="role" aria-label="Role for {{ admin_user.username }}">
+                    <option value="editor" {% if admin_user.role == "editor" %}selected{% endif %}>Editor</option>
+                    <option value="admin" {% if admin_user.role == "admin" %}selected{% endif %}>Admin</option>
+                  </select>
+                  <button type="submit">Save</button>
+                </form>
+              </td>
+              <td><span class="admin-pill" data-admin-user-status>{{ "Active" if admin_user.is_active else "Disabled" }}</span></td>
+              <td>{{ admin_date(admin_user.created_at) }}</td>
+              <td data-admin-user-updated>{{ admin_date(admin_user.updated_at) }}</td>
+              <td>
+                <div class="admin-account-actions">
+                  <form class="admin-inline-form" data-admin-user-password-form data-admin-user-id="{{ admin_user.id }}">
+                    <input class="form-control" name="password" type="password" minlength="8" maxlength="128" autocomplete="new-password" placeholder="New password" aria-label="New password for {{ admin_user.username }}" required>
+                    <button type="submit">Set password</button>
+                  </form>
+                  {% if admin_user.id != admin.id %}
+                    <button
+                      type="button"
+                      data-admin-user-status-toggle
+                      data-admin-user-id="{{ admin_user.id }}"
+                      data-is-active="{{ 'true' if admin_user.is_active else 'false' }}"
+                    >
+                      {{ "Disable" if admin_user.is_active else "Reactivate" }}
+                    </button>
+                  {% else %}
+                    <span class="admin-muted">Self-disable blocked</span>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="admin-empty">No admin users could be loaded.</p>
+  {% endif %}
+</section>
+{% endblock %}

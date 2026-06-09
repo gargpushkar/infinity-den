@@ -1698,6 +1698,11 @@ button:focus-visible,
   margin: 0.85rem 0 0.55rem;
 }
 
+.admin-role-metric {
+  font-size: 2rem !important;
+  text-transform: capitalize;
+}
+
 .admin-dashboard-grid,
 .admin-split {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1849,6 +1854,77 @@ button:focus-visible,
 .admin-row-actions a:hover,
 .admin-row-actions button:hover,
 .admin-icon-action:hover {
+  border-color: var(--accent);
+  color: var(--accent-hover);
+}
+
+.admin-users-layout {
+  align-items: stretch;
+  margin-bottom: 1rem;
+}
+
+.admin-permission-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.admin-permission-list article {
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.85rem;
+}
+
+.admin-permission-list p {
+  color: var(--text-secondary);
+  font-weight: 700;
+  line-height: 1.55;
+  margin: 0.65rem 0 0;
+}
+
+.admin-users-table {
+  min-width: 72rem;
+}
+
+.admin-inline-form,
+.admin-account-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.45rem;
+}
+
+.admin-inline-form {
+  min-width: 0;
+}
+
+.admin-inline-form .form-control,
+.admin-inline-form .form-select {
+  min-height: 2.35rem;
+}
+
+.admin-inline-form .form-control {
+  min-width: 10rem;
+}
+
+.admin-inline-form .form-select {
+  min-width: 7.5rem;
+}
+
+.admin-inline-form button,
+.admin-account-actions > button {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 900;
+  min-height: 2.35rem;
+  padding: 0.4rem 0.65rem;
+  white-space: nowrap;
+}
+
+.admin-inline-form button:hover,
+.admin-account-actions > button:hover {
   border-color: var(--accent);
   color: var(--accent-hover);
 }
@@ -3616,6 +3692,19 @@ button:focus-visible,
   .admin-row-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .admin-account-actions,
+  .admin-inline-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-inline-form .form-control,
+  .admin-inline-form .form-select,
+  .admin-inline-form button,
+  .admin-account-actions > button {
+    width: 100%;
   }
 
   .admin-row-actions a,
