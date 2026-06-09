@@ -7,7 +7,7 @@
   <div class="carousel-panel" data-reveal-child>
     <div id="featuredArticlesCarousel" class="carousel slide" data-bs-ride="carousel">
       <div class="carousel-indicators">
-        {% for article in top_articles %}
+        {% for article in featured_articles %}
           <button
             type="button"
             data-bs-target="#featuredArticlesCarousel"
@@ -20,7 +20,7 @@
       </div>
 
       <div class="carousel-inner">
-        {% for article in top_articles %}
+        {% for article in featured_articles %}
           <div class="carousel-item {% if loop.first %}active{% endif %}">
             {% include "components/featured_article_card.html" %}
           </div>

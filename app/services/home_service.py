@@ -1,33 +1,187 @@
-async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
+from __future__ import annotations
+
+from typing import Any
+
+from pymongo import ASCENDING, DESCENDING
+from pymongo.errors import PyMongoError
+
+from app.config.constants import ARTICLE_STATUS_PUBLISHED
+from app.database.mongodb import get_database
+from app.models.article import ARTICLE_COLLECTION
+from app.models.category import CATEGORY_COLLECTION
+from app.schemas.article import ArticleRead
+from app.services.article_page_service import article_to_card_context
+
+
+FEATURED_ARTICLE_LIMIT = 3
+LATEST_ARTICLE_LIMIT = 5
+CATEGORY_LINK_LIMIT = 5
+
+
+async def get_homepage_context() -> dict[str, Any]:
+    try:
+        db = get_database()
+        category_options = await _get_category_links(db)
+        category_lookup = {
+            category["slug"]: category["name"] for category in category_options
+        }
+        featured_articles = await _get_featured_articles(db, category_lookup)
+        latest_articles = await _get_latest_articles(db, category_lookup)
+
+        if not featured_articles:
+            featured_articles = latest_articles[:FEATURED_ARTICLE_LIMIT]
+
+        article_count = await db[ARTICLE_COLLECTION].count_documents(
+            {"status": ARTICLE_STATUS_PUBLISHED}
+        )
+        featured_count = await db[ARTICLE_COLLECTION].count_documents(
+            {
+                "status": ARTICLE_STATUS_PUBLISHED,
+                "is_featured": True,
+            }
+        )
+
+        if not category_options and not latest_articles:
+            return _fallback_homepage_context()
+
+        return {
+            "hero_metrics": _hero_metrics(
+                article_count=article_count,
+                category_count=len(category_options),
+                featured_count=featured_count,
+            ),
+            "top_articles": featured_articles,
+            "featured_articles": featured_articles,
+            "latest_articles": latest_articles,
+            "categories": [category["name"] for category in category_options],
+            "category_links": category_options,
+        }
+    except (RuntimeError, PyMongoError):
+        return _fallback_homepage_context()
+
+
+async def _get_category_links(db: Any) -> list[dict[str, Any]]:
+    cursor = (
+        db[CATEGORY_COLLECTION]
+        .find({}, {"_id": 0, "name": 1, "slug": 1})
+        .sort("name", ASCENDING)
+        .limit(CATEGORY_LINK_LIMIT)
+    )
+    categories: list[dict[str, Any]] = []
+
+    async for category in cursor:
+        slug = str(category.get("slug", "")).strip()
+        name = str(category.get("name", "")).strip()
+        if not slug or not name:
+            continue
+
+        categories.append(
+            {
+                "name": name,
+                "slug": slug,
+                "url": f"/articles?category={slug}",
+            }
+        )
+
+    return categories
+
+
+async def _get_featured_articles(
+    db: Any,
+    category_lookup: dict[str, str],
+) -> list[dict[str, Any]]:
+    return await _get_article_cards(
+        db,
+        {
+            "status": ARTICLE_STATUS_PUBLISHED,
+            "is_featured": True,
+        },
+        category_lookup,
+        [
+            ("published_at", DESCENDING),
+            ("updated_at", DESCENDING),
+            ("created_at", DESCENDING),
+        ],
+        FEATURED_ARTICLE_LIMIT,
+    )
+
+
+async def _get_latest_articles(
+    db: Any,
+    category_lookup: dict[str, str],
+) -> list[dict[str, Any]]:
+    return await _get_article_cards(
+        db,
+        {"status": ARTICLE_STATUS_PUBLISHED},
+        category_lookup,
+        [
+            ("published_at", DESCENDING),
+            ("created_at", DESCENDING),
+        ],
+        LATEST_ARTICLE_LIMIT,
+    )
+
+
+async def _get_article_cards(
+    db: Any,
+    article_filter: dict[str, Any],
+    category_lookup: dict[str, str],
+    sort: list[tuple[str, int]],
+    limit: int,
+) -> list[dict[str, Any]]:
+    cursor = db[ARTICLE_COLLECTION].find(article_filter).sort(sort).limit(limit)
+
+    return [
+        article_to_card_context(
+            ArticleRead.model_validate(article),
+            category_lookup,
+        )
+        async for article in cursor
+    ]
+
+
+def _hero_metrics(
+    *,
+    article_count: int,
+    category_count: int,
+    featured_count: int,
+) -> list[dict[str, str]]:
+    return [
+        {"value": str(article_count), "label": "Published articles"},
+        {"value": str(category_count), "label": "Topic hubs"},
+        {"value": str(featured_count), "label": "Featured stories"},
+    ]
+
+
+def _fallback_homepage_context() -> dict[str, Any]:
     category_links = [
         {
             "name": "Content Strategy",
+            "slug": "content-strategy",
             "url": "/articles?category=content-strategy",
         },
         {
             "name": "Search Growth",
+            "slug": "search-growth",
             "url": "/articles?category=search-growth",
         },
         {
             "name": "Editorial Ops",
+            "slug": "editorial-ops",
             "url": "/articles?category=editorial-ops",
         },
         {
             "name": "Audience Building",
+            "slug": "audience-building",
             "url": "/articles?category=audience-building",
         },
         {
             "name": "Newsletter",
+            "slug": "newsletter",
             "url": "/search?q=newsletter",
         },
     ]
-    hero_metrics = [
-        {"value": "5", "label": "Editorial channels"},
-        {"value": "24h", "label": "Publishing rhythm"},
-        {"value": "SEO", "label": "Ready by default"},
-    ]
-
-    top_articles = [
+    featured_articles = [
         {
             "title": "Editorial systems that scale with your audience",
             "url": "/articles?category=editorial-ops",
@@ -56,46 +210,6 @@ async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
             "image_alt": "Contributor collaboration illustration",
         },
     ]
-
-    featured_articles = [
-        {
-            "title": "Build a sharper content engine",
-            "url": "/articles?category=content-strategy",
-            "excerpt": "Plan, publish, and optimize editorial work from one clean platform.",
-            "category": "Strategy",
-            "cover_image": "/static/images/articles/content-engine.svg",
-            "image_alt": "Notebook and laptop arranged for editorial planning",
-            "read_time": "5 min read",
-        },
-        {
-            "title": "Turn expertise into durable search traffic",
-            "url": "/articles?category=search-growth",
-            "excerpt": "A publishing workflow shaped around discoverability and trust.",
-            "category": "SEO",
-            "cover_image": "/static/images/articles/search-traffic.svg",
-            "image_alt": "Search analytics dashboard on a laptop",
-            "read_time": "6 min read",
-        },
-        {
-            "title": "Invite expert contributors",
-            "url": "/#writeForUs",
-            "excerpt": "Collect and review article ideas without losing editorial control.",
-            "category": "Community",
-            "cover_image": "/static/images/articles/contributors.svg",
-            "image_alt": "Editorial contributors collaborating around a table",
-            "read_time": "4 min read",
-        },
-        {
-            "title": "Create newsletter loops readers trust",
-            "url": "/#newsletterSignup",
-            "excerpt": "Make subscriptions useful with clear themes, reliable cadence, and thoughtful routing.",
-            "category": "Newsletter",
-            "cover_image": "/static/images/articles/newsletter-loops.svg",
-            "image_alt": "Newsletter performance and publishing tools on a screen",
-            "read_time": "7 min read",
-        },
-    ]
-
     latest_articles = [
         {
             "title": "A weekly editorial review that keeps teams aligned",
@@ -124,29 +238,15 @@ async def get_homepage_context() -> dict[str, list[dict[str, str]] | list[str]]:
             "image_alt": "Contributors reviewing article ideas together",
             "read_time": "5 min read",
         },
-        {
-            "title": "Newsletter sections that make repeat reading easier",
-            "url": "/#newsletterSignup",
-            "excerpt": "Design recurring newsletter blocks that help subscribers recognize value before they reach the first link.",
-            "category": "Newsletter",
-            "cover_image": "/static/images/articles/newsletter-loops.svg",
-            "image_alt": "Newsletter layout and engagement workflow",
-            "read_time": "4 min read",
-        },
-        {
-            "title": "How category pages can guide editorial planning",
-            "url": "/categories",
-            "excerpt": "Use category hubs as living maps for coverage gaps, internal links, and reader journeys.",
-            "category": "SEO",
-            "cover_image": "/static/images/articles/content-engine.svg",
-            "image_alt": "Content strategy workspace with publishing tools",
-            "read_time": "8 min read",
-        },
     ]
 
     return {
-        "hero_metrics": hero_metrics,
-        "top_articles": top_articles,
+        "hero_metrics": _hero_metrics(
+            article_count=len(latest_articles),
+            category_count=len(category_links),
+            featured_count=len(featured_articles),
+        ),
+        "top_articles": featured_articles,
         "featured_articles": featured_articles,
         "latest_articles": latest_articles,
         "categories": [category["name"] for category in category_links],
