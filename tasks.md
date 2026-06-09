@@ -126,11 +126,11 @@
 # WRITE FOR US SYSTEM
 
 ## Submission System
-- [ ] Create article submission schema
-- [ ] Create submission API
-- [ ] Create submission form
-- [ ] Add validation
-- [ ] Add success/error states
+- [x] Create article submission schema
+- [x] Create submission API
+- [x] Create submission form
+- [x] Add validation
+- [x] Add success/error states
 
 ---
 
