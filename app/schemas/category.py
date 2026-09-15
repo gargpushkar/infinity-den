@@ -4,7 +4,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
-CategorySortField = Literal["name", "slug"]
+CategorySortField = Literal["name", "slug", "nav_order"]
 SortDirection = Literal["asc", "desc"]
 
 
@@ -25,6 +25,7 @@ class CategoryBase(BaseModel):
     )
     description: str | None = Field(default=None, max_length=320)
     image: str | None = Field(default=None, max_length=500)
+    nav_order: int = Field(default=0, ge=0, le=999)
 
     @field_validator("name", mode="before")
     @classmethod
@@ -39,6 +40,14 @@ class CategoryBase(BaseModel):
     def normalize_slug(cls, value: Any) -> Any:
         if isinstance(value, str):
             return value.strip().lower()
+
+        return value
+
+    @field_validator("nav_order", mode="before")
+    @classmethod
+    def default_nav_order(cls, value: Any) -> Any:
+        if value is None or value == "":
+            return 0
 
         return value
 
@@ -62,6 +71,7 @@ class CategoryUpdate(BaseModel):
     )
     description: str | None = Field(default=None, max_length=320)
     image: str | None = Field(default=None, max_length=500)
+    nav_order: int | None = Field(default=None, ge=0, le=999)
 
     @field_validator("name", mode="before")
     @classmethod

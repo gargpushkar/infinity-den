@@ -5,6 +5,7 @@ from fastapi import APIRouter, Query, Request
 from fastapi.templating import Jinja2Templates
 
 from app.config.settings import settings
+from app.services.nav_service import get_nav_context
 from app.services.search_page_service import get_search_page_context
 
 
@@ -21,6 +22,7 @@ async def search_page(
     tag: str | None = Query(default=None, max_length=64),
     sort: str = Query(default="newest", max_length=40),
 ):
+    nav_context = await get_nav_context()
     search_context = await get_search_page_context(
         page=page,
         query=q,
@@ -33,6 +35,7 @@ async def search_page(
         request,
         "pages/search.html",
         {
+            **nav_context,
             "app_name": settings.app_name,
             "page_title": "Search",
             **_search_seo_context(request, search_context),

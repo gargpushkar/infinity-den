@@ -1,7 +1,7 @@
 {% extends "layouts/base.html" %}
 
 {% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
-{% block meta_description %}Browse {{ app_name }} topic hubs by category and explore published article collections.{% endblock %}
+{% block meta_description %}Browse {{ app_name }} by section: business, tech, food, and travel.{% endblock %}
 
 {% block content %}
 <section class="category-index">
@@ -10,8 +10,8 @@
 
     <header class="category-index-header" data-reveal>
       <div>
-        <p class="eyebrow mb-3">Topic hubs</p>
-        <h1>Choose a lane before you start reading.</h1>
+        <p class="eyebrow mb-3">Sections</p>
+        <h1>Everything, sorted by section.</h1>
       </div>
       <div class="category-index-stats" aria-label="Category summary">
         <div class="category-index-stat">
@@ -43,7 +43,7 @@
 
     {% if not is_database_available %}
       {% set empty_state_eyebrow = "Categories unavailable" %}
-      {% set empty_state_title = "Topic hubs are offline" %}
+      {% set empty_state_title = "Sections are offline" %}
       {% set empty_state_message = "The category database is not available right now. Try again after MongoDB is connected." %}
       {% set empty_state_hints = ["MongoDB unavailable", "Public route is ready", "Category API supported"] %}
       {% include "components/empty_state.html" %}
@@ -102,7 +102,7 @@
 
       {% include "components/pagination.html" %}
     {% elif is_database_available %}
-      {% set empty_state_eyebrow = "No topic hubs" %}
+      {% set empty_state_eyebrow = "No sections" %}
       {% set empty_state_title = "No categories found" %}
       {% if is_category_filter_active %}
         {% set empty_state_message = "No category hubs match the current filters." %}

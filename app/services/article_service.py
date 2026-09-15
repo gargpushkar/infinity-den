@@ -141,12 +141,11 @@ class ArticleService:
         if object_id is None:
             raise ArticleNotFoundError("Article was not found.")
 
+        # A read is not an edit: bumping updated_at here would make every
+        # "recently updated" sort reflect traffic instead of editorial work.
         updated_article = await self.collection.find_one_and_update(
             {"_id": object_id},
-            {
-                "$inc": {"views": 1},
-                "$set": {"updated_at": self._utc_now()},
-            },
+            {"$inc": {"views": 1}},
             return_document=ReturnDocument.AFTER,
         )
         if updated_article is None:
@@ -161,10 +160,22 @@ class ArticleService:
             article_filter["status"] = query.status
         if query.category_id is not None:
             article_filter["category_id"] = query.category_id
+        elif query.category_ids:
+            article_filter["category_id"] = {"$in": query.category_ids}
         if query.tag is not None:
             article_filter["tags"] = query.tag
         if query.is_featured is not None:
             article_filter["is_featured"] = query.is_featured
+        if query.article_format is not None:
+            article_filter["article_format"] = query.article_format
+        if query.is_editors_pick is not None:
+            article_filter["is_editors_pick"] = self._boolean_flag_filter(
+                query.is_editors_pick
+            )
+        if query.is_sponsored is not None:
+            article_filter["is_sponsored"] = self._boolean_flag_filter(
+                query.is_sponsored
+            )
         if query.author is not None:
             article_filter["author"] = query.author
         if query.published_from is not None or query.published_to is not None:
@@ -184,6 +195,11 @@ class ArticleService:
             (query.sort_by, sort_direction),
             ("_id", sort_direction),
         ]
+
+    def _boolean_flag_filter(self, value: bool) -> Any:
+        # Articles created before these flags existed have no such field, so a
+        # plain False would skip them. $ne treats "missing" as "not set".
+        return True if value else {"$ne": True}
 
     def _date_range_filter(
         self,

@@ -4,8 +4,13 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from app.config.constants import ARTICLE_STATUS_DRAFT
-from app.models.article import ArticleStatus, normalize_article_status
+from app.config.constants import ARTICLE_FORMAT_NEWS, ARTICLE_STATUS_DRAFT
+from app.models.article import (
+    ArticleFormat,
+    ArticleStatus,
+    normalize_article_format,
+    normalize_article_status,
+)
 
 
 ArticleSortField = Literal[
@@ -40,10 +45,22 @@ class ArticleBase(BaseModel):
     category_id: str | None = Field(default=None, max_length=120)
     tags: list[str] = Field(default_factory=list, max_length=20)
     is_featured: bool = False
+    article_format: ArticleFormat = ARTICLE_FORMAT_NEWS
+    is_editors_pick: bool = False
+    is_sponsored: bool = False
+    sponsor_name: str | None = Field(default=None, max_length=120)
     status: ArticleStatus = ARTICLE_STATUS_DRAFT
     seo_title: str | None = Field(default=None, max_length=70)
     seo_description: str | None = Field(default=None, max_length=160)
     published_at: datetime | None = None
+
+    @field_validator("article_format", mode="before")
+    @classmethod
+    def validate_article_format(cls, value: Any) -> ArticleFormat:
+        if value is None:
+            return ARTICLE_FORMAT_NEWS
+
+        return normalize_article_format(str(value))
 
     @field_validator("title", "excerpt", "content", "author", mode="before")
     @classmethod
@@ -66,6 +83,7 @@ class ArticleBase(BaseModel):
         "category_id",
         "seo_title",
         "seo_description",
+        "sponsor_name",
         mode="before",
     )
     @classmethod
@@ -125,10 +143,22 @@ class ArticleUpdate(BaseModel):
     category_id: str | None = Field(default=None, max_length=120)
     tags: list[str] | None = Field(default=None, max_length=20)
     is_featured: bool | None = None
+    article_format: ArticleFormat | None = None
+    is_editors_pick: bool | None = None
+    is_sponsored: bool | None = None
+    sponsor_name: str | None = Field(default=None, max_length=120)
     status: ArticleStatus | None = None
     seo_title: str | None = Field(default=None, max_length=70)
     seo_description: str | None = Field(default=None, max_length=160)
     published_at: datetime | None = None
+
+    @field_validator("article_format", mode="before")
+    @classmethod
+    def validate_article_format(cls, value: Any) -> ArticleFormat | None:
+        if value is None:
+            return None
+
+        return normalize_article_format(str(value))
 
     @field_validator("title", "excerpt", "content", "author", mode="before")
     @classmethod
@@ -151,6 +181,7 @@ class ArticleUpdate(BaseModel):
         "category_id",
         "seo_title",
         "seo_description",
+        "sponsor_name",
         mode="before",
     )
     @classmethod
@@ -236,8 +267,12 @@ class ArticleQueryParams(BaseModel):
     per_page: int = Field(default=12, ge=1, le=100)
     status: ArticleStatus | None = None
     category_id: str | None = Field(default=None, max_length=120)
+    category_ids: list[str] | None = Field(default=None, max_length=50)
     tag: str | None = Field(default=None, max_length=64)
     is_featured: bool | None = None
+    article_format: ArticleFormat | None = None
+    is_editors_pick: bool | None = None
+    is_sponsored: bool | None = None
     author: str | None = Field(default=None, max_length=120)
     published_from: datetime | None = None
     published_to: datetime | None = None
@@ -252,6 +287,14 @@ class ArticleQueryParams(BaseModel):
             return None
 
         return normalize_article_status(str(value))
+
+    @field_validator("article_format", mode="before")
+    @classmethod
+    def validate_article_format(cls, value: Any) -> ArticleFormat | None:
+        if value is None:
+            return None
+
+        return normalize_article_format(str(value))
 
     @field_validator("category_id", "tag", "author", "search", mode="before")
     @classmethod

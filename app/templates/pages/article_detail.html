@@ -23,6 +23,21 @@
 
     <header class="article-detail-hero" data-reveal>
       <div class="article-detail-copy">
+        {% if article.is_sponsored %}
+          {# Disclosure sits above the headline, not below the fold: this is the
+             page that gets linked and shared, so the label has to be the first
+             thing read rather than something found on the way out. #}
+          <aside class="article-sponsored-notice" role="note">
+            <span class="article-sponsored-flag">Sponsored</span>
+            <span class="article-sponsored-text">
+              {% if article.sponsor_name %}
+                Paid content produced for {{ article.sponsor_name }}. It was not written by the {{ app_name }} editorial team.
+              {% else %}
+                Paid content. It was not written by the {{ app_name }} editorial team.
+              {% endif %}
+            </span>
+          </aside>
+        {% endif %}
         <p class="eyebrow mb-3">{{ article.category }}</p>
         <h1>{{ article.title }}</h1>
         <p class="article-detail-dek">{{ article.excerpt }}</p>

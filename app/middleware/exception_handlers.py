@@ -9,6 +9,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config.settings import settings
+from app.services.nav_service import get_nav_context
 
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     else:
         logger.info("HTTP error %s at %s: %s", status_code, request.url.path, message)
 
-    return _error_response(
+    return await _error_response(
         request=request,
         status_code=status_code,
         message=message,
@@ -46,7 +47,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     logger.info("Validation error at %s: %s", request.url.path, exc.errors())
     validation_errors = _json_safe_validation_errors(exc.errors())
 
-    return _error_response(
+    return await _error_response(
         request=request,
         status_code=422,
         message=VALIDATION_ERROR_MESSAGE,
@@ -58,7 +59,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 async def unhandled_exception_handler(request: Request, exc: Exception):
     logger.exception("Unhandled error at %s", request.url.path)
 
-    return _error_response(
+    return await _error_response(
         request=request,
         status_code=500,
         message=DEFAULT_ERROR_MESSAGE,
@@ -66,7 +67,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     )
 
 
-def _error_response(
+async def _error_response(
     *,
     request: Request,
     status_code: int,
@@ -91,6 +92,7 @@ def _error_response(
         request,
         "pages/error.html",
         {
+            **await _safe_nav_context(),
             "app_name": settings.app_name,
             "page_title": _status_phrase(status_code),
             "status_code": status_code,
@@ -100,6 +102,16 @@ def _error_response(
         status_code=status_code,
         headers=headers,
     )
+
+
+async def _safe_nav_context() -> dict[str, Any]:
+    # The error page must render even when whatever broke the request also
+    # breaks the navigation lookup.
+    try:
+        return await get_nav_context()
+    except Exception:  # noqa: BLE001 - last resort on the error path
+        logger.exception("Navigation context failed while rendering an error page")
+        return {}
 
 
 def _wants_json(request: Request) -> bool:

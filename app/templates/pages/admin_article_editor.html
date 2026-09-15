@@ -115,10 +115,36 @@
       </select>
     </div>
 
+    <div class="admin-field">
+      <label for="articleFormat">Format</label>
+      <select class="form-select" id="articleFormat" name="article_format">
+        <option value="news" {% if not article or article.article_format == "news" %}selected{% endif %}>News</option>
+        <option value="guide" {% if article and article.article_format == "guide" %}selected{% endif %}>Guide</option>
+        <option value="review" {% if article and article.article_format == "review" %}selected{% endif %}>Review</option>
+      </select>
+      <p class="admin-field-note">Drives the Guides and Reviews sections on the homepage.</p>
+    </div>
+
     <label class="admin-check">
       <input type="checkbox" name="is_featured" value="true" {% if article and article.is_featured %}checked{% endif %}>
       <span>Feature this article</span>
     </label>
+
+    <label class="admin-check">
+      <input type="checkbox" name="is_editors_pick" value="true" {% if article and article.is_editors_pick %}checked{% endif %}>
+      <span>Editor's pick</span>
+    </label>
+
+    <label class="admin-check">
+      <input type="checkbox" name="is_sponsored" value="true" {% if article and article.is_sponsored %}checked{% endif %} data-admin-sponsored-toggle>
+      <span>Sponsored content</span>
+    </label>
+
+    <div class="admin-field" data-admin-sponsor-field {% if not article or not article.is_sponsored %}hidden{% endif %}>
+      <label for="articleSponsorName">Sponsor name</label>
+      <input class="form-control" id="articleSponsorName" name="sponsor_name" value="{{ article.sponsor_name if article and article.sponsor_name else '' }}" maxlength="120">
+      <p class="admin-field-note">Shown on the card as a disclosure. Leave blank to label it just "Sponsored".</p>
+    </div>
 
     <div class="admin-field">
       <label for="articleCover">Cover image URL</label>
