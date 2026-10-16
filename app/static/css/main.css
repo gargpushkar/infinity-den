@@ -4486,3 +4486,173 @@ button:focus-visible,
   overflow-wrap: anywhere;
   text-decoration: underline;
 }
+
+/* ---------------------------------------------------------------------------
+   Member accounts: header links, sign-up / sign-in / account forms, profiles
+   --------------------------------------------------------------------------- */
+.topbar-link,
+.topbar-account {
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 0.5rem 0.4rem;
+}
+
+.topbar-link:hover,
+.topbar-link:focus-visible,
+.topbar-account:hover,
+.topbar-account:focus-visible {
+  color: var(--accent-hover);
+}
+
+.topbar-account {
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-join {
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 0.55rem 1rem;
+}
+
+@media (max-width: 991.98px) {
+  /* The offcanvas menu carries these on small screens. */
+  .topbar-link,
+  .topbar-account,
+  .topbar-join {
+    display: none;
+  }
+}
+
+.member-page {
+  padding: clamp(2rem, 6vw, 4.5rem) 0;
+}
+
+.member-panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  margin: 0 auto;
+  max-width: 34rem;
+  padding: clamp(1.5rem, 5vw, 2.75rem);
+}
+
+.member-panel h1 {
+  font-size: clamp(1.9rem, 5vw, 2.6rem);
+  margin-bottom: 0.75rem;
+}
+
+.member-lede {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.member-lede a,
+.member-switch a {
+  color: var(--accent);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.member-form {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.member-field label {
+  font-size: 0.9rem;
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+}
+
+.member-field .form-control {
+  min-height: 2.9rem;
+}
+
+.member-field-hint {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  margin: 0.35rem 0 0;
+}
+
+.member-field-error {
+  color: #b91c1c;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0.35rem 0 0;
+}
+
+.member-alert {
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  padding: 0.8rem 1rem;
+}
+
+.member-alert-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.member-alert-notice {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.member-submit {
+  font-weight: 800;
+  min-height: 2.9rem;
+}
+
+.member-switch {
+  color: var(--text-secondary);
+  margin: 1.5rem 0 0;
+  text-align: center;
+}
+
+.member-signout {
+  border-top: 1px solid var(--line);
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+}
+
+.member-profile {
+  padding: clamp(2rem, 6vw, 4rem) 0;
+}
+
+.member-profile-header {
+  margin-bottom: 2.5rem;
+  max-width: 44rem;
+}
+
+.member-profile-handle {
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.member-profile-bio {
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.member-profile-section-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 1.25rem;
+}
+
+.member-profile-section-title span {
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.member-profile-empty {
+  color: var(--text-secondary);
+}

@@ -22,7 +22,7 @@ async def search_page(
     tag: str | None = Query(default=None, max_length=64),
     sort: str = Query(default="newest", max_length=40),
 ):
-    nav_context = await get_nav_context()
+    nav_context = await get_nav_context(request)
     search_context = await get_search_page_context(
         page=page,
         query=q,

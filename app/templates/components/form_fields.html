@@ -1,0 +1,25 @@
+{# Labelled form field with its error shown next to it and announced to
+   screen readers. Values are autoescaped by Jinja. #}
+{% macro field(name, label, values, field_errors, type="text", hint="", attrs="") -%}
+  {% set error = field_errors.get(name) %}
+  <div class="member-field">
+    <label for="field-{{ name }}">{{ label }}</label>
+    {% if type == "textarea" %}
+      <textarea class="form-control{% if error %} is-invalid{% endif %}" id="field-{{ name }}" name="{{ name }}" rows="4"
+        {% if hint or error %}aria-describedby="{% if hint %}hint-{{ name }}{% endif %}{% if error %} error-{{ name }}{% endif %}"{% endif %}
+        {% if error %}aria-invalid="true"{% endif %} {{ attrs|safe }}>{{ values.get(name, "") }}</textarea>
+    {% else %}
+      <input class="form-control{% if error %} is-invalid{% endif %}" id="field-{{ name }}" name="{{ name }}" type="{{ type }}"
+        {% if type != "password" %}value="{{ values.get(name, "") }}"{% endif %}
+        {% if hint or error %}aria-describedby="{% if hint %}hint-{{ name }}{% endif %}{% if error %} error-{{ name }}{% endif %}"{% endif %}
+        {% if error %}aria-invalid="true"{% endif %} {{ attrs|safe }}>
+    {% endif %}
+    {% if hint %}<p class="member-field-hint" id="hint-{{ name }}">{{ hint }}</p>{% endif %}
+    {% if error %}<p class="member-field-error" id="error-{{ name }}">{{ error }}</p>{% endif %}
+  </div>
+{%- endmacro %}
+
+{% macro form_alert(error, notice=None) -%}
+  {% if error %}<div class="member-alert member-alert-error" role="alert">{{ error }}</div>{% endif %}
+  {% if notice %}<div class="member-alert member-alert-notice" role="status">{{ notice }}</div>{% endif %}
+{%- endmacro %}

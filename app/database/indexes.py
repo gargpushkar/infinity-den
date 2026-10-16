@@ -8,6 +8,7 @@ from app.models.category import CATEGORY_COLLECTION
 from app.models.newsletter import NEWSLETTER_SUBSCRIBER_COLLECTION
 from app.models.submission import ARTICLE_SUBMISSION_COLLECTION
 from app.models.tag import TAG_COLLECTION
+from app.models.user import USER_COLLECTION
 
 
 async def create_indexes() -> None:
@@ -17,6 +18,8 @@ async def create_indexes() -> None:
 
     await db[CATEGORY_COLLECTION].create_index([("slug", ASCENDING)], unique=True)
     await db[TAG_COLLECTION].create_index([("slug", ASCENDING)], unique=True)
+    await db[USER_COLLECTION].create_index([("username", ASCENDING)], unique=True)
+    await db[USER_COLLECTION].create_index([("email", ASCENDING)], unique=True)
     await db[NEWSLETTER_SUBSCRIBER_COLLECTION].create_index(
         [("email", ASCENDING)],
         unique=True,
@@ -74,6 +77,9 @@ async def _create_article_indexes(db: AsyncIOMotorDatabase) -> None:
             ("status", ASCENDING),
             ("published_at", DESCENDING),
         ]
+    )
+    await articles.create_index(
+        [("author_id", ASCENDING), ("status", ASCENDING), ("published_at", DESCENDING)]
     )
     await articles.create_index([("status", ASCENDING), ("created_at", DESCENDING)])
     await articles.create_index([("status", ASCENDING), ("updated_at", DESCENDING)])

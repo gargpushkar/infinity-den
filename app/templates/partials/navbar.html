@@ -39,6 +39,13 @@
       </ul>
 
       <div class="topbar-actions">
+        {% if current_member %}
+          <a class="topbar-account" href="/members/{{ current_member.username }}">{{ current_member.display_name }}</a>
+          <a class="topbar-link" href="/logout">Sign out</a>
+        {% else %}
+          <a class="topbar-link" href="/login">Sign in</a>
+          <a class="btn btn-primary topbar-join" href="/join">Join</a>
+        {% endif %}
         <a class="topbar-search" href="/search" aria-label="Search articles">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
             <circle cx="11" cy="11" r="7"></circle>
@@ -78,6 +85,14 @@
     </section>
 
     <ul class="menu-list">
+      {% if current_member %}
+        <li><a href="/members/{{ current_member.username }}">Your profile</a></li>
+        <li><a href="/account">Your account</a></li>
+        <li><a href="/logout">Sign out</a></li>
+      {% else %}
+        <li><a href="/login">Sign in</a></li>
+        <li><a href="/join">Join</a></li>
+      {% endif %}
       <li><a href="/">Home</a></li>
       <li><a href="/articles">Articles</a></li>
       <li><a href="/categories">All rooms</a></li>

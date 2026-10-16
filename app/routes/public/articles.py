@@ -26,7 +26,7 @@ async def article_listing(
     sort: str = Query(default="newest", max_length=40),
     format: str | None = Query(default=None, max_length=20),
 ):
-    nav_context = await get_nav_context()
+    nav_context = await get_nav_context(request)
     listing_context = await get_article_listing_context(
         page=page,
         category=category,
@@ -56,7 +56,7 @@ async def article_detail(
     request: Request,
     article_slug: str = Path(min_length=3, max_length=180),
 ):
-    nav_context = await get_nav_context()
+    nav_context = await get_nav_context(request)
     detail_context = await get_article_detail_context(article_slug)
     if detail_context is None:
         raise HTTPException(

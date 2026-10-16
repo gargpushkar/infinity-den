@@ -94,6 +94,9 @@ Creative names are display text. Everything permanent is plain and descriptive.
 | Human Library | `/experiences` |
 | Curiosity Arcade | `/play` |
 | Debate Den (Phase 2) | `/debates` |
+| Member profile | `/members/{username}` |
+| Join / sign in / sign out | `/join`, `/login`, `/logout` |
+| Your account | `/account` |
 
 Do not add a second URL for the same page. Nav and cards link to the canonical
 URL.
@@ -242,10 +245,18 @@ Fields:
 - image
 - nav_order
 
-### users *(new)*
+### users
 
 Members. Admins stay in the separate `admins` collection; reuse the existing
 password hashing and JWT utilities rather than writing new ones.
+
+- Members sign in with their email; the username only appears in profile URLs.
+- Login tokens carry `kind: "member"` or `kind: "admin"`, and each side
+  rejects the other's.
+- Member sessions last `MEMBER_TOKEN_EXPIRE_DAYS` (30 by default); admin
+  sessions last `AUTH_TOKEN_EXPIRE_MINUTES`.
+- Passwords: at least 10 characters, no composition rules.
+- Public pages and API responses never include email or password hash.
 
 Fields:
 

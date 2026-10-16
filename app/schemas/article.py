@@ -57,6 +57,8 @@ class ArticleBase(BaseModel):
     content: str = Field(min_length=1)
     cover_image: str | None = Field(default=None, max_length=500)
     author: str = Field(min_length=2, max_length=120)
+    # users._id of a member author; None for editorial pieces.
+    author_id: str | None = Field(default=None, max_length=24)
     category_id: str | None = Field(default=None, max_length=120)
     tags: list[str] = Field(default_factory=list, max_length=20)
     is_featured: bool = False
@@ -286,6 +288,7 @@ class ArticleQueryParams(BaseModel):
     article_format: ArticleFormat | None = None
     is_editors_pick: bool | None = None
     author: str | None = Field(default=None, max_length=120)
+    author_id: str | None = Field(default=None, max_length=24)
     published_from: datetime | None = None
     published_to: datetime | None = None
     search: str | None = Field(default=None, min_length=2, max_length=120)

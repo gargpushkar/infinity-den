@@ -16,7 +16,7 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 - [ ] Phase 3 — Community growth
 
 ## Current Focus
-- [ ] `feature/member-accounts`
+- [ ] `feature/member-publishing`
 
 ---
 
@@ -60,11 +60,11 @@ order; each assumes the previous ones are merged.
 - [x] Rebuild the navigation for rooms (name + subtitle); destinations join as their branches ship
 
 ## 3. `feature/member-accounts`
-- [ ] Users model, schemas, and indexes
-- [ ] Sign up, log in, log out, reusing existing hashing and JWT utilities
-- [ ] Rate-limit login and sign-up
-- [ ] Public contributor profile at a username URL
-- [ ] Link articles to `author_id`
+- [x] Users model, schemas, and indexes
+- [x] Sign up, log in, log out, reusing existing hashing and JWT utilities
+- [x] Rate-limit login and sign-up (and admin login)
+- [x] Public contributor profile at a username URL
+- [x] Link articles to `author_id`
 
 ## 4. `feature/member-publishing`
 - [ ] Render article markdown server-side with an allowlist sanitizer
@@ -148,6 +148,10 @@ Carried over from the foundation; pick up when needed.
 - [ ] Static asset serving
 - [ ] Production MongoDB
 - [ ] Deploy, domain, HTTPS, monitoring
+
+## Accounts
+- [ ] Password reset by email (needs an email-sending service)
+- [ ] Move rate-limit counters out of process memory before running several workers
 
 ## CMS
 - [ ] Scheduled publishing

@@ -165,7 +165,7 @@ venv/bin/python scripts/create_admin.py
 - [ ] Prevent NoSQL injection in admin filters
 - [ ] Improve JWT secret checks at startup
 - [ ] Add secure cookie settings for production
-- [ ] Add rate limiting for admin login
+- [x] Add rate limiting for admin login
 - [ ] Add account lockout or cooldown after repeated login failures
 
 ## Frontend
