@@ -3712,16 +3712,6 @@ button:focus-visible,
     gap: 0.75rem;
   }
 
-  /* Topics move into the offcanvas accordion rather than leaving an empty
-     shell in the header, which is what the old layout did. */
-  .topic-nav {
-    display: none;
-  }
-
-  .menu-box {
-    display: inline-flex;
-  }
-
   .brand-word {
     font-size: 1.25rem;
   }
@@ -4409,12 +4399,18 @@ button:focus-visible,
   padding: 0.55rem 1rem;
 }
 
-@media (max-width: 991.98px) {
-  /* The offcanvas menu carries these on small screens. */
+/* Below 1200px the destinations no longer fit on one line, so the nav and
+   account links move into the offcanvas menu. */
+@media (max-width: 1199.98px) {
+  .topic-nav,
   .topbar-link,
   .topbar-account,
   .topbar-join {
     display: none;
+  }
+
+  .menu-box {
+    display: inline-flex;
   }
 }
 
@@ -4980,4 +4976,92 @@ button:focus-visible,
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.86;
+}
+
+/* ---------------------------------------------------------------------------
+   Curiosity Arcade: Fact or Fiction
+   --------------------------------------------------------------------------- */
+.play-page {
+  padding: clamp(2rem, 7vw, 5rem) 0;
+}
+
+.fof-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  margin: 0 auto;
+  max-width: 42rem;
+  padding: clamp(1.5rem, 5vw, 2.75rem);
+}
+
+.fof-claim {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.6rem, 4.5vw, 2.4rem);
+  font-weight: 900;
+  line-height: 1.2;
+  margin: 0 0 1.5rem;
+}
+
+.fof-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.fof-choice {
+  align-items: center;
+  display: inline-flex;
+  flex: 1 1 8rem;
+  justify-content: center;
+  font-size: 1.05rem;
+  font-weight: 800;
+  min-height: 3.25rem;
+}
+
+.fof-result {
+  border-radius: 10px;
+  font-size: 1.05rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+}
+
+.fof-result.is-correct {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.fof-result.is-wrong {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #78350f;
+}
+
+.fof-explanation > p:first-child {
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1.75;
+}
+
+.fof-article {
+  color: var(--accent);
+  display: inline-block;
+  font-weight: 800;
+  margin-top: 0.25rem;
+}
+
+.fof-article:hover,
+.fof-article:focus-visible {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.admin-field-legend {
+  font-size: 0.9rem;
+  font-weight: 800;
+  margin-bottom: 0.35rem;
 }

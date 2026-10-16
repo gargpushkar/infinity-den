@@ -1,0 +1,97 @@
+{% extends "layouts/admin.html" %}
+
+{% block admin_content %}
+<section class="admin-section-header">
+  <div>
+    <p class="admin-kicker mb-2">Curiosity Arcade</p>
+    <h2>Fact or Fiction claims.</h2>
+  </div>
+  <a class="btn btn-outline-primary" href="/play" target="_blank" rel="noopener">Play</a>
+</section>
+
+<section class="admin-split">
+  <form class="admin-panel admin-resource-form" method="post" data-admin-quiz-form data-item-id="{{ item.id if item else '' }}">
+    <div class="admin-panel-header">
+      <div>
+        <p class="admin-kicker mb-1">{% if item %}Edit claim{% else %}New claim{% endif %}</p>
+        <h2>{% if item %}Update this claim{% else %}Add a claim{% endif %}</h2>
+      </div>
+      {% if item %}<a class="admin-link-button" href="/admin/arcade">New claim</a>{% endif %}
+    </div>
+
+    <div class="admin-field">
+      <label for="quizClaim">Claim</label>
+      <textarea class="form-control" id="quizClaim" name="claim" rows="3" minlength="10" maxlength="200" required>{{ item.claim if item else '' }}</textarea>
+      <p class="admin-field-note">Surprising, short, and checkable. Myths make great fictions.</p>
+    </div>
+
+    <fieldset class="admin-field">
+      <legend class="admin-field-legend">The answer</legend>
+      <label class="admin-check"><input type="radio" name="is_true" value="true" {% if item and item.is_true %}checked{% endif %} required> <span>Fact</span></label>
+      <label class="admin-check"><input type="radio" name="is_true" value="false" {% if item and not item.is_true %}checked{% endif %}> <span>Fiction</span></label>
+    </fieldset>
+
+    <div class="admin-field">
+      <label for="quizExplanation">Explanation</label>
+      <textarea class="form-control" id="quizExplanation" name="explanation" rows="5" minlength="10" maxlength="1000" required>{{ item.explanation if item else '' }}</textarea>
+      <p class="admin-field-note">Why it's true or false. **bold**, _italic_ and [links](https://example.org) work.</p>
+    </div>
+
+    <div class="admin-field">
+      <label for="quizArticle">Go deeper</label>
+      <select class="form-select" id="quizArticle" name="article_slug">
+        <option value="">No linked article</option>
+        {% for article in articles %}
+          <option value="{{ article.slug }}" {% if item and item.article_slug == article.slug %}selected{% endif %}>{{ article.title }}</option>
+        {% endfor %}
+      </select>
+      <p class="admin-field-note">Optional, but every answer should lead somewhere deeper when it can.</p>
+    </div>
+
+    <div class="admin-field">
+      <label for="quizRoom">Room</label>
+      <select class="form-select" id="quizRoom" name="category_id">
+        <option value="">No room</option>
+        {% for room in rooms %}
+          <option value="{{ room.slug }}" {% if item and item.category_id == room.slug %}selected{% endif %}>{{ room.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="admin-field">
+      <label for="quizStatus">Status</label>
+      <select class="form-select" id="quizStatus" name="status">
+        <option value="draft" {% if not item or item.status == "draft" %}selected{% endif %}>Draft</option>
+        <option value="published" {% if item and item.status == "published" %}selected{% endif %}>Published</option>
+      </select>
+    </div>
+
+    <p class="admin-form-message" data-admin-form-message role="status">Ready to save.</p>
+    <button class="btn btn-primary w-100" type="submit">{% if item %}Save claim{% else %}Create claim{% endif %}</button>
+    {% if item and admin.role == "admin" %}
+      <button class="btn btn-outline-danger w-100 mt-2" type="button" data-admin-delete-resource data-delete-url="/api/admin/quiz-items/{{ item.id }}" data-delete-label="this claim" data-after-delete="/admin/arcade">Delete claim</button>
+    {% endif %}
+  </form>
+
+  <section class="admin-panel">
+    <div class="admin-panel-header">
+      <div>
+        <p class="admin-kicker mb-1">Claims</p>
+        <h2>{{ items|length }} claims</h2>
+      </div>
+    </div>
+    {% if items %}
+      <div class="admin-list">
+        {% for entry in items %}
+          <a class="admin-list-row" href="/admin/arcade/{{ entry.id }}">
+            <span>{{ entry.claim }}</span>
+            <small>{{ "Fact" if entry.is_true else "Fiction" }} &middot; {{ entry.status }}{% if not entry.article_slug %} &middot; no linked article{% endif %}</small>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="admin-empty">No claims yet.</p>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

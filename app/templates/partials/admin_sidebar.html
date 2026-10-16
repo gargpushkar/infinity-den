@@ -21,13 +21,17 @@
       <span>04</span>
       Question Room
     </a>
-    <a class="{% if active_nav == 'submissions' %}is-active{% endif %}" href="/admin/submissions">
+    <a class="{% if active_nav == 'arcade' %}is-active{% endif %}" href="/admin/arcade">
       <span>05</span>
+      Arcade
+    </a>
+    <a class="{% if active_nav == 'submissions' %}is-active{% endif %}" href="/admin/submissions">
+      <span>06</span>
       Submissions
     </a>
     {% if admin.role == "admin" %}
       <a class="{% if active_nav == 'users' %}is-active{% endif %}" href="/admin/users">
-        <span>06</span>
+        <span>07</span>
         Users
       </a>
     {% endif %}

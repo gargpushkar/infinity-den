@@ -16,7 +16,7 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 - [ ] Phase 3 — Community growth
 
 ## Current Focus
-- [ ] `feature/fact-or-fiction`
+- [ ] `feature/homepage-rebuild`
 
 ---
 
@@ -81,9 +81,9 @@ order; each assumes the previous ones are merged.
 - [x] Members respond as a thought, answer, story, or researched answer
 
 ## 6. `feature/fact-or-fiction`
-- [ ] `quiz_items` model, schema, and admin management
-- [ ] `/play` page: answer, reveal the explanation, link to the deeper article
-- [ ] Reusable Fact or Fiction card for the homepage
+- [x] `quiz_items` model, schema, and admin management
+- [x] `/play` page: answer, reveal the explanation, link to the deeper article
+- [x] Reusable Fact or Fiction card for the homepage
 
 ## 7. `feature/homepage-rebuild`
 - [ ] New visual identity: palette, typography, room card style

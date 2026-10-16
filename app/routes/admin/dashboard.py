@@ -23,6 +23,7 @@ from app.services.admin_session import get_current_admin
 from app.services.article_service import ArticleService
 from app.services.nav_service import get_rooms
 from app.services.question_service import QuestionService, site_today
+from app.services.quiz_service import QuizService
 from app.services.user_service import UserService
 
 
@@ -181,6 +182,50 @@ async def admin_question_page(
         active_nav="questions",
         page_title="Question Room",
         context={"question": question, "responses": responses, "rooms": rooms, "today": site_today()},
+    )
+
+
+@router.get("/arcade")
+async def admin_arcade_page(
+    request: Request,
+    admin: AdminRead = Depends(get_current_admin),
+):
+    return await _arcade_page(request, admin, item_id=None)
+
+
+@router.get("/arcade/{item_id}")
+async def admin_arcade_item_page(
+    request: Request,
+    item_id: str,
+    admin: AdminRead = Depends(get_current_admin),
+):
+    return await _arcade_page(request, admin, item_id=item_id)
+
+
+async def _arcade_page(request: Request, admin: AdminRead, *, item_id: str | None):
+    try:
+        db = get_database()
+        service = QuizService(database=db)
+        item = await service.get_item(item_id) if item_id else None
+        items = await service.list_items()
+        rooms = await get_rooms(db)
+        articles = (
+            await ArticleService(database=db).list_articles(
+                ArticleQueryParams(per_page=100, status="published", sort_by="title", sort_direction="asc")
+            )
+        ).items
+    except (RuntimeError, PyMongoError):
+        item, items, rooms, articles = None, [], [], []
+    if item_id and item is None:
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Claim was not found.")
+
+    return _admin_template(
+        request,
+        "pages/admin_arcade.html",
+        admin=admin,
+        active_nav="arcade",
+        page_title="Arcade",
+        context={"item": item, "items": items, "rooms": rooms, "articles": articles},
     )
 
 

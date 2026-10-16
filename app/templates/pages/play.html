@@ -1,0 +1,20 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
+{% block meta_description %}{{ seo_description }}{% endblock %}
+
+{% block content %}
+<section class="play-page">
+  <div class="container">
+    {% if claim %}
+      {% include "components/fact_or_fiction_card.html" %}
+    {% else %}
+      <div class="fof-card">
+        <p class="eyebrow mb-2">Curiosity Arcade</p>
+        <h1 class="fof-claim">{% if is_unavailable %}The Arcade is unavailable right now.{% else %}New claims are on their way.{% endif %}</h1>
+        <p class="member-lede">Fact or Fiction asks you to judge a surprising claim, then explains the answer.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

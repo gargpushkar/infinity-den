@@ -1,0 +1,26 @@
+{# Fact or Fiction, before and after answering. Plain links, no JavaScript.
+   Expects `claim` from app/services/play_page_service.claim_context. #}
+<article class="fof-card" aria-labelledby="fofClaim">
+  <p class="eyebrow mb-2">Curiosity Arcade &middot; Fact or fiction?</p>
+  <h2 class="fof-claim" id="fofClaim">{{ claim.claim }}</h2>
+
+  {% if not claim.is_answered %}
+    <div class="fof-choices">
+      <a class="btn btn-primary fof-choice" href="{{ claim.fact_url }}" rel="nofollow">Fact</a>
+      <a class="btn btn-outline-primary fof-choice" href="{{ claim.fiction_url }}" rel="nofollow">Fiction</a>
+    </div>
+  {% else %}
+    <div class="fof-result {{ 'is-correct' if claim.is_correct else 'is-wrong' }}" role="status">
+      <strong>{{ "You got it." if claim.is_correct else "Not quite." }}</strong>
+      It's <strong>{{ claim.truth_label|lower }}</strong>.
+    </div>
+    {# explanation_html comes from app/utils/markdown.py, which escapes first. #}
+    <div class="article-content fof-explanation">{{ claim.explanation_html }}</div>
+    {% if claim.article %}
+      <a class="fof-article" href="{{ claim.article.url }}">Go deeper: {{ claim.article.title }} <span aria-hidden="true">&rarr;</span></a>
+    {% endif %}
+    <div class="fof-choices">
+      <a class="btn btn-primary" href="{{ claim.next_url }}">Try another</a>
+    </div>
+  {% endif %}
+</article>

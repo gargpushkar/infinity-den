@@ -1052,6 +1052,45 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  document.querySelectorAll("[data-admin-quiz-form]").forEach((form) => {
+    const message = form.querySelector("[data-admin-form-message]");
+    const itemId = form.getAttribute("data-item-id");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const formData = new FormData(form);
+      const submitButton = form.querySelector("[type='submit']");
+      submitButton.disabled = true;
+      setAdminMessage(message, "Saving claim...");
+      try {
+        const item = await adminJsonRequest(
+          itemId ? `/api/admin/quiz-items/${itemId}` : "/api/admin/quiz-items",
+          {
+            method: itemId ? "PATCH" : "POST",
+            body: {
+              claim: String(formData.get("claim") || "").trim(),
+              is_true: formData.get("is_true") === "true",
+              explanation: String(formData.get("explanation") || "").trim(),
+              article_slug: String(formData.get("article_slug") || "") || null,
+              category_id: String(formData.get("category_id") || "") || null,
+              status: String(formData.get("status") || "draft"),
+            },
+          },
+        );
+        setAdminMessage(message, "Claim saved.", "success");
+        window.setTimeout(() => window.location.assign(`/admin/arcade/${item.id}`), 450);
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
+        submitButton.disabled = false;
+      }
+    });
+  });
+
   document.querySelectorAll("[data-admin-response-action]").forEach((button) => {
     button.addEventListener("click", async () => {
       const message = document.querySelector("[data-admin-table-message]");
