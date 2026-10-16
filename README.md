@@ -1,6 +1,11 @@
 # Infinity Den
 
-Infinity Den is a FastAPI and MongoDB content publishing platform MVP. It is being built as a modular content marketing system with public pages, reusable Jinja2 components, SEO-ready structure, newsletter and contributor workflows, and an eventual admin dashboard.
+Infinity Den is a community knowledge platform built with FastAPI and MongoDB: a place where people discover ideas, contribute lived experience, discuss questions, and learn through short games.
+
+- `vision.md` — what the product is and what each phase includes
+- `instructions.md` — architecture, conventions, and development rules
+- `tasks.md` — progress tracker
+- `admin.md` — admin roadmap
 
 ## Current Features
 

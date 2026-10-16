@@ -2,19 +2,23 @@
 
 ## Project Overview
 
-This project is a modern content publishing and content marketing platform.
+Infinity Den is a community knowledge platform: people discover ideas,
+contribute lived experience, discuss questions, and learn through short games.
 
-The platform supports:
-- Articles/blog posts
-- Categories
-- Tags
-- Featured content
+**Read `vision.md` before starting any feature.** It is the source of truth for
+what the product is, which rooms and formats exist, and what belongs in each
+phase. `tasks.md` tracks progress against it.
+
+The platform is built on an existing publishing foundation:
+- Articles, rooms (categories), and tags
 - Search
 - Newsletter subscriptions
-- Write-for-us submissions
-- Admin dashboard
+- Admin dashboard with editorial review
 - SEO-friendly pages
 - Responsive frontend
+
+Phase 1 adds member accounts, member publishing, the Question Room, the Human
+Library, Fact or Fiction, comments, bookmarks, and moderation.
 
 The architecture should prioritize:
 - maintainability
@@ -54,6 +58,7 @@ The architecture should prioritize:
 - hardcode secrets
 - overengineer
 - introduce unnecessary libraries
+- build features that are not in the current phase of `vision.md`
 
 ## ALWAYS
 - use modular architecture
@@ -63,6 +68,35 @@ The architecture should prioritize:
 - use proper error handling
 - write scalable code
 - maintain clean naming conventions
+
+---
+
+# NAMING CONVENTION
+
+Creative names are display text. Everything permanent is plain and descriptive.
+
+- **Slugs and URLs** are descriptive and never change:
+  `/categories/science`, not `/categories/cosmic-canvas`.
+- **Code identifiers** are plain: `daily_question`, `response`, `quiz_item`,
+  `debate` — never `spark_room`, `innerverse`, or `question_room`.
+- **Creative names** (room names, feature names) live only in database fields
+  (`name`, `subtitle`) and template labels, so a rename is a data or label
+  change, never a refactor.
+
+## URL structure
+
+| Page | URL |
+| --- | --- |
+| Room | `/categories/{slug}` (the single canonical room page) |
+| Room filtered by format | `/categories/{slug}?format=experience` |
+| Article | `/articles/{slug}` (flat, never nested under a room) |
+| Question Room | `/questions` |
+| Human Library | `/experiences` |
+| Curiosity Arcade | `/play` |
+| Debate Den (Phase 2) | `/debates` |
+
+Do not add a second URL for the same page. Nav and cards link to the canonical
+URL.
 
 ---
 
@@ -89,8 +123,6 @@ project_root/
 │   │   ├── admin/
 │   │   └── api/
 │   │
-│   ├── controllers/
-│   │
 │   ├── services/
 │   │
 │   ├── models/
@@ -107,17 +139,20 @@ project_root/
 │   │   ├── pages/
 │   │   └── components/
 │   │
-│   ├── static/
-│   │   ├── css/
-│   │   ├── js/
-│   │   ├── images/
-│   │   └── fonts/
-│   │
-│   └── admin/
+│   └── static/
+│       ├── css/
+│       ├── js/
+│       ├── images/
+│       └── fonts/
 │
+├── scripts/
 ├── requirements.txt
 ├── .env
 ├── .gitignore
+├── vision.md
+├── instructions.md
+├── tasks.md
+├── admin.md
 ├── README.md
 └── run.py
 ```
@@ -162,6 +197,10 @@ Use reusable partials/components:
 
 # DATABASE RULES
 
+Fields marked *(new)* do not exist yet; they are added by the Phase 1 branch
+listed in `tasks.md`. Fields marked *(remove)* are deleted along with their
+code and seed data.
+
 ## MongoDB Collections
 
 ### articles
@@ -171,28 +210,124 @@ Fields:
 - title
 - slug
 - excerpt
-- content
+- content (markdown, rendered and sanitized server-side)
 - cover_image
-- author
-- category_id
+- author (display name)
+- author_id *(new)* — `users._id`; null for editorial pieces
+- category_id (room slug)
 - tags
+- article_format — `article` | `experience` | `perspective` *(values change from news/guide/review)*
+- is_speculative *(new)*
+- sources *(new)* — list of `{title, url}`; required for `article` format
 - is_featured
-- status
+- is_editors_pick
+- status — `draft` | `pending_review` *(new)* | `published` | `archived`
+- review_note *(new)* — editor feedback when a submission is sent back
 - seo_title
 - seo_description
 - created_at
 - updated_at
 - published_at
 - views
+- is_sponsored, sponsor_name *(remove)*
 
-### categories
+### categories (rooms)
 
 Fields:
 
-- name
-- slug
+- name (creative display name)
+- subtitle *(new)* (descriptive subtitle, always displayed)
+- slug (descriptive, permanent)
 - description
 - image
+- nav_order
+
+### users *(new)*
+
+Members. Admins stay in the separate `admins` collection; reuse the existing
+password hashing and JWT utilities rather than writing new ones.
+
+Fields:
+
+- username (unique, used in profile URLs)
+- display_name
+- email (unique, never shown publicly)
+- password_hash
+- bio
+- is_active
+- created_at
+- updated_at
+
+### daily_questions *(new)*
+
+Curated by editors.
+
+Fields:
+
+- text
+- slug
+- intro
+- category_id
+- publish_date (the day it is Question of the Day; unique)
+- status — `draft` | `published`
+- created_at
+
+### responses *(new)*
+
+Fields:
+
+- question_id
+- user_id
+- body
+- kind — `thought` | `answer` | `story` | `researched`
+- is_featured (set by editors; featured means insightful, not popular)
+- status — `published` | `hidden`
+- created_at
+
+### comments *(new)*
+
+Fields:
+
+- article_id
+- user_id
+- body
+- status — `published` | `hidden`
+- created_at
+
+### bookmarks *(new)*
+
+Fields:
+
+- user_id
+- article_id
+- created_at
+
+Unique index on `(user_id, article_id)`.
+
+### quiz_items *(new)*
+
+Fact or Fiction claims.
+
+Fields:
+
+- claim
+- is_true
+- explanation
+- article_slug (the deeper article the explanation links to)
+- category_id
+- status — `draft` | `published`
+- created_at
+
+### reports *(new)*
+
+Fields:
+
+- target_type — `article` | `response` | `comment`
+- target_id
+- reporter_id
+- reason
+- status — `open` | `resolved` | `dismissed`
+- created_at
 
 ### tags
 
@@ -219,6 +354,9 @@ Fields:
 - status
 - created_at
 
+The public pitch form is retired once member publishing ships; keep the
+collection readable in admin until existing submissions are handled.
+
 ### admins
 
 Fields:
@@ -227,33 +365,39 @@ Fields:
 - password_hash
 - role
 
+### businesses *(remove)*
+
+Removed with its model, service, API, admin page, partial, and seed script.
+
 ---
 
 # FRONTEND RULES
 
 ## UI Style
 
-The design should be:
+The design should feel:
 
+- intellectually curious
+- slightly mysterious
 - modern
-- minimal
-- spacious
-- responsive
-- clean typography
+- human — not academic, not childish, not a news portal
+
+Keep these qualities from the existing system:
+
+- spacious, responsive layouts
+- clean typography with a serif display face
 - soft rounded corners
-- card-based
+- card-based content
+
+Room cards and room navigation always show the subtitle next to the name.
+Every contribution shows its format label (Researched, Personal experience,
+Opinion, and Speculation when flagged).
+
+Only label something "live" when it is backed by real-time data.
 
 ## Layout
 
-Homepage should contain:
-
-- Navbar
-- Hero/tagline section
-- Featured articles carousel
-- Latest articles grid
-- Category sections
-- Write-for-us CTA
-- Footer
+The homepage follows the section order in `vision.md` → HOMEPAGE.
 
 ## Bootstrap Usage
 
@@ -268,6 +412,7 @@ Homepage should contain:
 - Hamburger menu
 - Responsive cards
 - Proper spacing on smaller devices
+- Desktop sidebars become compact cards on mobile
 
 ---
 
@@ -312,6 +457,12 @@ Use:
 - `/api/articles`
 - `/api/categories`
 - `/api/tags`
+- `/api/questions`
+- `/api/responses`
+- `/api/comments`
+- `/api/bookmarks`
+- `/api/quiz-items`
+- `/api/reports`
 
 Avoid inconsistent naming.
 
@@ -341,6 +492,16 @@ Implement:
 - XSS prevention
 - NoSQL injection prevention
 - input validation
+
+## Member content
+
+Member content is untrusted input. In addition to the above:
+
+- render markdown server-side with an allowlist; never pass member HTML through `| safe`
+- rate-limit member writes (posts, responses, comments, reports) and login
+- never expose member emails or password hashes in public pages or API responses
+- every member-generated item can be reported by members and hidden by editors
+- member contributions publish only after editorial review in Phase 1
 
 ---
 
@@ -381,25 +542,11 @@ Implement:
 
 # DEVELOPMENT FLOW
 
-Always follow this order:
+Work through the Phase 1 branches in the order listed in `tasks.md`. Each
+branch is one focused change; later branches assume earlier ones are merged.
 
-1. Project structure
-2. App initialization
-3. MongoDB setup
-4. Base templates
-5. Homepage
-6. Reusable components
-7. Public article system
-8. Categories/tags
-9. Search
-10. Newsletter
-11. Write-for-us
-12. Admin auth
-13. Admin dashboard
-14. SEO optimization
-15. Performance improvements
-
-Do NOT skip steps.
+Before reseeding or migrating data, point `MONGODB_DB_NAME` at a development
+database. Seed scripts write directly to whichever database `.env` names.
 
 ---
 
@@ -487,6 +634,10 @@ Before finalizing:
 - verify MongoDB queries
 - verify responsiveness
 
+Each new feature leaves at least one automated check for its core logic
+(permissions, validation, or the main query). Member-content features also
+check that unsafe HTML is not rendered.
+
 ---
 
 # IMPORTANT PROMPT BEHAVIOR
@@ -509,29 +660,13 @@ If uncertain:
 
 Current goal:
 
-Build MVP content publishing platform.
+Deliver Phase 1 of `vision.md`: a foundation that is valuable even with a small
+community.
 
 Priority:
 
-- Clean architecture
-- Responsive frontend
-- SEO-ready structure
-- Admin management
-- Scalability
-
----
-
-# INITIAL TASKS
-
-Start by:
-
-1. Creating project structure
-2. Setting up FastAPI app
-3. Setting up MongoDB connection
-4. Creating base templates
-5. Creating homepage
-6. Building reusable navbar/footer
-7. Creating responsive homepage layout
-8. Creating article card component
-
-Proceed incrementally.
+- Remove features from the previous version of the site
+- Rooms with subtitles and the new contribution formats
+- Member accounts and member publishing with editorial review
+- Question Room, Human Library, Fact or Fiction
+- The new homepage and visual identity
