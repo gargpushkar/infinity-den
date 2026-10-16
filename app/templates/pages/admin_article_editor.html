@@ -118,11 +118,23 @@
     <div class="admin-field">
       <label for="articleFormat">Format</label>
       <select class="form-select" id="articleFormat" name="article_format">
-        <option value="news" {% if not article or article.article_format == "news" %}selected{% endif %}>News</option>
-        <option value="guide" {% if article and article.article_format == "guide" %}selected{% endif %}>Guide</option>
-        <option value="review" {% if article and article.article_format == "review" %}selected{% endif %}>Review</option>
+        <option value="article" {% if not article or article.article_format == "article" %}selected{% endif %}>Article &mdash; labelled &ldquo;Researched&rdquo;</option>
+        <option value="experience" {% if article and article.article_format == "experience" %}selected{% endif %}>Personal experience</option>
+        <option value="perspective" {% if article and article.article_format == "perspective" %}selected{% endif %}>Perspective &mdash; labelled &ldquo;Opinion&rdquo;</option>
       </select>
-      <p class="admin-field-note">Drives the Guides and Reviews sections on the homepage.</p>
+      <p class="admin-field-note">Shown to readers as a label. Researched articles need at least one source before publishing.</p>
+    </div>
+
+    <label class="admin-check">
+      <input type="checkbox" name="is_speculative" value="true" {% if article and article.is_speculative %}checked{% endif %}>
+      <span>Speculative (adds a &ldquo;Speculation&rdquo; label)</span>
+    </label>
+
+    <div class="admin-field">
+      <label for="articleSources">Sources</label>
+      <textarea class="form-control" id="articleSources" name="sources" rows="4" placeholder="Title | https://example.com/page">{% if article %}{% for source in article.sources %}{{ source.title }} | {{ source.url }}
+{% endfor %}{% endif %}</textarea>
+      <p class="admin-field-note">One per line: <code>Title | URL</code>, or just the URL.</p>
     </div>
 
     <label class="admin-check">

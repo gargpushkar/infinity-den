@@ -362,6 +362,21 @@ document.addEventListener("DOMContentLoaded", () => {
         index
       ));
 
+  // One source per line, "Title | URL" or a bare URL. The server checks URLs.
+  const parseAdminSources = (value) =>
+    String(value || "")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const divider = line.lastIndexOf("|");
+        if (divider === -1) {
+          return { title: line, url: line };
+        }
+        const url = line.slice(divider + 1).trim();
+        return { title: line.slice(0, divider).trim() || url, url };
+      });
+
   const escapeHtml = (value) =>
     String(value || "")
       .replace(/&/g, "&amp;")
@@ -897,8 +912,10 @@ document.addEventListener("DOMContentLoaded", () => {
         category_id: String(formData.get("category_id") || "").trim() || null,
         tags: splitAdminTags(formData.get("tags")),
         is_featured: formData.get("is_featured") === "true",
-        article_format: String(formData.get("article_format") || "news"),
+        article_format: String(formData.get("article_format") || "article"),
         is_editors_pick: formData.get("is_editors_pick") === "true",
+        is_speculative: formData.get("is_speculative") === "true",
+        sources: parseAdminSources(formData.get("sources")),
         status,
         seo_title: String(formData.get("seo_title") || "").trim() || null,
         seo_description:
@@ -1055,6 +1072,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const payload = {
         name: String(formData.get("name") || "").trim(),
         slug: slugify(formData.get("slug")),
+        subtitle: String(formData.get("subtitle") || "").trim() || null,
         description: String(formData.get("description") || "").trim() || null,
         image: String(formData.get("image") || "").trim() || null,
         nav_order: Number(formData.get("nav_order") || 0),
@@ -1100,6 +1118,8 @@ document.addEventListener("DOMContentLoaded", () => {
         row.getAttribute("data-category-name") || "";
       form.querySelector("input[name='slug']").value =
         row.getAttribute("data-category-slug") || "";
+      form.querySelector("input[name='subtitle']").value =
+        row.getAttribute("data-category-subtitle") || "";
       form.querySelector("textarea[name='description']").value =
         row.getAttribute("data-category-description") || "";
       form.querySelector("input[name='image']").value =

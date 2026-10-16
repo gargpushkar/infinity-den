@@ -5,6 +5,7 @@ from typing import Any, Final
 CATEGORY_COLLECTION: Final = "categories"
 CATEGORY_DOCUMENT_FIELDS: Final[tuple[str, ...]] = (
     "name",
+    "subtitle",
     "slug",
     "description",
     "image",
@@ -20,6 +21,7 @@ CATEGORY_REQUIRED_FIELDS: Final[tuple[str, ...]] = (
 class CategoryDocument:
     name: str
     slug: str
+    subtitle: str | None = None
     description: str | None = None
     image: str | None = None
     nav_order: int = 0
@@ -27,6 +29,7 @@ class CategoryDocument:
     def __post_init__(self) -> None:
         self.name = self.name.strip()
         self.slug = self.slug.strip().lower()
+        self.subtitle = _clean_optional_text(self.subtitle)
         self.description = _clean_optional_text(self.description)
         self.image = _clean_optional_text(self.image)
 
@@ -38,6 +41,7 @@ def create_category_document(
     *,
     name: str,
     slug: str,
+    subtitle: str | None = None,
     description: str | None = None,
     image: str | None = None,
     nav_order: int = 0,
@@ -45,6 +49,7 @@ def create_category_document(
     return CategoryDocument(
         name=name,
         slug=slug,
+        subtitle=subtitle,
         description=description,
         image=image,
         nav_order=nav_order,

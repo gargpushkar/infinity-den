@@ -33,6 +33,12 @@
       </div>
 
       <div class="admin-field">
+        <label for="categorySubtitle">Subtitle</label>
+        <input class="form-control" id="categorySubtitle" name="subtitle" maxlength="120">
+        <p class="admin-field-note">Plain description shown next to the name, e.g. "Science, Space &amp; the Universe".</p>
+      </div>
+
+      <div class="admin-field">
         <label for="categoryDescription">Description</label>
         <textarea class="form-control" id="categoryDescription" name="description" rows="4" maxlength="320"></textarea>
       </div>
@@ -80,13 +86,14 @@
             data-category-id="{{ category.id }}"
             data-category-name="{{ category.name }}"
             data-category-slug="{{ category.slug }}"
+            data-category-subtitle="{{ category.subtitle if category.subtitle else '' }}"
             data-category-description="{{ category.description if category.description else '' }}"
             data-category-image="{{ category.image if category.image else '' }}"
             data-category-nav-order="{{ category.nav_order }}"
           >
             <div>
               <strong>{{ category.name }}</strong>
-              <small>{{ category.slug }} &middot; nav {{ category.nav_order }}</small>
+              <small>{% if category.subtitle %}{{ category.subtitle }} &middot; {% endif %}{{ category.slug }} &middot; nav {{ category.nav_order }}</small>
               {% if category.description %}
                 <p>{{ category.description }}</p>
               {% endif %}

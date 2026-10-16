@@ -26,6 +26,7 @@ from app.services.article_service import (
     ArticleNotFoundError,
     ArticleService,
     ArticleSlugConflictError,
+    ArticleSourcesRequiredError,
     get_article_service,
 )
 
@@ -110,6 +111,11 @@ async def create_article(
             status_code=http_status.HTTP_409_CONFLICT,
             detail="An article with this slug already exists.",
         ) from exc
+    except ArticleSourcesRequiredError as exc:
+        raise HTTPException(
+            status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
 
 
 @router.get(
@@ -159,6 +165,11 @@ async def update_article(
         raise HTTPException(
             status_code=http_status.HTTP_409_CONFLICT,
             detail="An article with this slug already exists.",
+        ) from exc
+    except ArticleSourcesRequiredError as exc:
+        raise HTTPException(
+            status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
         ) from exc
 
 

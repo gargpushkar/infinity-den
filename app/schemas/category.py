@@ -23,6 +23,8 @@ class CategoryBase(BaseModel):
         max_length=120,
         pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$",
     )
+    # Descriptive subtitle shown next to the creative name everywhere.
+    subtitle: str | None = Field(default=None, max_length=120)
     description: str | None = Field(default=None, max_length=320)
     image: str | None = Field(default=None, max_length=500)
     nav_order: int = Field(default=0, ge=0, le=999)
@@ -51,7 +53,7 @@ class CategoryBase(BaseModel):
 
         return value
 
-    @field_validator("description", "image", mode="before")
+    @field_validator("subtitle", "description", "image", mode="before")
     @classmethod
     def normalize_optional_text(cls, value: Any) -> str | None:
         return _as_optional_string(value)
@@ -69,6 +71,7 @@ class CategoryUpdate(BaseModel):
         max_length=120,
         pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$",
     )
+    subtitle: str | None = Field(default=None, max_length=120)
     description: str | None = Field(default=None, max_length=320)
     image: str | None = Field(default=None, max_length=500)
     nav_order: int | None = Field(default=None, ge=0, le=999)
@@ -89,7 +92,7 @@ class CategoryUpdate(BaseModel):
 
         return value
 
-    @field_validator("description", "image", mode="before")
+    @field_validator("subtitle", "description", "image", mode="before")
     @classmethod
     def normalize_optional_text(cls, value: Any) -> str | None:
         return _as_optional_string(value)

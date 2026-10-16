@@ -8,7 +8,11 @@ from pymongo import ASCENDING, DESCENDING, ReturnDocument
 from pymongo.errors import DuplicateKeyError
 
 from app.database.mongodb import get_database
-from app.models.article import ARTICLE_COLLECTION, create_article_document
+from app.models.article import (
+    ARTICLE_COLLECTION,
+    create_article_document,
+    missing_required_sources,
+)
 from app.schemas.article import (
     ArticleCreate,
     ArticleListResponse,
@@ -30,6 +34,13 @@ class ArticleSlugConflictError(ArticleServiceError):
     pass
 
 
+class ArticleSourcesRequiredError(ArticleServiceError):
+    pass
+
+
+SOURCES_REQUIRED_MESSAGE = "Researched articles need at least one source before publishing."
+
+
 class ArticleService:
     def __init__(self, database: AsyncIOMotorDatabase | None = None) -> None:
         self.database = database if database is not None else get_database()
@@ -39,6 +50,13 @@ class ArticleService:
         return self.database[ARTICLE_COLLECTION]
 
     async def create_article(self, payload: ArticleCreate) -> ArticleRead:
+        if missing_required_sources(
+            article_format=payload.article_format,
+            status=payload.status,
+            sources=payload.sources,
+        ):
+            raise ArticleSourcesRequiredError(SOURCES_REQUIRED_MESSAGE)
+
         article_document = create_article_document(**payload.model_dump())
 
         try:
@@ -110,6 +128,26 @@ class ArticleService:
             raise ArticleNotFoundError("Article was not found.")
 
         update_data = payload.model_dump(exclude_unset=True)
+
+        # A partial update (such as the admin "publish" action) can make an
+        # article live without touching its sources, so check the article as
+        # it will be after this update. Updates that leave status, format, and
+        # sources alone (featuring, retitling) are never blocked.
+        if {"status", "article_format", "sources"} & update_data.keys():
+            current = await self.collection.find_one(
+                {"_id": object_id},
+                {"article_format": 1, "status": 1, "sources": 1},
+            )
+            if current is None:
+                raise ArticleNotFoundError("Article was not found.")
+            merged = {**current, **update_data}
+            if missing_required_sources(
+                article_format=merged.get("article_format", ""),
+                status=merged.get("status", ""),
+                sources=merged.get("sources"),
+            ):
+                raise ArticleSourcesRequiredError(SOURCES_REQUIRED_MESSAGE)
+
         update_data["updated_at"] = self._utc_now()
 
         try:

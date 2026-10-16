@@ -10,9 +10,7 @@
       <div class="row g-4 align-items-center">
         <div class="col-lg-7">
           <div class="hero-copy">
-            {# Section names come from the nav context so this line cannot go
-               stale when a category is added or renamed. #}
-            <p class="eyebrow mb-3" data-reveal-child>{{ categories | join(" &middot; ") | safe }}</p>
+            <p class="eyebrow mb-3" data-reveal-child>Knowledge &middot; Perspectives &middot; Discovery</p>
             <h1 id="homeHeroTitle" data-reveal-child>A universe of ideas. A community of minds.</h1>
             <p class="hero-lede" data-reveal-child>Explore what you don&rsquo;t know. Share what you do. Question what you believe.</p>
             <div class="d-flex flex-wrap gap-2 mt-4" data-reveal-child>
@@ -40,8 +38,8 @@
                 <strong>{{ hero_metrics[2].value }} stories</strong>
               </div>
               <div class="briefing-row" data-briefing-row>
-                <span>Sections</span>
-                <strong>{{ categories|length }} to browse</strong>
+                <span>Rooms</span>
+                <strong>{{ categories|length }} to explore</strong>
               </div>
             </div>
             <div class="row g-3 mt-1">
@@ -66,15 +64,15 @@
 
     <section class="content-section category-showcase" aria-labelledby="categoryShowcaseTitle" data-reveal>
       <div class="section-heading">
-        <p class="eyebrow mb-2">Sections</p>
-        <h2 id="categoryShowcaseTitle">Pick a corner and dig in.</h2>
+        <p class="eyebrow mb-2">Explore by room</p>
+        <h2 id="categoryShowcaseTitle">Every room is a different way in.</h2>
       </div>
       <div class="category-showcase-grid">
         {% for category_item in category_links %}
           {% set category = category_item.name %}
           <a class="category-showcase-item" href="{{ category_item.url }}" data-reveal-child>
             {% include "components/category_pill.html" %}
-            <span>Everything in {{ category_item.name|lower }}</span>
+            <span>{{ category_item.subtitle }}</span>
           </a>
         {% endfor %}
       </div>

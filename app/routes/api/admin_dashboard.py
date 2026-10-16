@@ -15,6 +15,7 @@ from app.services.admin_permissions import (
 from app.services.article_service import (
     ArticleNotFoundError,
     ArticleService,
+    ArticleSourcesRequiredError,
     get_article_service,
 )
 from app.services.submission_service import (
@@ -58,6 +59,11 @@ async def publish_article(
         raise HTTPException(
             status_code=http_status.HTTP_404_NOT_FOUND,
             detail="Article was not found.",
+        ) from exc
+    except ArticleSourcesRequiredError as exc:
+        raise HTTPException(
+            status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
         ) from exc
 
 

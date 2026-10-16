@@ -3,9 +3,9 @@ from datetime import datetime, timezone
 from typing import Any, Final, Literal, cast
 
 from app.config.constants import (
-    ARTICLE_FORMAT_GUIDE,
-    ARTICLE_FORMAT_NEWS,
-    ARTICLE_FORMAT_REVIEW,
+    ARTICLE_FORMAT_ARTICLE,
+    ARTICLE_FORMAT_EXPERIENCE,
+    ARTICLE_FORMAT_PERSPECTIVE,
     ARTICLE_STATUS_ARCHIVED,
     ARTICLE_STATUS_DRAFT,
     ARTICLE_STATUS_PUBLISHED,
@@ -13,7 +13,7 @@ from app.config.constants import (
 
 
 ArticleStatus = Literal["draft", "published", "archived"]
-ArticleFormat = Literal["news", "guide", "review"]
+ArticleFormat = Literal["article", "experience", "perspective"]
 
 ARTICLE_COLLECTION: Final = "articles"
 ARTICLE_STATUSES: Final[tuple[ArticleStatus, ...]] = (
@@ -22,9 +22,9 @@ ARTICLE_STATUSES: Final[tuple[ArticleStatus, ...]] = (
     ARTICLE_STATUS_ARCHIVED,
 )
 ARTICLE_FORMATS: Final[tuple[ArticleFormat, ...]] = (
-    ARTICLE_FORMAT_NEWS,
-    ARTICLE_FORMAT_GUIDE,
-    ARTICLE_FORMAT_REVIEW,
+    ARTICLE_FORMAT_ARTICLE,
+    ARTICLE_FORMAT_EXPERIENCE,
+    ARTICLE_FORMAT_PERSPECTIVE,
 )
 ARTICLE_DOCUMENT_FIELDS: Final[tuple[str, ...]] = (
     "title",
@@ -38,6 +38,8 @@ ARTICLE_DOCUMENT_FIELDS: Final[tuple[str, ...]] = (
     "is_featured",
     "article_format",
     "is_editors_pick",
+    "is_speculative",
+    "sources",
     "status",
     "seo_title",
     "seo_description",
@@ -57,6 +59,23 @@ ARTICLE_REQUIRED_FIELDS: Final[tuple[str, ...]] = (
 
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def missing_required_sources(
+    *,
+    article_format: str,
+    status: str,
+    sources: list[Any] | None,
+) -> bool:
+    """Researched articles need at least one source before they go live.
+
+    Drafts are exempt so writers can save work in progress.
+    """
+    return (
+        article_format == ARTICLE_FORMAT_ARTICLE
+        and status == ARTICLE_STATUS_PUBLISHED
+        and not sources
+    )
 
 
 def normalize_article_status(status: str) -> ArticleStatus:
@@ -91,8 +110,10 @@ class ArticleDocument:
     category_id: str | None = None
     tags: list[str] = field(default_factory=list)
     is_featured: bool = False
-    article_format: ArticleFormat = ARTICLE_FORMAT_NEWS
+    article_format: ArticleFormat = ARTICLE_FORMAT_ARTICLE
     is_editors_pick: bool = False
+    is_speculative: bool = False
+    sources: list[dict[str, str]] = field(default_factory=list)
     status: ArticleStatus = ARTICLE_STATUS_DRAFT
     seo_title: str | None = None
     seo_description: str | None = None
@@ -105,6 +126,7 @@ class ArticleDocument:
         self.status = normalize_article_status(self.status)
         self.article_format = normalize_article_format(self.article_format)
         self.tags = list(self.tags)
+        self.sources = list(self.sources)
         if self.views < 0:
             raise ValueError("Article views cannot be negative.")
 
@@ -123,8 +145,10 @@ def create_article_document(
     category_id: str | None = None,
     tags: list[str] | None = None,
     is_featured: bool = False,
-    article_format: str = ARTICLE_FORMAT_NEWS,
+    article_format: str = ARTICLE_FORMAT_ARTICLE,
     is_editors_pick: bool = False,
+    is_speculative: bool = False,
+    sources: list[dict[str, str]] | None = None,
     status: str = ARTICLE_STATUS_DRAFT,
     seo_title: str | None = None,
     seo_description: str | None = None,
@@ -145,6 +169,8 @@ def create_article_document(
         is_featured=is_featured,
         article_format=normalize_article_format(article_format),
         is_editors_pick=is_editors_pick,
+        is_speculative=is_speculative,
+        sources=list(sources or []),
         status=normalize_article_status(status),
         seo_title=seo_title,
         seo_description=seo_description,

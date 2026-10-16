@@ -4,7 +4,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from app.config.constants import ARTICLE_FORMAT_NEWS, ARTICLE_STATUS_DRAFT
+from app.config.constants import ARTICLE_FORMAT_ARTICLE, ARTICLE_STATUS_DRAFT
 from app.models.article import (
     ArticleFormat,
     ArticleStatus,
@@ -31,6 +31,21 @@ def _as_optional_string(value: Any) -> str | None:
     return value or None
 
 
+class ArticleSource(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    url: str = Field(max_length=500, pattern=r"^https?://\S+$")
+
+    @model_validator(mode="before")
+    @classmethod
+    def default_title_to_url(cls, value: Any) -> Any:
+        if isinstance(value, dict):
+            url = str(value.get("url") or "").strip()
+            title = str(value.get("title") or "").strip()
+            return {"url": url, "title": title or url}
+
+        return value
+
+
 class ArticleBase(BaseModel):
     title: str = Field(min_length=3, max_length=160)
     slug: str = Field(
@@ -45,8 +60,10 @@ class ArticleBase(BaseModel):
     category_id: str | None = Field(default=None, max_length=120)
     tags: list[str] = Field(default_factory=list, max_length=20)
     is_featured: bool = False
-    article_format: ArticleFormat = ARTICLE_FORMAT_NEWS
+    article_format: ArticleFormat = ARTICLE_FORMAT_ARTICLE
     is_editors_pick: bool = False
+    is_speculative: bool = False
+    sources: list[ArticleSource] = Field(default_factory=list, max_length=20)
     status: ArticleStatus = ARTICLE_STATUS_DRAFT
     seo_title: str | None = Field(default=None, max_length=70)
     seo_description: str | None = Field(default=None, max_length=160)
@@ -56,7 +73,7 @@ class ArticleBase(BaseModel):
     @classmethod
     def validate_article_format(cls, value: Any) -> ArticleFormat:
         if value is None:
-            return ARTICLE_FORMAT_NEWS
+            return ARTICLE_FORMAT_ARTICLE
 
         return normalize_article_format(str(value))
 
@@ -142,6 +159,8 @@ class ArticleUpdate(BaseModel):
     is_featured: bool | None = None
     article_format: ArticleFormat | None = None
     is_editors_pick: bool | None = None
+    is_speculative: bool | None = None
+    sources: list[ArticleSource] | None = Field(default=None, max_length=20)
     status: ArticleStatus | None = None
     seo_title: str | None = Field(default=None, max_length=70)
     seo_description: str | None = Field(default=None, max_length=160)
