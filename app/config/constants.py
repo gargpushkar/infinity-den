@@ -1,6 +1,8 @@
 ARTICLE_STATUS_DRAFT = "draft"
 ARTICLE_STATUS_PUBLISHED = "published"
 ARTICLE_STATUS_ARCHIVED = "archived"
+# A member has submitted it; an editor publishes it or sends it back.
+ARTICLE_STATUS_PENDING_REVIEW = "pending_review"
 
 SUBMISSION_STATUS_NEW = "new"
 SUBMISSION_STATUS_REVIEWING = "reviewing"
@@ -66,4 +68,12 @@ LAUNCH_ROOMS: tuple[dict[str, str | int], ...] = (
         "description": "Real experiences, turning points, mistakes, growth, and the lessons people discover through living.",
         "nav_order": 60,
     },
+)
+
+# Writing prompts for the Human Library (vision.md -> FEATURE DESTINATIONS).
+HUMAN_LIBRARY_PROMPTS: tuple[str, ...] = (
+    "An experience that changed how I think",
+    "Something I wish I had known five years ago",
+    "A mistake that taught me more than success",
+    "A belief I used to hold but no longer do",
 )

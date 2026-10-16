@@ -1,0 +1,95 @@
+{% extends "layouts/base.html" %}
+{% from "components/form_fields.html" import field, form_alert %}
+
+{% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="member-page">
+  <div class="container">
+    <div class="member-panel member-panel-wide">
+      <p class="eyebrow mb-2">{% if piece %}Your piece &middot; {{ piece.status|replace("_", " ") }}{% else %}Write for {{ app_name }}{% endif %}</p>
+      <h1>{% if piece %}{{ piece.title }}{% else %}Share what you know.{% endif %}</h1>
+
+      {% if piece and piece.review_note and piece.status == "draft" %}
+        <div class="member-alert member-alert-review" role="note">
+          <strong>Note from the editor:</strong> {{ piece.review_note }}
+        </div>
+      {% endif %}
+      {{ form_alert(error, notice) }}
+
+      {% if is_locked %}
+        <p class="member-lede">This piece is published, so it can't be edited here. To change it, contact an editor.</p>
+        <a class="btn btn-primary" href="/articles/{{ piece.slug }}">Read it</a>
+      {% elif piece is none and error %}
+        <a class="btn btn-primary" href="/write">Start a new piece</a>
+      {% else %}
+        {% if prompt %}<p class="member-prompt">Prompt: <strong>{{ prompt }}</strong></p>{% endif %}
+
+        <form class="member-form" method="post" action="{% if piece %}/write/{{ piece.id }}{% else %}/write{% endif %}" data-markdown-editor novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+          <fieldset class="member-field member-format-choice">
+            <legend>What are you sharing?</legend>
+            {% for value, label in formats.items() %}
+              <label class="member-radio">
+                <input type="radio" name="article_format" value="{{ value }}" {% if values.get("article_format", "experience") == value %}checked{% endif %}>
+                <span>{{ label }}</span>
+              </label>
+            {% endfor %}
+            <p class="member-field-hint">Researched pieces need at least one source. Personal experiences and opinions don't.</p>
+          </fieldset>
+
+          {{ field("title", "Title", values, field_errors, attrs='maxlength="160" required' ~ (' placeholder="' ~ prompt ~ '"' if prompt else '')) }}
+          {{ field("excerpt", "Summary", values, field_errors, type="textarea", hint="One or two sentences shown on cards and in search.", attrs='maxlength="320" required') }}
+
+          <div class="member-field">
+            <label for="field-category_id">Room</label>
+            <select class="form-select{% if field_errors.get('category_id') %} is-invalid{% endif %}" id="field-category_id" name="category_id" required>
+              <option value="">Choose a room</option>
+              {% for room in rooms %}
+                <option value="{{ room.slug }}" {% if values.get("category_id") == room.slug %}selected{% endif %}>{{ room.name }} &mdash; {{ room.subtitle }}</option>
+              {% endfor %}
+            </select>
+            {% if field_errors.get("category_id") %}<p class="member-field-error">{{ field_errors.get("category_id") }}</p>{% endif %}
+          </div>
+
+          <div class="member-field">
+            <label for="field-content">Your piece</label>
+            <div class="admin-editor-toolbar" aria-label="Formatting">
+              <button type="button" data-markdown-action="heading" aria-label="Heading">H2</button>
+              <button type="button" data-markdown-action="bold" aria-label="Bold"><strong>B</strong></button>
+              <button type="button" data-markdown-action="italic" aria-label="Italic"><em>I</em></button>
+              <button type="button" data-markdown-action="quote" aria-label="Quote">Quote</button>
+              <button type="button" data-markdown-action="list" aria-label="List">List</button>
+              <button type="button" data-markdown-action="link" aria-label="Link">Link</button>
+            </div>
+            <div class="admin-editor-tabs" role="tablist" aria-label="Editor view">
+              <button class="is-active" type="button" role="tab" aria-selected="true" data-admin-editor-tab="write">Write</button>
+              <button type="button" role="tab" aria-selected="false" data-admin-editor-tab="preview">Preview</button>
+            </div>
+            <div class="admin-editor-pane is-active" data-admin-editor-pane="write">
+              <textarea class="form-control admin-content-editor{% if field_errors.get('content') %} is-invalid{% endif %}" id="field-content" name="content" rows="16" required>{{ values.get("content", "") }}</textarea>
+            </div>
+            <div class="admin-editor-pane admin-markdown-preview article-detail-body article-content" data-admin-editor-pane="preview" hidden></div>
+            {% if field_errors.get("content") %}<p class="member-field-error">{{ field_errors.get("content") }}</p>{% endif %}
+          </div>
+
+          {{ field("tags", "Tags", values, field_errors, hint="Up to 10, separated by commas.") }}
+          {{ field("sources", "Sources", values, field_errors, type="textarea", hint="One per line: Title | https://link, or just the link.") }}
+
+          <label class="member-check">
+            <input type="checkbox" name="is_speculative" value="true" {% if values.get("is_speculative") %}checked{% endif %}>
+            <span>This is speculative (a prediction or open hypothesis)</span>
+          </label>
+
+          <div class="member-actions">
+            <button class="btn btn-outline-primary" type="submit" name="action" value="draft">Save draft</button>
+            <button class="btn btn-primary" type="submit" name="action" value="submit">Submit for review</button>
+          </div>
+          <p class="member-field-hint">Editors review every piece before it's published. You can keep editing while it waits.</p>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

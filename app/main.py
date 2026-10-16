@@ -20,13 +20,14 @@ from app.routes.api.categories import router as categories_router
 from app.routes.api.health import router as health_router
 from app.routes.api.newsletter import router as newsletter_router
 from app.routes.api.search import router as search_router
-from app.routes.api.submissions import router as submissions_router
 from app.routes.api.tags import router as tags_router
 from app.routes.public.articles import router as public_articles_router
 from app.routes.public.categories import router as public_categories_router
+from app.routes.public.experiences import router as experiences_router
 from app.routes.public.home import router as home_router
 from app.routes.public.members import router as members_router
 from app.routes.public.search import router as public_search_router
+from app.routes.public.write import router as write_router
 
 
 configure_logging()
@@ -71,12 +72,13 @@ app.include_router(categories_router)
 app.include_router(health_router)
 app.include_router(newsletter_router)
 app.include_router(search_router)
-app.include_router(submissions_router)
 app.include_router(tags_router)
 app.include_router(public_articles_router)
 app.include_router(public_categories_router)
+app.include_router(experiences_router)
 app.include_router(home_router)
 app.include_router(members_router)
 app.include_router(public_search_router)
+app.include_router(write_router)
 app.include_router(admin_auth_pages_router)
 app.include_router(admin_dashboard_router)

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi import status as http_status
 
 from app.config.constants import ARTICLE_STATUS_DRAFT, ARTICLE_STATUS_PUBLISHED
-from app.schemas.admin import AdminArticleFeatureUpdate, AdminRead
+from app.schemas.admin import AdminArticleFeatureUpdate, AdminRead, AdminSendBack
 from app.schemas.article import ArticleRead, ArticleUpdate
 from app.schemas.submission import ArticleSubmissionRead, ArticleSubmissionUpdate
 from app.services.admin_csrf import verify_admin_csrf
@@ -82,6 +82,30 @@ async def move_article_to_draft(
         return await article_service.update_article(
             article_id,
             ArticleUpdate(status=ARTICLE_STATUS_DRAFT, published_at=None),
+        )
+    except ArticleNotFoundError as exc:
+        raise HTTPException(
+            status_code=http_status.HTTP_404_NOT_FOUND,
+            detail="Article was not found.",
+        ) from exc
+
+
+@router.patch(
+    "/articles/{article_id}/send-back",
+    response_model=ArticleRead,
+    response_model_by_alias=False,
+)
+async def send_article_back(
+    article_id: str,
+    payload: AdminSendBack,
+    _admin: AdminRead = Depends(require_article_writer),
+    _csrf: None = Depends(verify_admin_csrf),
+    article_service: ArticleService = Depends(get_admin_article_service),
+) -> ArticleRead:
+    try:
+        return await article_service.update_article(
+            article_id,
+            ArticleUpdate(status=ARTICLE_STATUS_DRAFT, review_note=payload.note, published_at=None),
         )
     except ArticleNotFoundError as exc:
         raise HTTPException(

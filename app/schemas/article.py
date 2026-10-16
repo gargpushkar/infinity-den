@@ -4,7 +4,11 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from app.config.constants import ARTICLE_FORMAT_ARTICLE, ARTICLE_STATUS_DRAFT
+from app.config.constants import (
+    ARTICLE_FORMAT_ARTICLE,
+    ARTICLE_FORMAT_EXPERIENCE,
+    ARTICLE_STATUS_DRAFT,
+)
 from app.models.article import (
     ArticleFormat,
     ArticleStatus,
@@ -67,6 +71,8 @@ class ArticleBase(BaseModel):
     is_speculative: bool = False
     sources: list[ArticleSource] = Field(default_factory=list, max_length=20)
     status: ArticleStatus = ARTICLE_STATUS_DRAFT
+    # Editor feedback shown to a member when their piece is sent back.
+    review_note: str | None = Field(default=None, max_length=1000)
     seo_title: str | None = Field(default=None, max_length=70)
     seo_description: str | None = Field(default=None, max_length=160)
     published_at: datetime | None = None
@@ -164,6 +170,7 @@ class ArticleUpdate(BaseModel):
     is_speculative: bool | None = None
     sources: list[ArticleSource] | None = Field(default=None, max_length=20)
     status: ArticleStatus | None = None
+    review_note: str | None = Field(default=None, max_length=1000)
     seo_title: str | None = Field(default=None, max_length=70)
     seo_description: str | None = Field(default=None, max_length=160)
     published_at: datetime | None = None
@@ -326,3 +333,32 @@ class ArticleQueryParams(BaseModel):
             raise ValueError("published_from must be before published_to.")
 
         return self
+
+
+class MemberPieceInput(BaseModel):
+    """What a member may set on their own piece. Status, slug, author, cover
+    image, and editorial flags are decided by the server and editors."""
+
+    title: str = Field(min_length=3, max_length=160)
+    excerpt: str = Field(min_length=10, max_length=320)
+    content: str = Field(min_length=1, max_length=50_000)
+    category_id: str = Field(min_length=1, max_length=120)
+    article_format: ArticleFormat = ARTICLE_FORMAT_EXPERIENCE
+    tags: list[str] = Field(default_factory=list, max_length=10)
+    sources: list[ArticleSource] = Field(default_factory=list, max_length=20)
+    is_speculative: bool = False
+
+    @field_validator("title", "excerpt", "content", "category_id", mode="before")
+    @classmethod
+    def strip_text(cls, value: Any) -> Any:
+        return value.strip() if isinstance(value, str) else value
+
+    @field_validator("article_format", mode="before")
+    @classmethod
+    def validate_article_format(cls, value: Any) -> ArticleFormat:
+        return normalize_article_format(str(value or ARTICLE_FORMAT_EXPERIENCE))
+
+    @field_validator("tags")
+    @classmethod
+    def normalize_tags(cls, tags: list[str]) -> list[str]:
+        return ArticleBase.normalize_tags(tags)

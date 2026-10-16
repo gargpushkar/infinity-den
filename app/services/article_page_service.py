@@ -17,6 +17,8 @@ from app.models.article import ARTICLE_COLLECTION, ARTICLE_FORMATS
 from app.models.tag import TAG_COLLECTION
 from app.schemas.article import ArticleQueryParams, ArticleRead
 from app.services.article_service import ArticleService
+from app.services.user_service import UserService
+from app.utils.markdown import render_markdown
 from app.utils.reading_time import calculate_reading_time
 
 
@@ -146,6 +148,7 @@ async def get_article_detail_context(article_slug: str) -> dict[str, Any] | None
 
         await _record_article_view(db, article.slug)
         article_context = _article_to_detail(article, category_lookup, tag_lookup)
+        article_context["author_url"] = await _author_profile_url(db, article.author_id)
         related_articles = await _get_related_articles(
             db,
             article,
@@ -371,22 +374,26 @@ def article_to_card_context(
     return _article_to_card(article, category_lookup, tag_lookup)
 
 
+async def _author_profile_url(db: Any, author_id: str | None) -> str | None:
+    """Link a member author's byline to their profile; editorial pieces have none."""
+    if not author_id:
+        return None
+
+    member = await UserService(database=db).get_member_by_id(author_id)
+    return f"/members/{member.username}" if member else None
+
+
 def _article_to_detail(
     article: ArticleRead,
     category_lookup: dict[str, str],
     tag_lookup: dict[str, str],
 ) -> dict[str, Any]:
     card = _article_to_card(article, category_lookup, tag_lookup)
-    paragraphs = [
-        paragraph.strip()
-        for paragraph in article.content.split("\n\n")
-        if paragraph.strip()
-    ]
 
     return {
         **card,
         "content": article.content,
-        "content_paragraphs": paragraphs,
+        "content_html": render_markdown(article.content),
         "sources": [source.model_dump() for source in article.sources],
         "seo_title": article.seo_title or article.title,
         "seo_description": article.seo_description or article.excerpt,

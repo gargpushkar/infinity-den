@@ -16,7 +16,7 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 - [ ] Phase 3 — Community growth
 
 ## Current Focus
-- [ ] `feature/member-publishing`
+- [ ] `feature/question-of-the-day`
 
 ---
 
@@ -67,12 +67,12 @@ order; each assumes the previous ones are merged.
 - [x] Link articles to `author_id`
 
 ## 4. `feature/member-publishing`
-- [ ] Render article markdown server-side with an allowlist sanitizer
-- [ ] Member editor (title, summary, room, format, tags, cover, sources)
-- [ ] `pending_review` status and review queue in admin, with `review_note`
-- [ ] Human Library page at `/experiences` with writing prompts
-- [ ] Retire the public pitch form
-- [ ] Check that unsafe HTML is not rendered
+- [x] Render article markdown server-side (escape-first renderer in `app/utils/markdown.py`, mirrors the editor preview)
+- [x] Member editor at `/write` (title, summary, room, format, tags, sources; no cover images in Phase 1)
+- [x] `pending_review` status and review queue in admin, with `review_note`
+- [x] Human Library page at `/experiences` with writing prompts
+- [x] Retire the public pitch form (old pitches stay readable in admin)
+- [x] Check that unsafe HTML is not rendered
 
 ## 5. `feature/question-of-the-day`
 - [ ] `daily_questions` and `responses` models, schemas, and indexes
@@ -103,7 +103,7 @@ order; each assumes the previous ones are merged.
 - [ ] Add article schema markup
 - [ ] Add organization schema
 - [ ] Add a favicon
-- [ ] Prevent XSS in all member-generated content
+- [x] Prevent XSS in all member-generated content
 - [ ] Validate all inputs; prevent NoSQL injection
 - [x] Add a minimal test setup (`pytest`, `tests/`)
 - [ ] One check per feature (ongoing)
@@ -154,6 +154,7 @@ Carried over from the foundation; pick up when needed.
 - [ ] Move rate-limit counters out of process memory before running several workers
 
 ## CMS
+- [ ] Member cover images (with the media library)
 - [ ] Scheduled publishing
 - [ ] Media library
 

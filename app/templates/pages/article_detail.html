@@ -28,7 +28,7 @@
         <h1>{{ article.title }}</h1>
         <p class="article-detail-dek">{{ article.excerpt }}</p>
         <div class="article-detail-meta" aria-label="Article metadata">
-          <span>{{ article.author }}</span>
+          {% if article.author_url %}<a href="{{ article.author_url }}">{{ article.author }}</a>{% else %}<span>{{ article.author }}</span>{% endif %}
           <time datetime="{{ article.published_iso }}">{{ article.published_label }}</time>
           <span
             aria-label="{{ article.read_time }} based on {{ article.word_count_label }}"
@@ -58,13 +58,9 @@
       </aside>
 
       <div class="article-detail-body" data-reveal>
-        {% for paragraph in article.content_paragraphs %}
-          {% if loop.first %}
-            <p class="article-lead">{{ paragraph }}</p>
-          {% else %}
-            <p>{{ paragraph }}</p>
-          {% endif %}
-        {% endfor %}
+        {# content_html comes from app/utils/markdown.py, which escapes all
+           text before formatting it, so it is safe to output as-is. #}
+        <div class="article-content">{{ article.content_html }}</div>
 
         {% if article.sources %}
           <section class="article-sources" aria-labelledby="articleSourcesTitle">

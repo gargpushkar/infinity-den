@@ -8,16 +8,18 @@ from app.config.constants import (
     ARTICLE_FORMAT_PERSPECTIVE,
     ARTICLE_STATUS_ARCHIVED,
     ARTICLE_STATUS_DRAFT,
+    ARTICLE_STATUS_PENDING_REVIEW,
     ARTICLE_STATUS_PUBLISHED,
 )
 
 
-ArticleStatus = Literal["draft", "published", "archived"]
+ArticleStatus = Literal["draft", "pending_review", "published", "archived"]
 ArticleFormat = Literal["article", "experience", "perspective"]
 
 ARTICLE_COLLECTION: Final = "articles"
 ARTICLE_STATUSES: Final[tuple[ArticleStatus, ...]] = (
     ARTICLE_STATUS_DRAFT,
+    ARTICLE_STATUS_PENDING_REVIEW,
     ARTICLE_STATUS_PUBLISHED,
     ARTICLE_STATUS_ARCHIVED,
 )
@@ -42,6 +44,7 @@ ARTICLE_DOCUMENT_FIELDS: Final[tuple[str, ...]] = (
     "is_speculative",
     "sources",
     "status",
+    "review_note",
     "seo_title",
     "seo_description",
     "created_at",
@@ -117,6 +120,7 @@ class ArticleDocument:
     is_speculative: bool = False
     sources: list[dict[str, str]] = field(default_factory=list)
     status: ArticleStatus = ARTICLE_STATUS_DRAFT
+    review_note: str | None = None
     seo_title: str | None = None
     seo_description: str | None = None
     created_at: datetime = field(default_factory=utc_now)
@@ -153,6 +157,7 @@ def create_article_document(
     is_speculative: bool = False,
     sources: list[dict[str, str]] | None = None,
     status: str = ARTICLE_STATUS_DRAFT,
+    review_note: str | None = None,
     seo_title: str | None = None,
     seo_description: str | None = None,
     published_at: datetime | None = None,
@@ -176,6 +181,7 @@ def create_article_document(
         is_speculative=is_speculative,
         sources=list(sources or []),
         status=normalize_article_status(status),
+        review_note=review_note,
         seo_title=seo_title,
         seo_description=seo_description,
         created_at=now,

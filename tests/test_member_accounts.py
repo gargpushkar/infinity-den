@@ -11,7 +11,7 @@ import pytest
 from fastapi import HTTPException, Request
 from pydantic import ValidationError
 
-from app.routes.public.members import _safe_next
+from app.routes.public.form_pages import safe_next as _safe_next
 from app.schemas.user import MemberRead, MemberSignup
 from app.services import admin_session, member_session
 from app.services.member_page_service import public_profile

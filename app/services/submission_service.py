@@ -7,10 +7,8 @@ from app.database.mongodb import get_database
 from app.models.submission import (
     ARTICLE_SUBMISSION_COLLECTION,
     SubmissionStatus,
-    create_article_submission_document,
 )
 from app.schemas.submission import (
-    ArticleSubmissionCreate,
     ArticleSubmissionListResponse,
     ArticleSubmissionRead,
 )
@@ -31,20 +29,6 @@ class SubmissionService:
     @property
     def collection(self) -> AsyncIOMotorCollection:
         return self.database[ARTICLE_SUBMISSION_COLLECTION]
-
-    async def create_submission(
-        self,
-        payload: ArticleSubmissionCreate,
-    ) -> ArticleSubmissionRead:
-        submission_document = create_article_submission_document(
-            **payload.model_dump()
-        )
-        result = await self.collection.insert_one(submission_document.to_mongo())
-        created_submission = await self.collection.find_one({"_id": result.inserted_id})
-        if created_submission is None:
-            raise SubmissionServiceError("Created submission could not be loaded.")
-
-        return ArticleSubmissionRead.model_validate(created_submission)
 
     async def list_submissions(
         self,

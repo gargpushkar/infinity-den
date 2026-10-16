@@ -1,0 +1,48 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}The Human Library | {{ app_name }}{% endblock %}
+{% block meta_description %}{{ seo_description }}{% endblock %}
+
+{% block content %}
+<section class="human-library">
+  <div class="container">
+    <header class="human-library-header">
+      <p class="eyebrow mb-2">The Human Library</p>
+      <h1>Real experiences. Honest reflections. Different lives.</h1>
+      <p class="member-lede">Things people know because they have lived them. One person's experience is not universal evidence, but it is worth hearing.</p>
+    </header>
+
+    <section class="human-library-prompts" aria-labelledby="promptsTitle">
+      <h2 id="promptsTitle">Share yours</h2>
+      <ul role="list">
+        {% for prompt in prompts %}
+          <li><a href="{{ prompt.url }}">{{ prompt.text }} <span aria-hidden="true">&rarr;</span></a></li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    {% if room_filters %}
+      <nav class="filter-scroll human-library-filters" aria-label="Filter by room">
+        {% for item in room_filters %}
+          <a class="filter-chip {% if item.is_active %}is-active{% endif %}" href="{{ item.url }}"{% if item.is_active %} aria-current="page"{% endif %}>{{ item.label }}</a>
+        {% endfor %}
+      </nav>
+    {% endif %}
+
+    {% if pieces %}
+      <div class="related-articles-grid">
+        {% for article in pieces %}
+          <div class="related-articles-item">
+            {% include "components/article_card.html" %}
+          </div>
+        {% endfor %}
+      </div>
+      {% include "components/pagination.html" %}
+    {% elif is_database_available %}
+      <p class="member-profile-empty">No personal experiences here yet. Be the first to share one.</p>
+    {% else %}
+      <p class="member-profile-empty">The library is unavailable right now. Please try again shortly.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
