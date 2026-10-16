@@ -92,7 +92,7 @@ Creative names are display text. Everything permanent is plain and descriptive.
 | Article | `/articles/{slug}` (flat, never nested under a room) |
 | Question Room | `/questions` (today's or latest), `/questions/{slug}` |
 | Human Library | `/experiences` |
-| Curiosity Arcade | `/play` |
+| Curiosity Arcade | `/play` (random claim), `/play/{slug}`, `/play/{slug}?answer=fact\|fiction` |
 | Debate Den (Phase 2) | `/debates` |
 | Member profile | `/members/{username}` |
 | Join / sign in / sign out | `/join`, `/login`, `/logout` |
@@ -323,19 +323,24 @@ Fields:
 
 Unique index on `(user_id, article_id)`.
 
-### quiz_items *(new)*
+### quiz_items
 
 Fact or Fiction claims.
 
 Fields:
 
 - claim
+- slug (claim words plus a short random tail, fixed at creation)
 - is_true
-- explanation
-- article_slug (the deeper article the explanation links to)
+- explanation (markdown subset)
+- article_slug — optional, must be a published article; the "Go deeper" link
 - category_id
 - status — `draft` | `published`
-- created_at
+- created_at, updated_at
+
+Answering is a plain link and nothing is stored: no per-visitor state and no
+answer statistics in Phase 1. Never render the answer before the visitor
+chooses.
 
 ### reports *(new)*
 

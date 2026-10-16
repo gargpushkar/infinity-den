@@ -28,8 +28,10 @@ from app.database.mongodb import close_mongo_connection, connect_to_mongo, get_d
 from app.models.article import ARTICLE_COLLECTION, create_article_document
 from app.models.category import CATEGORY_COLLECTION, create_category_document
 from app.models.question import QUESTION_COLLECTION, QuestionDocument
+from app.models.quiz import QUIZ_COLLECTION
 from app.models.tag import TAG_COLLECTION
 from app.services.question_service import question_slug, site_today
+from app.services.quiz_service import quiz_slug
 
 
 NOW = datetime(2026, 10, 16, 8, 0, tzinfo=timezone.utc)
@@ -286,6 +288,28 @@ QUESTIONS: list[dict[str, Any]] = [
 ]
 
 
+# Fact or Fiction samples. Each explanation is short and true; most link to
+# the sample article that goes deeper.
+CLAIMS: list[dict[str, Any]] = [
+    {"claim": "The sky is blue because it reflects the color of the ocean.", "is_true": False, "category_id": "science", "article_slug": "why-the-sky-is-blue-and-sunsets-are-red",
+     "explanation": "The sky is blue because air molecules scatter short, blue wavelengths of sunlight far more than long, red ones. This is **Rayleigh scattering**, and it happens over deserts and mountains too."},
+    {"claim": "Air scatters violet light even more strongly than blue light.", "is_true": True, "category_id": "science", "article_slug": "why-the-sky-is-blue-and-sunsets-are-red",
+     "explanation": "Shorter wavelengths scatter more, so violet scatters most. The sky still looks blue because sunlight contains less violet, some is absorbed high in the atmosphere, and our eyes are more sensitive to blue."},
+    {"claim": "The Library of Alexandria was wiped out by a single great fire.", "is_true": False, "category_id": "history", "article_slug": "the-library-of-alexandria-did-not-burn-down-in-a-single-night",
+     "explanation": "A fire in 48 BC, during Julius Caesar's war in Alexandria, may have destroyed some books, but most historians describe a long decline over centuries rather than one disaster."},
+    {"claim": "Large language models look up each answer in a database of verified facts.", "is_true": False, "category_id": "technology", "article_slug": "how-large-language-models-predict-the-next-word",
+     "explanation": "They generate text by predicting the next token from patterns learned in training. That is why an answer can sound fluent and still be wrong."},
+    {"claim": "Scientists think Jupiter's moon Europa has a liquid-water ocean beneath its ice.", "is_true": True, "category_id": "science", "article_slug": "the-best-place-to-look-for-life-may-be-under-the-ice-of-europa",
+     "explanation": "Spacecraft measurements point to a salty ocean under Europa's icy shell, which is why missions such as NASA's _Europa Clipper_ were sent to study it."},
+    {"claim": "In the original Dunning-Kruger study, the lowest scorers rated themselves higher than the top scorers did.", "is_true": False, "category_id": "psychology", "article_slug": "the-dunning-kruger-effect-is-more-complicated-than-the-meme",
+     "explanation": "Low scorers overestimated how well they had done, but still rated themselves below high scorers. The famous confidence-peak chart does not come from the study."},
+    {"claim": "The Ship of Theseus puzzle was recorded by the ancient writer Plutarch.", "is_true": True, "category_id": "philosophy", "article_slug": "the-ship-of-theseus-and-why-it-still-matters",
+     "explanation": "Plutarch described the Athenians replacing the ship's rotting planks one by one, and philosophers arguing over whether it was still the same ship."},
+    {"claim": "Humans use only 10% of their brains.", "is_true": False, "category_id": "psychology", "article_slug": None,
+     "explanation": "Brain imaging shows activity across virtually the whole brain, though not all at once. Even simple tasks draw on many regions, and damage to almost any area has noticeable effects."},
+]
+
+
 def _tags() -> list[dict[str, str]]:
     names = sorted({tag for article in ARTICLES for tag in article["tags"]})
     return [{"name": name, "slug": name.lower().replace(" ", "-")} for name in names]
@@ -378,6 +402,19 @@ async def _apply(db: Any) -> None:
         # new date instead of piling up copies.
         await db[QUESTION_COLLECTION].update_one({"text": question["text"]}, {"$set": document}, upsert=True)
     print(f"Sample questions seeded (today is {today} in {settings.site_timezone}).")
+
+    for claim in CLAIMS:
+        now = datetime.now(timezone.utc)
+        # Keyed by claim text; the slug is set once so shared links keep working.
+        await db[QUIZ_COLLECTION].update_one(
+            {"claim": claim["claim"]},
+            {
+                "$set": {**claim, "status": "published", "updated_at": now},
+                "$setOnInsert": {"slug": quiz_slug(claim["claim"]), "created_at": now},
+            },
+            upsert=True,
+        )
+    print(f"Upserted {len(CLAIMS)} Fact or Fiction claims.")
 
 
 async def main() -> None:

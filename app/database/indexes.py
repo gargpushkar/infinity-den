@@ -7,6 +7,7 @@ from app.models.article import ARTICLE_COLLECTION
 from app.models.category import CATEGORY_COLLECTION
 from app.models.newsletter import NEWSLETTER_SUBSCRIBER_COLLECTION
 from app.models.question import QUESTION_COLLECTION, RESPONSE_COLLECTION
+from app.models.quiz import QUIZ_COLLECTION
 from app.models.submission import ARTICLE_SUBMISSION_COLLECTION
 from app.models.tag import TAG_COLLECTION
 from app.models.user import USER_COLLECTION
@@ -34,6 +35,8 @@ async def create_indexes() -> None:
     await db[RESPONSE_COLLECTION].create_index(
         [("user_id", ASCENDING), ("status", ASCENDING), ("created_at", DESCENDING)]
     )
+    await db[QUIZ_COLLECTION].create_index([("slug", ASCENDING)], unique=True)
+    await db[QUIZ_COLLECTION].create_index([("status", ASCENDING)])
     await db[NEWSLETTER_SUBSCRIBER_COLLECTION].create_index(
         [("email", ASCENDING)],
         unique=True,
