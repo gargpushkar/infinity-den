@@ -56,11 +56,10 @@ def clear_member_cookie(response: Response) -> None:
 
 
 def member_claims(request: Request) -> dict[str, Any] | None:
-    """The signed-in member's token claims, without touching the database.
+    """The member token's verified claims, without touching the database.
 
-    Good enough for the header ("signed in as ..."). Anything that reads or
-    changes member data must use get_current_member, which also checks the
-    account still exists and is active.
+    Only a first step: use get_current_member, which also checks the account
+    still exists and is active, before showing or changing anything.
     """
     token = request.cookies.get(MEMBER_AUTH_COOKIE, "").strip()
     if not token:

@@ -90,7 +90,7 @@ Creative names are display text. Everything permanent is plain and descriptive.
 | Room | `/categories/{slug}` (the single canonical room page) |
 | Room filtered by format | `/categories/{slug}?format=experience` |
 | Article | `/articles/{slug}` (flat, never nested under a room) |
-| Question Room | `/questions` |
+| Question Room | `/questions` (today's or latest), `/questions/{slug}` |
 | Human Library | `/experiences` |
 | Curiosity Arcade | `/play` |
 | Debate Den (Phase 2) | `/debates` |
@@ -270,31 +270,38 @@ Fields:
 - created_at
 - updated_at
 
-### daily_questions *(new)*
+### daily_questions
 
 Curated by editors.
 
 Fields:
 
 - text
-- slug
+- slug (`YYYY-MM-DD-words`, fixed at creation)
 - intro
 - category_id
-- publish_date (the day it is Question of the Day; unique)
-- status — `draft` | `published`
-- created_at
+- publish_date — `"YYYY-MM-DD"` in `SITE_TIMEZONE` (default `America/New_York`); unique
+- status — `draft` | `published` (a published question goes live on its date)
+- created_at, updated_at
 
-### responses *(new)*
+With no question scheduled for today, `/questions` shows the latest past one.
+
+### responses
+
+One per member per question (unique index); members can edit or delete it.
 
 Fields:
 
 - question_id
-- user_id
-- body
+- user_id, author, author_username
+- body (markdown subset; 500 characters for `thought`, 3,000 otherwise)
 - kind — `thought` | `answer` | `story` | `researched`
+- sources — required for `researched`
 - is_featured (set by editors; featured means insightful, not popular)
 - status — `published` | `hidden`
-- created_at
+- created_at, updated_at
+
+No votes or likes. Order: featured first, then newest.
 
 ### comments *(new)*
 
@@ -515,7 +522,8 @@ Member content is untrusted input. In addition to the above:
 - rate-limit member writes (posts, responses, comments, reports) and login
 - never expose member emails or password hashes in public pages or API responses
 - every member-generated item can be reported by members and hidden by editors
-- member contributions publish only after editorial review in Phase 1
+- member pieces (articles, experiences, perspectives) publish only after editorial review in Phase 1
+- responses and comments post immediately; editors can hide them, and members can report them (branch 8)
 
 ---
 

@@ -1,0 +1,47 @@
+{# Create or edit a question. Expects `question` (or none), `rooms`, `today`. #}
+<form class="admin-panel admin-resource-form" method="post" data-admin-question-form data-question-id="{{ question.id if question else '' }}">
+  <div class="admin-panel-header">
+    <div>
+      <p class="admin-kicker mb-1">{% if question %}Edit question{% else %}New question{% endif %}</p>
+      <h2>{% if question %}Update and reschedule{% else %}Schedule a question{% endif %}</h2>
+    </div>
+  </div>
+
+  <div class="admin-field">
+    <label for="questionText">Question</label>
+    <textarea class="form-control" id="questionText" name="text" rows="3" minlength="10" maxlength="280" required>{{ question.text if question else '' }}</textarea>
+  </div>
+
+  <div class="admin-field">
+    <label for="questionIntro">Intro</label>
+    <textarea class="form-control" id="questionIntro" name="intro" rows="3" maxlength="600">{{ question.intro if question and question.intro else '' }}</textarea>
+    <p class="admin-field-note">Optional. A sentence or two of context shown under the question.</p>
+  </div>
+
+  <div class="admin-field">
+    <label for="questionRoom">Room</label>
+    <select class="form-select" id="questionRoom" name="category_id">
+      <option value="">No room</option>
+      {% for room in rooms %}
+        <option value="{{ room.slug }}" {% if question and question.category_id == room.slug %}selected{% endif %}>{{ room.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="admin-field">
+    <label for="questionDate">Date</label>
+    <input class="form-control" id="questionDate" name="publish_date" type="date" value="{{ question.publish_date if question else today }}" required>
+    <p class="admin-field-note">One question per date. "Today" follows the site timezone; today is {{ today }}.</p>
+  </div>
+
+  <div class="admin-field">
+    <label for="questionStatus">Status</label>
+    <select class="form-select" id="questionStatus" name="status">
+      <option value="draft" {% if not question or question.status == "draft" %}selected{% endif %}>Draft</option>
+      <option value="published" {% if question and question.status == "published" %}selected{% endif %}>Published (goes live on its date)</option>
+    </select>
+  </div>
+
+  <p class="admin-form-message" data-admin-form-message role="status">Ready to save.</p>
+  <button class="btn btn-primary w-100" type="submit">{% if question %}Save question{% else %}Create question{% endif %}</button>
+</form>

@@ -1,0 +1,40 @@
+{% extends "layouts/admin.html" %}
+
+{% block admin_content %}
+<section class="admin-section-header">
+  <div>
+    <p class="admin-kicker mb-2">Question Room</p>
+    <h2>One thought-provoking question a day.</h2>
+  </div>
+  <a class="btn btn-outline-primary" href="/questions" target="_blank" rel="noopener">View the Question Room</a>
+</section>
+
+<section class="admin-split">
+  {% set question = none %}
+  {% include "partials/admin_question_form.html" %}
+
+  <section class="admin-panel">
+    <div class="admin-panel-header">
+      <div>
+        <p class="admin-kicker mb-1">Schedule</p>
+        <h2>{{ questions|length }} questions</h2>
+      </div>
+    </div>
+    {% if questions %}
+      <div class="admin-list">
+        {% for item in questions %}
+          <a class="admin-list-row" href="/admin/questions/{{ item.id }}">
+            <span>{{ item.text }}</span>
+            <small>
+              {{ item.publish_date }}{% if item.publish_date == today %} (today){% elif item.publish_date > today %} (upcoming){% endif %}
+              &middot; {{ item.status }} &middot; {{ response_counts.get(item.id, 0) }} visible responses
+            </small>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="admin-empty">No questions yet. Schedule the first one.</p>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

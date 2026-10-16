@@ -16,7 +16,7 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 - [ ] Phase 3 — Community growth
 
 ## Current Focus
-- [ ] `feature/question-of-the-day`
+- [ ] `feature/fact-or-fiction`
 
 ---
 
@@ -75,10 +75,10 @@ order; each assumes the previous ones are merged.
 - [x] Check that unsafe HTML is not rendered
 
 ## 5. `feature/question-of-the-day`
-- [ ] `daily_questions` and `responses` models, schemas, and indexes
-- [ ] Admin: create and schedule questions; feature and hide responses
-- [ ] `/questions` page: today's question, featured responses, past questions
-- [ ] Members respond as a thought, answer, story, or researched answer
+- [x] `daily_questions` and `responses` models, schemas, and indexes
+- [x] Admin: create and schedule questions; feature and hide responses
+- [x] `/questions` page: today's question, featured responses, past questions
+- [x] Members respond as a thought, answer, story, or researched answer
 
 ## 6. `feature/fact-or-fiction`
 - [ ] `quiz_items` model, schema, and admin management

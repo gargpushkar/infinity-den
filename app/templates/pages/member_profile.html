@@ -32,6 +32,20 @@
         <p class="member-profile-empty">No published contributions yet.</p>
       {% endif %}
     </section>
+
+    {% if responses %}
+      <section class="question-archive" aria-labelledby="memberResponsesTitle">
+        <h2 class="member-profile-section-title" id="memberResponsesTitle">Answers in the Question Room</h2>
+        <ul role="list">
+          {% for item in responses %}
+            <li>
+              <a href="{{ item.url }}">{{ item.question }}</a>
+              <span>{{ item.excerpt }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
   </div>
 </section>
 {% endblock %}

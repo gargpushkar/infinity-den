@@ -999,11 +999,73 @@ document.addEventListener("DOMContentLoaded", () => {
       button.disabled = true;
       try {
         await adminJsonRequest(deleteUrl, { method: "DELETE" });
+        const afterDelete = button.getAttribute("data-after-delete");
+        if (afterDelete) {
+          window.location.assign(afterDelete);
+          return;
+        }
         button.closest("tr, [data-admin-category-row]")?.remove();
         setAdminMessage(message, "Deleted.", "success");
       } catch (error) {
         setAdminMessage(message, error.message, "error");
       } finally {
+        button.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-admin-question-form]").forEach((form) => {
+    const message = form.querySelector("[data-admin-form-message]");
+    const questionId = form.getAttribute("data-question-id");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const formData = new FormData(form);
+      const submitButton = form.querySelector("[type='submit']");
+      submitButton.disabled = true;
+      setAdminMessage(message, "Saving question...");
+      try {
+        const question = await adminJsonRequest(
+          questionId ? `/api/admin/questions/${questionId}` : "/api/admin/questions",
+          {
+            method: questionId ? "PATCH" : "POST",
+            body: {
+              text: String(formData.get("text") || "").trim(),
+              intro: String(formData.get("intro") || "").trim() || null,
+              category_id: String(formData.get("category_id") || "") || null,
+              publish_date: String(formData.get("publish_date") || ""),
+              status: String(formData.get("status") || "draft"),
+            },
+          },
+        );
+        setAdminMessage(message, "Question saved.", "success");
+        window.setTimeout(() => window.location.assign(`/admin/questions/${question.id}`), 450);
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
+        submitButton.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-admin-response-action]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const message = document.querySelector("[data-admin-table-message]");
+      const field = button.getAttribute("data-field");
+      const raw = button.getAttribute("data-value");
+      button.disabled = true;
+      try {
+        await adminJsonRequest(`/api/admin/responses/${button.getAttribute("data-response-id")}`, {
+          method: "PATCH",
+          body: { [field]: field === "is_featured" ? raw === "true" : raw },
+        });
+        window.location.reload();
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
         button.disabled = false;
       }
     });

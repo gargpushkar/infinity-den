@@ -6,6 +6,7 @@ from app.models.admin import ADMIN_COLLECTION
 from app.models.article import ARTICLE_COLLECTION
 from app.models.category import CATEGORY_COLLECTION
 from app.models.newsletter import NEWSLETTER_SUBSCRIBER_COLLECTION
+from app.models.question import QUESTION_COLLECTION, RESPONSE_COLLECTION
 from app.models.submission import ARTICLE_SUBMISSION_COLLECTION
 from app.models.tag import TAG_COLLECTION
 from app.models.user import USER_COLLECTION
@@ -20,6 +21,19 @@ async def create_indexes() -> None:
     await db[TAG_COLLECTION].create_index([("slug", ASCENDING)], unique=True)
     await db[USER_COLLECTION].create_index([("username", ASCENDING)], unique=True)
     await db[USER_COLLECTION].create_index([("email", ASCENDING)], unique=True)
+    # One question per day; one response per member per question.
+    await db[QUESTION_COLLECTION].create_index([("publish_date", ASCENDING)], unique=True)
+    await db[QUESTION_COLLECTION].create_index([("slug", ASCENDING)], unique=True)
+    await db[QUESTION_COLLECTION].create_index([("status", ASCENDING), ("publish_date", DESCENDING)])
+    await db[RESPONSE_COLLECTION].create_index(
+        [("question_id", ASCENDING), ("user_id", ASCENDING)], unique=True
+    )
+    await db[RESPONSE_COLLECTION].create_index(
+        [("question_id", ASCENDING), ("status", ASCENDING), ("is_featured", DESCENDING), ("created_at", DESCENDING)]
+    )
+    await db[RESPONSE_COLLECTION].create_index(
+        [("user_id", ASCENDING), ("status", ASCENDING), ("created_at", DESCENDING)]
+    )
     await db[NEWSLETTER_SUBSCRIBER_COLLECTION].create_index(
         [("email", ASCENDING)],
         unique=True,

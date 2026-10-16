@@ -9,6 +9,7 @@ from app.schemas.user import MemberPublic, MemberRead
 from app.services.article_page_service import article_to_card_context
 from app.services.article_service import ArticleService
 from app.services.nav_service import get_rooms
+from app.services.question_service import QuestionService
 from app.services.user_service import UserService
 
 
@@ -34,6 +35,7 @@ async def get_member_profile_context(username: str) -> dict[str, Any] | None:
             )
         )
         room_lookup = {room["slug"]: room["name"] for room in await get_rooms(db)}
+        responses = await QuestionService(database=db).member_public_responses(member.id)
     except (RuntimeError, PyMongoError):
         return None
 
@@ -41,6 +43,14 @@ async def get_member_profile_context(username: str) -> dict[str, Any] | None:
         "member": public_profile(member),
         "pieces": [article_to_card_context(piece, room_lookup) for piece in pieces.items],
         "piece_count": pieces.total,
+        "responses": [
+            {
+                "question": item["question"].text,
+                "url": f"/questions/{item['question'].slug}",
+                "excerpt": item["response"].body[:220] + ("…" if len(item["response"].body) > 220 else ""),
+            }
+            for item in responses
+        ],
     }
 
 
