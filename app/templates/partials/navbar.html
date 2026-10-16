@@ -9,26 +9,33 @@
       </a>
 
       <ul class="topic-nav" role="list">
-        {% for topic in nav_topics | default([], true) %}
-          <li class="topic-nav-item dropdown" data-topic-nav-item>
-            <a
-              class="topic-nav-link dropdown-toggle"
-              href="{{ topic.url }}"
-              id="topicNav{{ loop.index }}"
-              data-bs-toggle="dropdown"
-              data-bs-auto-close="true"
-              aria-expanded="false"
-            >{{ topic.name }}</a>
+        <li class="topic-nav-item dropdown" data-topic-nav-item>
+          <a
+            class="topic-nav-link dropdown-toggle"
+            href="/categories"
+            id="roomsNav"
+            data-bs-toggle="dropdown"
+            data-bs-auto-close="true"
+            aria-expanded="false"
+          >Rooms</a>
 
-            <ul class="dropdown-menu topic-dropdown" aria-labelledby="topicNav{{ loop.index }}">
-              {% for link in topic.links %}
+          <div class="dropdown-menu topic-dropdown rooms-dropdown" aria-labelledby="roomsNav">
+            <ul class="rooms-menu" role="list">
+              {% for room in nav_rooms | default([], true) %}
                 <li>
-                  <a class="dropdown-item" href="{{ link.url }}">{{ link.label }}</a>
+                  <a class="dropdown-item rooms-menu-link" href="{{ room.url }}">
+                    <strong>{{ room.name }}</strong>
+                    {% if room.subtitle %}<span>{{ room.subtitle }}</span>{% endif %}
+                  </a>
                 </li>
               {% endfor %}
             </ul>
-          </li>
-        {% endfor %}
+            <a class="rooms-menu-all" href="/categories">Explore all rooms</a>
+          </div>
+        </li>
+        <li class="topic-nav-item">
+          <a class="topic-nav-link" href="/articles">Articles</a>
+        </li>
       </ul>
 
       <div class="topbar-actions">
@@ -56,41 +63,24 @@
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
   <div class="offcanvas-body">
-    <div class="accordion menu-topics" id="menuTopics">
-      {% for topic in nav_topics | default([], true) %}
-        <div class="accordion-item">
-          <h3 class="accordion-header" id="menuTopicHeading{{ loop.index }}">
-            <button
-              class="accordion-button collapsed"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#menuTopicPanel{{ loop.index }}"
-              aria-expanded="false"
-              aria-controls="menuTopicPanel{{ loop.index }}"
-            >{{ topic.name }}</button>
-          </h3>
-          <div
-            class="accordion-collapse collapse"
-            id="menuTopicPanel{{ loop.index }}"
-            aria-labelledby="menuTopicHeading{{ loop.index }}"
-            data-bs-parent="#menuTopics"
-          >
-            <div class="accordion-body">
-              <ul class="menu-sublist" role="list">
-                {% for link in topic.links %}
-                  <li><a href="{{ link.url }}">{{ link.label }}</a></li>
-                {% endfor %}
-              </ul>
-            </div>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
+    <section class="menu-rooms" aria-labelledby="menuRoomsTitle">
+      <h3 class="menu-rooms-title" id="menuRoomsTitle">Rooms</h3>
+      <ul class="rooms-menu" role="list">
+        {% for room in nav_rooms | default([], true) %}
+          <li>
+            <a class="rooms-menu-link" href="{{ room.url }}">
+              <strong>{{ room.name }}</strong>
+              {% if room.subtitle %}<span>{{ room.subtitle }}</span>{% endif %}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
 
     <ul class="menu-list">
       <li><a href="/">Home</a></li>
       <li><a href="/articles">Articles</a></li>
-      <li><a href="/categories">Topics</a></li>
+      <li><a href="/categories">All rooms</a></li>
       <li><a href="/search">Search</a></li>
       <li><a href="/#writeForUs">Write for us</a></li>
       <li><a href="/#newsletterSignup">Newsletter</a></li>

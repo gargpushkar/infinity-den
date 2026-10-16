@@ -8,10 +8,9 @@ from pymongo import ASCENDING, DESCENDING
 from pymongo.errors import PyMongoError
 
 from app.config.constants import (
-    ARTICLE_FORMAT_GUIDE,
-    ARTICLE_FORMAT_NEWS,
-    ARTICLE_FORMAT_REVIEW,
+    ARTICLE_FORMAT_LABELS,
     ARTICLE_STATUS_PUBLISHED,
+    SPECULATIVE_LABEL,
 )
 from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION, ARTICLE_FORMATS
@@ -23,12 +22,6 @@ from app.utils.reading_time import calculate_reading_time
 
 ARTICLE_LISTING_PER_PAGE = 6
 RELATED_ARTICLE_LIMIT = 3
-
-ARTICLE_FORMAT_LABELS: dict[str, str] = {
-    ARTICLE_FORMAT_NEWS: "News",
-    ARTICLE_FORMAT_GUIDE: "Guides",
-    ARTICLE_FORMAT_REVIEW: "Reviews",
-}
 
 SORT_OPTIONS: tuple[dict[str, str], ...] = (
     {
@@ -188,7 +181,7 @@ async def _get_category_options(db: Any) -> list[dict[str, Any]]:
                 "name": name,
                 "slug": slug,
                 "value": slug,
-                "url": f"/articles?{urlencode({'category': slug})}",
+                "url": room_url(slug),
                 "total": total,
             }
         )
@@ -338,11 +331,7 @@ def _article_to_card(
         "url": f"/articles/{article.slug}",
         "excerpt": article.excerpt,
         "category": category_lookup.get(article.category_id or "", "Article"),
-        "category_url": (
-            f"/articles?{urlencode({'category': article.category_id})}"
-            if article.category_id
-            else "/articles"
-        ),
+        "category_url": room_url(article.category_id) if article.category_id else "/articles",
         "read_time": reading_time.label,
         "read_time_minutes": reading_time.minutes,
         "word_count": reading_time.word_count,
@@ -354,6 +343,8 @@ def _article_to_card(
         "views": article.views,
         "article_format": article.article_format,
         "format_label": ARTICLE_FORMAT_LABELS.get(article.article_format, ""),
+        "is_speculative": article.is_speculative,
+        "speculative_label": SPECULATIVE_LABEL if article.is_speculative else "",
         "is_editors_pick": article.is_editors_pick,
         "tags": article.tags,
         "tag_links": [
@@ -365,6 +356,11 @@ def _article_to_card(
             for tag in article.tags
         ],
     }
+
+
+def room_url(slug: str) -> str:
+    """The single canonical URL for a room (see instructions.md -> URL structure)."""
+    return f"/categories/{slug}"
 
 
 def article_to_card_context(
@@ -391,6 +387,7 @@ def _article_to_detail(
         **card,
         "content": article.content,
         "content_paragraphs": paragraphs,
+        "sources": [source.model_dump() for source in article.sources],
         "seo_title": article.seo_title or article.title,
         "seo_description": article.seo_description or article.excerpt,
         "published_iso": article.published_at.isoformat() if article.published_at else "",

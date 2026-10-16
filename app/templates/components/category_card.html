@@ -1,13 +1,13 @@
-{% set category_name = category.name|default("Category", true) %}
+{% set category_name = category.name|default("Room", true) %}
+{% set category_subtitle = category.subtitle|default("", true) %}
 {% set category_description = category.description|default("", true) %}
 {% set category_image = category.image|default("/static/images/articles/editorial-default.svg", true) %}
 {% set category_image_alt = category.image_alt|default(category_name, true) %}
-{% set category_url = category.category_url|default(category.articles_url|default("/categories", true), true) %}
-{% set category_articles_url = category.articles_url|default("/articles", true) %}
+{% set category_url = category.category_url|default("/categories", true) %}
 {% set category_article_count = category.article_count_label|default("0 articles", true) %}
 
 <article class="category-card">
-  <a class="category-card-media" href="{{ category_url }}" aria-label="Open {{ category_name }} category">
+  <a class="category-card-media" href="{{ category_url }}" aria-label="Open {{ category_name }}">
     <img src="{{ category_image }}" alt="{{ category_image_alt }}" loading="lazy">
   </a>
 
@@ -18,10 +18,10 @@
     <h2>
       <a href="{{ category_url }}">{{ category_name }}</a>
     </h2>
+    {% if category_subtitle %}<p class="room-subtitle">{{ category_subtitle }}</p>{% endif %}
     <p>{{ category_description }}</p>
     <div class="category-card-actions">
-      <a class="read-link" href="{{ category_url }}">Open category</a>
-      <a href="{{ category_articles_url }}">Filtered list</a>
+      <a class="read-link" href="{{ category_url }}">Enter the room</a>
     </div>
   </div>
 </article>

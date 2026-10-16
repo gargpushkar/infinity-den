@@ -1,0 +1,8 @@
+{# What kind of claim a piece makes: Researched, Personal experience, or
+   Opinion, plus Speculation when flagged. Expects `article` in scope. #}
+{% if article.format_label or article.speculative_label %}
+  <p class="content-labels">
+    {% if article.format_label %}<span class="content-label content-label-{{ article.article_format }}">{{ article.format_label }}</span>{% endif %}
+    {% if article.speculative_label %}<span class="content-label content-label-speculative">{{ article.speculative_label }}</span>{% endif %}
+  </p>
+{% endif %}

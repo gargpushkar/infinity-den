@@ -6,12 +6,12 @@ from urllib.parse import urlencode
 
 from pymongo.errors import PyMongoError
 
-from app.config.constants import ARTICLE_STATUS_PUBLISHED
+from app.config.constants import ARTICLE_FORMAT_LABELS, ARTICLE_STATUS_PUBLISHED
 from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION
 from app.schemas.article import ArticleQueryParams
 from app.schemas.category import CategoryRead
-from app.services.article_page_service import article_to_card_context
+from app.services.article_page_service import article_to_card_context, room_url
 from app.services.article_service import ArticleService
 from app.services.category_service import CategoryService
 
@@ -120,6 +120,7 @@ async def get_category_detail_context(
     *,
     category_slug: str,
     page: int,
+    article_format: str | None = None,
 ) -> dict[str, Any] | None:
     try:
         db = get_database()
@@ -128,11 +129,14 @@ async def get_category_detail_context(
         if category is None:
             return None
 
+        # Unknown formats fall back to "all" rather than an empty page.
+        format_filter = article_format if article_format in ARTICLE_FORMAT_LABELS else None
         article_query = ArticleQueryParams(
             page=page,
             per_page=CATEGORY_DETAIL_PER_PAGE,
             status=ARTICLE_STATUS_PUBLISHED,
             category_id=category.slug,
+            article_format=format_filter,
             sort_by="published_at",
             sort_direction="desc",
         )
@@ -152,9 +156,10 @@ async def get_category_detail_context(
                 "total_pages": article_list.total_pages,
                 "total_items": article_list.total,
                 "per_page": article_list.per_page,
-                "url_template": f"/categories/{category.slug}?page={{page}}",
+                "url_template": _room_page_url(category.slug, format_filter, page="{page}"),
                 "aria_label": f"{category.name} article pages",
             },
+            "format_filters": _format_filters(category.slug, format_filter),
             "categories": await _get_category_names(db),
             "is_database_available": True,
         }
@@ -277,15 +282,15 @@ def _category_to_card(
     return {
         "name": category_data["name"],
         "slug": category_data["slug"],
+        "subtitle": category_data["subtitle"],
         "description": category_data["description"]
-        or "A focused collection of articles from this editorial lane.",
+        or "A collection of ideas, stories, and perspectives from this room.",
         "image": category_data["image"]
         or "/static/images/articles/editorial-default.svg",
         "image_alt": f"{category_data['name']} category",
         "article_count": article_count,
         "article_count_label": _format_article_count(article_count),
-        "category_url": f"/categories/{category_data['slug']}",
-        "articles_url": f"/articles?{urlencode({'category': category_data['slug']})}",
+        "category_url": room_url(category_data["slug"]),
     }
 
 
@@ -295,24 +300,46 @@ def _category_to_detail(
 ) -> dict[str, Any]:
     description = (
         category.description
-        or "A focused collection of articles from this editorial lane."
+        or "A collection of ideas, stories, and perspectives from this room."
     )
 
     return {
         "name": category.name,
+        "subtitle": category.subtitle or "",
         "slug": category.slug,
         "description": description,
         "image": category.image or "/static/images/articles/editorial-default.svg",
         "image_alt": f"{category.name} category",
         "article_count": article_count,
         "article_count_label": _format_article_count(article_count),
-        "category_url": f"/categories/{category.slug}",
-        "articles_url": f"/articles?{urlencode({'category': category.slug})}",
-        "seo_title": f"{category.name} Articles",
-        "seo_description": _truncate_meta_description(
-            f"{description} Browse the latest {category.name} articles and guides."
+        "category_url": room_url(category.slug),
+        "seo_title": (
+            f"{category.name}: {category.subtitle}" if category.subtitle else category.name
         ),
+        "seo_description": _truncate_meta_description(description),
     }
+
+
+def _room_page_url(slug: str, article_format: str | None, *, page: str | None = None) -> str:
+    params = {"format": article_format} if article_format else {}
+    if page:
+        params["page"] = "__page__"
+    query = urlencode(params).replace("__page__", page or "")
+
+    return f"{room_url(slug)}?{query}" if query else room_url(slug)
+
+
+def _format_filters(slug: str, active_format: str | None) -> list[dict[str, Any]]:
+    options = [(None, "All"), *ARTICLE_FORMAT_LABELS.items()]
+
+    return [
+        {
+            "label": label,
+            "url": _room_page_url(slug, value),
+            "is_active": value == active_format,
+        }
+        for value, label in options
+    ]
 
 
 def _format_article_count(article_count: int) -> str:
@@ -432,6 +459,7 @@ def _category_read_context(category: CategoryRead | dict[str, Any]) -> dict[str,
     if isinstance(category, CategoryRead):
         return {
             "name": category.name,
+            "subtitle": category.subtitle or "",
             "slug": category.slug,
             "description": category.description,
             "image": category.image,
@@ -439,6 +467,7 @@ def _category_read_context(category: CategoryRead | dict[str, Any]) -> dict[str,
 
     return {
         "name": str(category.get("name", "")).strip(),
+        "subtitle": str(category.get("subtitle") or "").strip(),
         "slug": str(category.get("slug", "")).strip(),
         "description": category.get("description"),
         "image": category.get("image"),

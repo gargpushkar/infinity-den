@@ -9,10 +9,10 @@
           </a>
           <p>A universe of ideas. A community of minds.</p>
           {# Driven by the same nav context as the header, so these cannot
-             drift out of sync with the categories that actually exist. #}
-          <div class="footer-topic-strip" aria-label="Popular footer topics">
-            {% for topic in nav_topics | default([], true) %}
-              <a href="{{ topic.url }}">{{ topic.name }}</a>
+             drift out of sync with the rooms that actually exist. #}
+          <div class="footer-topic-strip" aria-label="Rooms">
+            {% for room in nav_rooms | default([], true) %}
+              <a href="{{ room.url }}" title="{{ room.subtitle }}">{{ room.name }}</a>
             {% endfor %}
           </div>
         </section>
@@ -22,7 +22,7 @@
             <h2>Read</h2>
             <ul class="footer-links">
               <li><a href="/articles">Articles</a></li>
-              <li><a href="/categories">Sections</a></li>
+              <li><a href="/categories">Rooms</a></li>
               <li><a href="/search">Search</a></li>
             </ul>
           </div>

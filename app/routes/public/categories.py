@@ -38,8 +38,8 @@ async def category_listing(
         {
             **nav_context,
             "app_name": settings.app_name,
-            "page_title": "Categories",
-            "seo_title": "Categories",
+            "page_title": "Rooms",
+            "seo_title": "Rooms",
             "seo_description": (
                 f"Explore every room in {settings.app_name}, from science and "
                 "history to philosophy and personal stories."
@@ -55,16 +55,18 @@ async def category_detail(
     request: Request,
     category_slug: str = Path(min_length=3, max_length=120),
     page: int = Query(default=1, ge=1),
+    format: str | None = Query(default=None, max_length=20),
 ):
     nav_context = await get_nav_context()
     detail_context = await get_category_detail_context(
         category_slug=category_slug,
         page=page,
+        article_format=format,
     )
     if detail_context is None:
         raise HTTPException(
             status_code=http_status.HTTP_404_NOT_FOUND,
-            detail="Category was not found.",
+            detail="Room was not found.",
         )
 
     category = detail_context["category"]
@@ -86,14 +88,14 @@ async def category_detail(
 def _category_listing_breadcrumbs() -> list[dict[str, Any]]:
     return [
         {"label": "Home", "url": "/", "is_current": False},
-        {"label": "Categories", "url": None, "is_current": True},
+        {"label": "Rooms", "url": None, "is_current": True},
     ]
 
 
 def _category_detail_breadcrumbs(category: dict[str, Any]) -> list[dict[str, Any]]:
     return [
         {"label": "Home", "url": "/", "is_current": False},
-        {"label": "Categories", "url": "/categories", "is_current": False},
+        {"label": "Rooms", "url": "/categories", "is_current": False},
         {"label": category["name"], "url": None, "is_current": True},
     ]
 

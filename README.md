@@ -74,7 +74,7 @@ PORT=8000
 LOG_LEVEL=INFO
 LOG_FORMAT=plain
 MONGODB_URI=mongodb://localhost:27017
-MONGODB_DB_NAME=infinity_den
+MONGODB_DB_NAME=infinity_den_dev
 MONGODB_REQUIRED=false
 MONGODB_SERVER_SELECTION_TIMEOUT_MS=2000
 ```
@@ -93,14 +93,15 @@ Check application health:
 curl http://127.0.0.1:8000/health
 ```
 
-Seed sample UI content:
+Seed the six launch rooms and sample pieces into a development database
+(`MONGODB_DB_NAME` must end in `_dev`; the script refuses anything else):
 
 ```bash
-python -m scripts.seed_sample_data
+python -m scripts.seed_dev_data            # preview
+python -m scripts.seed_dev_data --apply    # write
 ```
 
-The seed command upserts realistic categories, tags, and articles using your
-configured MongoDB database. It is safe to rerun while developing article pages.
+The sample pieces are placeholders credited to "Sample writer". Rerunning is safe.
 
 ## Configuration
 

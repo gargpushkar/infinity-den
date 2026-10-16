@@ -2,24 +2,23 @@ from __future__ import annotations
 
 from typing import Any
 
-from pymongo import ASCENDING, DESCENDING
+from pymongo import DESCENDING
 from pymongo.errors import PyMongoError
 
 from app.config.constants import (
-    ARTICLE_FORMAT_GUIDE,
-    ARTICLE_FORMAT_REVIEW,
+    ARTICLE_FORMAT_EXPERIENCE,
+    ARTICLE_FORMAT_PERSPECTIVE,
     ARTICLE_STATUS_PUBLISHED,
 )
 from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION
-from app.models.category import CATEGORY_COLLECTION
 from app.schemas.article import ArticleRead
 from app.services.article_page_service import article_to_card_context
+from app.services.nav_service import fallback_rooms, get_rooms
 
 
 FEATURED_ARTICLE_LIMIT = 3
 RAIL_ARTICLE_LIMIT = 3
-CATEGORY_LINK_LIMIT = 8
 
 PUBLISHED = {"status": ARTICLE_STATUS_PUBLISHED}
 
@@ -55,26 +54,26 @@ RAIL_DEFINITIONS: tuple[dict[str, Any], ...] = (
         "url": "/articles",
     },
     {
-        "key": "guides",
-        "title": "Guides",
-        "subtitle": "Step-by-step explainers worth bookmarking.",
+        "key": "experiences",
+        "title": "Personal experiences",
+        "subtitle": "Real experiences. Honest reflections. Different lives.",
         "filter": {
             **PUBLISHED,
-            "article_format": ARTICLE_FORMAT_GUIDE,
+            "article_format": ARTICLE_FORMAT_EXPERIENCE,
         },
         "sort": RECENT_SORT,
-        "url": f"/articles?format={ARTICLE_FORMAT_GUIDE}",
+        "url": f"/articles?format={ARTICLE_FORMAT_EXPERIENCE}",
     },
     {
-        "key": "reviews",
-        "title": "Reviews",
-        "subtitle": "Tested, rated, and written up honestly.",
+        "key": "perspectives",
+        "title": "Perspectives",
+        "subtitle": "Arguments and interpretations worth weighing.",
         "filter": {
             **PUBLISHED,
-            "article_format": ARTICLE_FORMAT_REVIEW,
+            "article_format": ARTICLE_FORMAT_PERSPECTIVE,
         },
         "sort": RECENT_SORT,
-        "url": f"/articles?format={ARTICLE_FORMAT_REVIEW}",
+        "url": f"/articles?format={ARTICLE_FORMAT_PERSPECTIVE}",
     },
 )
 
@@ -82,7 +81,7 @@ RAIL_DEFINITIONS: tuple[dict[str, Any], ...] = (
 async def get_homepage_context() -> dict[str, Any]:
     try:
         db = get_database()
-        category_options = await _get_category_links(db)
+        category_options = await get_rooms(db)
         category_lookup = {
             category["slug"]: category["name"] for category in category_options
         }
@@ -161,32 +160,6 @@ def _rail_articles(rails: list[dict[str, Any]], key: str) -> list[dict[str, Any]
     return []
 
 
-async def _get_category_links(db: Any) -> list[dict[str, Any]]:
-    cursor = (
-        db[CATEGORY_COLLECTION]
-        .find({}, {"_id": 0, "name": 1, "slug": 1, "nav_order": 1})
-        .sort([("nav_order", ASCENDING), ("name", ASCENDING)])
-        .limit(CATEGORY_LINK_LIMIT)
-    )
-    categories: list[dict[str, Any]] = []
-
-    async for category in cursor:
-        slug = str(category.get("slug", "")).strip()
-        name = str(category.get("name", "")).strip()
-        if not slug or not name:
-            continue
-
-        categories.append(
-            {
-                "name": name,
-                "slug": slug,
-                "url": f"/articles?category={slug}",
-            }
-        )
-
-    return categories
-
-
 async def _get_featured_articles(
     db: Any,
     category_lookup: dict[str, str],
@@ -230,19 +203,14 @@ def _hero_metrics(
 ) -> list[dict[str, str]]:
     return [
         {"value": str(article_count), "label": "Stories published"},
-        {"value": str(category_count), "label": "Sections"},
+        {"value": str(category_count), "label": "Rooms"},
         {"value": str(featured_count), "label": "Featured now"},
     ]
 
 
 def _fallback_homepage_context() -> dict[str, Any]:
     """Rendered when MongoDB is unreachable, so the homepage still stands up."""
-    category_links = [
-        {"name": "Business", "slug": "business", "url": "/articles?category=business"},
-        {"name": "Tech", "slug": "tech", "url": "/articles?category=tech"},
-        {"name": "Food", "slug": "food", "url": "/articles?category=food"},
-        {"name": "Travel", "slug": "travel", "url": "/articles?category=travel"},
-    ]
+    category_links = fallback_rooms()
 
     return {
         "hero_metrics": _hero_metrics(

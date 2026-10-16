@@ -16,7 +16,7 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 - [ ] Phase 3 — Community growth
 
 ## Current Focus
-- [ ] `refactor/remove-sponsored-and-businesses`
+- [ ] `feature/member-accounts`
 
 ---
 
@@ -44,20 +44,20 @@ Goal: valuable even with a small community. Work through these branches in
 order; each assumes the previous ones are merged.
 
 ## 1. `refactor/remove-sponsored-and-businesses`
-- [ ] Remove the businesses model, service, API, admin page, homepage partial, and seed script
-- [ ] Remove `is_sponsored` / `sponsor_name` and the sponsored rail, notice, and filters
-- [ ] Remove the Business / Tech / Food / Travel fallback content
-- [ ] Verify the homepage and admin still render
+- [x] Remove the businesses model, service, API, admin page, homepage partial, and seed script
+- [x] Remove `is_sponsored` / `sponsor_name` and the sponsored rail, notice, and filters
+- [x] Remove the Business / Tech / Food / Travel fallback content
+- [x] Verify the homepage and admin still render
 
 ## 2. `feature/knowledge-rooms`
-- [ ] Point `MONGODB_DB_NAME` at a development database before reseeding
-- [ ] Add `subtitle` to categories (model, schema, admin form)
-- [ ] Replace news/guide/review with article/experience/perspective
-- [ ] Add `is_speculative` and format labels on cards and article pages
-- [ ] Add `sources` to articles; show them on the article page
-- [ ] Seed the six launch rooms from `vision.md`
-- [ ] Make `/categories/{slug}` the canonical room page; point nav and cards to it
-- [ ] Rebuild the navigation for rooms (name + subtitle) and feature destinations
+- [x] Point `MONGODB_DB_NAME` at a development database before reseeding
+- [x] Add `subtitle` to categories (model, schema, admin form)
+- [x] Replace news/guide/review with article/experience/perspective
+- [x] Add `is_speculative` and format labels on cards and article pages
+- [x] Add `sources` to articles; show them on the article page
+- [x] Seed the six launch rooms from `vision.md`
+- [x] Make `/categories/{slug}` the canonical room page; point nav and cards to it
+- [x] Rebuild the navigation for rooms (name + subtitle); destinations join as their branches ship
 
 ## 3. `feature/member-accounts`
 - [ ] Users model, schemas, and indexes
@@ -105,7 +105,8 @@ order; each assumes the previous ones are merged.
 - [ ] Add a favicon
 - [ ] Prevent XSS in all member-generated content
 - [ ] Validate all inputs; prevent NoSQL injection
-- [ ] Add a minimal test setup and one check per feature
+- [x] Add a minimal test setup (`pytest`, `tests/`)
+- [ ] One check per feature (ongoing)
 
 ---
 

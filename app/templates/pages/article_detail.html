@@ -23,7 +23,8 @@
 
     <header class="article-detail-hero" data-reveal>
       <div class="article-detail-copy">
-        <p class="eyebrow mb-3">{{ article.category }}</p>
+        <p class="eyebrow mb-3"><a href="{{ article.category_url }}">{{ article.category }}</a></p>
+        {% include "components/content_labels.html" %}
         <h1>{{ article.title }}</h1>
         <p class="article-detail-dek">{{ article.excerpt }}</p>
         <div class="article-detail-meta" aria-label="Article metadata">
@@ -64,6 +65,17 @@
             <p>{{ paragraph }}</p>
           {% endif %}
         {% endfor %}
+
+        {% if article.sources %}
+          <section class="article-sources" aria-labelledby="articleSourcesTitle">
+            <h2 id="articleSourcesTitle">Sources</h2>
+            <ol>
+              {% for source in article.sources %}
+                <li><a href="{{ source.url }}" rel="noopener nofollow" target="_blank">{{ source.title }}</a></li>
+              {% endfor %}
+            </ol>
+          </section>
+        {% endif %}
       </div>
     </div>
 

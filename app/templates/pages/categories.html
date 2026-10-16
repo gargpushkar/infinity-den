@@ -10,13 +10,13 @@
 
     <header class="category-index-header" data-reveal>
       <div>
-        <p class="eyebrow mb-3">Sections</p>
-        <h1>Everything, sorted by section.</h1>
+        <p class="eyebrow mb-3">Rooms</p>
+        <h1>Every room is a different way in.</h1>
       </div>
-      <div class="category-index-stats" aria-label="Category summary">
+      <div class="category-index-stats" aria-label="Room summary">
         <div class="category-index-stat">
           <strong>{{ category_count }}</strong>
-          <span>categories</span>
+          <span>rooms</span>
         </div>
         <div class="category-index-stat">
           <strong>{{ total_published_articles }}</strong>
@@ -28,7 +28,7 @@
     <div class="category-index-summary" data-reveal>
       {% if is_category_filter_active %}
         <p class="mb-0">
-          Showing <strong>{{ category_count }}</strong> category hubs
+          Showing <strong>{{ category_count }}</strong> rooms
           {% if active_search %}matching <strong>{{ active_search }}</strong>{% endif %}
           {% if active_article_state == "active" %}with <strong>published articles</strong>{% endif %}
           {% if active_article_state == "empty" %}with <strong>no published articles</strong>{% endif %}
@@ -36,19 +36,19 @@
         </p>
         <a href="/categories">Clear filters</a>
       {% else %}
-        <p class="mb-0">Browse editorial lanes and jump into the article collections behind each topic.</p>
+        <p class="mb-0">Each room holds researched articles, personal experiences, and perspectives on its subject.</p>
         <a href="/articles">View all articles</a>
       {% endif %}
     </div>
 
     {% if not is_database_available %}
-      {% set empty_state_eyebrow = "Categories unavailable" %}
-      {% set empty_state_title = "Sections are offline" %}
-      {% set empty_state_message = "The category database is not available right now. Try again after MongoDB is connected." %}
+      {% set empty_state_eyebrow = "Rooms unavailable" %}
+      {% set empty_state_title = "Rooms are offline" %}
+      {% set empty_state_message = "The database is not available right now. Try again in a moment." %}
       {% set empty_state_hints = ["MongoDB unavailable", "Public route is ready", "Category API supported"] %}
       {% include "components/empty_state.html" %}
     {% else %}
-      <section class="category-index-controls" aria-label="Category filters" data-reveal>
+      <section class="category-index-controls" aria-label="Room filters" data-reveal>
         <div class="filter-group">
           <span class="filter-label">Article coverage</span>
           <div class="filter-scroll">
@@ -73,7 +73,7 @@
               name="search"
               type="search"
               value="{{ active_search }}"
-              placeholder="Search categories"
+              placeholder="Search rooms"
             >
           </div>
 
@@ -92,7 +92,7 @@
     {% endif %}
 
     {% if is_database_available and category_cards %}
-      <section class="category-index-grid" aria-label="Categories" data-reveal>
+      <section class="category-index-grid" aria-label="Rooms" data-reveal>
         {% for category in category_cards %}
           <div class="category-index-item" data-reveal-child>
             {% include "components/category_card.html" %}
@@ -102,10 +102,10 @@
 
       {% include "components/pagination.html" %}
     {% elif is_database_available %}
-      {% set empty_state_eyebrow = "No sections" %}
-      {% set empty_state_title = "No categories found" %}
+      {% set empty_state_eyebrow = "No rooms" %}
+      {% set empty_state_title = "No rooms found" %}
       {% if is_category_filter_active %}
-        {% set empty_state_message = "No category hubs match the current filters." %}
+        {% set empty_state_message = "No rooms match the current filters." %}
         {% set empty_state_action_label = "Clear filters" %}
         {% set empty_state_action_href = "/categories" %}
       {% else %}

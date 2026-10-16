@@ -275,51 +275,87 @@ button:focus-visible,
   margin-top: 0.1rem;
 }
 
-.menu-topics {
-  margin-bottom: 1.75rem;
+/* Rooms menu: shared by the header dropdown and the mobile offcanvas. The
+   subtitle always sits under the creative name so visitors never guess. */
+.rooms-dropdown {
+  min-width: min(36rem, calc(100vw - 2rem));
+  padding: 0.6rem;
 }
 
-.menu-topics .accordion-item {
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.menu-topics .accordion-button {
-  background: transparent;
-  box-shadow: none;
-  font-size: 0.95rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  padding: 0.9rem 0.25rem;
-  text-transform: uppercase;
-}
-
-.menu-topics .accordion-button:not(.collapsed) {
-  color: var(--accent-hover);
-}
-
-.menu-topics .accordion-body {
-  padding: 0 0.25rem 0.9rem;
-}
-
-.menu-sublist {
+.rooms-menu {
   display: grid;
-  gap: 0.6rem;
+  gap: 0.25rem;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.menu-sublist a {
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-  font-weight: 700;
+.rooms-dropdown .rooms-menu {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.menu-sublist a:hover,
-.menu-sublist a:focus-visible {
+.rooms-menu-link {
+  border-radius: 8px;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.6rem 0.75rem;
+  white-space: normal;
+}
+
+.rooms-menu-link strong {
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.rooms-menu-link span {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.rooms-menu-link:hover strong,
+.rooms-menu-link:focus-visible strong {
   color: var(--accent-hover);
+}
+
+.rooms-menu-all {
+  border-top: 1px solid var(--line);
+  color: var(--accent);
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 800;
+  margin-top: 0.4rem;
+  padding: 0.7rem 0.75rem 0.3rem;
+}
+
+.rooms-menu-all:hover,
+.rooms-menu-all:focus-visible {
+  color: var(--accent-hover);
+}
+
+.menu-rooms {
+  margin-bottom: 1.75rem;
+}
+
+.menu-rooms-title {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  margin: 0 0 0.5rem;
+  padding: 0 0.75rem;
+  text-transform: uppercase;
+}
+
+.menu-rooms .rooms-menu-link {
+  padding: 0.65rem 0.75rem;
+}
+
+.menu-rooms .rooms-menu-link:hover,
+.menu-rooms .rooms-menu-link:focus-visible {
+  background: rgba(var(--accent-rgb), 0.08);
 }
 
 .menu-list,
@@ -4353,4 +4389,100 @@ button:focus-visible,
     align-items: flex-start;
     flex-direction: column;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Content labels: what kind of claim a piece makes (vision.md -> formats).
+   Text labels, never colour alone, so they read the same for everyone.
+   --------------------------------------------------------------------------- */
+.content-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 0.75rem;
+}
+
+.content-label {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  padding: 0.32rem 0.6rem;
+  text-transform: uppercase;
+}
+
+.content-label-article {
+  border-color: rgba(var(--accent-rgb), 0.35);
+  color: var(--accent-hover);
+}
+
+.content-label-experience {
+  border-color: rgba(var(--accent-cyan-rgb), 0.45);
+  color: #0e7490;
+}
+
+.content-label-perspective {
+  border-color: rgba(var(--accent-violet-rgb), 0.45);
+  color: #6d28d9;
+}
+
+.content-label-speculative {
+  border-style: dashed;
+  color: var(--text);
+}
+
+.article-detail-copy .content-labels {
+  margin-bottom: 1rem;
+}
+
+.article-detail-copy .eyebrow a:hover,
+.article-detail-copy .eyebrow a:focus-visible {
+  text-decoration: underline;
+}
+
+/* Rooms */
+.room-subtitle {
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.room-format-filters {
+  margin-bottom: 1.5rem;
+}
+
+/* Sources under researched articles */
+.article-sources {
+  border-top: 1px solid var(--line);
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+}
+
+.article-sources h2 {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+
+.article-sources ol {
+  color: var(--text-secondary);
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.article-sources li {
+  margin-bottom: 0.4rem;
+}
+
+.article-sources a {
+  color: var(--accent);
+  overflow-wrap: anywhere;
+  text-decoration: underline;
 }
