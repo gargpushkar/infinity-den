@@ -21,7 +21,7 @@ async def homepage(request: Request):
         {
             **nav_context,
             "app_name": settings.app_name,
-            "page_title": "Business, Tech, Food & Travel",
+            "page_title": "A universe of ideas",
             **homepage_context,
         },
     )

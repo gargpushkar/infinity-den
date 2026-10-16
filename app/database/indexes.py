@@ -4,7 +4,6 @@ from pymongo import ASCENDING, DESCENDING, TEXT
 from app.database.mongodb import get_database
 from app.models.admin import ADMIN_COLLECTION
 from app.models.article import ARTICLE_COLLECTION
-from app.models.business import BUSINESS_COLLECTION
 from app.models.category import CATEGORY_COLLECTION
 from app.models.newsletter import NEWSLETTER_SUBSCRIBER_COLLECTION
 from app.models.submission import ARTICLE_SUBMISSION_COLLECTION
@@ -17,10 +16,6 @@ async def create_indexes() -> None:
     await _create_article_indexes(db)
 
     await db[CATEGORY_COLLECTION].create_index([("slug", ASCENDING)], unique=True)
-    await db[BUSINESS_COLLECTION].create_index([("slug", ASCENDING)], unique=True)
-    await db[BUSINESS_COLLECTION].create_index(
-        [("is_featured", ASCENDING), ("sort_order", ASCENDING), ("name", ASCENDING)]
-    )
     await db[TAG_COLLECTION].create_index([("slug", ASCENDING)], unique=True)
     await db[NEWSLETTER_SUBSCRIBER_COLLECTION].create_index(
         [("email", ASCENDING)],
@@ -76,13 +71,6 @@ async def _create_article_indexes(db: AsyncIOMotorDatabase) -> None:
     await articles.create_index(
         [
             ("is_editors_pick", ASCENDING),
-            ("status", ASCENDING),
-            ("published_at", DESCENDING),
-        ]
-    )
-    await articles.create_index(
-        [
-            ("is_sponsored", ASCENDING),
             ("status", ASCENDING),
             ("published_at", DESCENDING),
         ]

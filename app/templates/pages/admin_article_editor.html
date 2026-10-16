@@ -135,17 +135,6 @@
       <span>Editor's pick</span>
     </label>
 
-    <label class="admin-check">
-      <input type="checkbox" name="is_sponsored" value="true" {% if article and article.is_sponsored %}checked{% endif %} data-admin-sponsored-toggle>
-      <span>Sponsored content</span>
-    </label>
-
-    <div class="admin-field" data-admin-sponsor-field {% if not article or not article.is_sponsored %}hidden{% endif %}>
-      <label for="articleSponsorName">Sponsor name</label>
-      <input class="form-control" id="articleSponsorName" name="sponsor_name" value="{{ article.sponsor_name if article and article.sponsor_name else '' }}" maxlength="120">
-      <p class="admin-field-note">Shown on the card as a disclosure. Leave blank to label it just "Sponsored".</p>
-    </div>
-
     <div class="admin-field">
       <label for="articleCover">Cover image URL</label>
       <input class="form-control" id="articleCover" name="cover_image" value="{{ article.cover_image if article and article.cover_image else '' }}" maxlength="500">

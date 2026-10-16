@@ -110,7 +110,7 @@ def _body(intro: str) -> str:
     )
 
 
-# days_ago, views, format, editors_pick, sponsored, sponsor
+# days_ago, views, format, editors_pick
 ARTICLES: list[dict[str, Any]] = [
     # --- Business -----------------------------------------------------------
     {
@@ -256,33 +256,6 @@ ARTICLES: list[dict[str, Any]] = [
         "days_ago": 20,
         "views": 2210,
     },
-    # --- Sponsored ----------------------------------------------------------
-    {
-        "title": "Building a payments stack that scales with you",
-        "slug": "building-a-payments-stack-that-scales-with-you",
-        "excerpt": "How growing teams plan for volume before it arrives.",
-        "category_id": "business",
-        "tags": ["Money"],
-        "author": "Northwind Partners",
-        "article_format": "news",
-        "days_ago": 5,
-        "views": 880,
-        "is_sponsored": True,
-        "sponsor_name": "Northwind",
-    },
-    {
-        "title": "The travel card built for long trips",
-        "slug": "the-travel-card-built-for-long-trips",
-        "excerpt": "Fees, exchange rates, and what to check before a long stint abroad.",
-        "category_id": "travel",
-        "tags": ["Budget"],
-        "author": "Meridian Bank",
-        "article_format": "news",
-        "days_ago": 10,
-        "views": 640,
-        "is_sponsored": True,
-        "sponsor_name": "Meridian",
-    },
 ]
 
 
@@ -347,8 +320,6 @@ async def _apply(db: Any) -> None:
             is_featured=article.get("is_featured", False),
             article_format=article.get("article_format", "news"),
             is_editors_pick=article.get("is_editors_pick", False),
-            is_sponsored=article.get("is_sponsored", False),
-            sponsor_name=article.get("sponsor_name"),
             status="published",
             published_at=published_at,
             views=article.get("views", 0),
@@ -371,8 +342,6 @@ async def _apply(db: Any) -> None:
             "$set": {
                 "article_format": "news",
                 "is_editors_pick": False,
-                "is_sponsored": False,
-                "sponsor_name": None,
             }
         },
     )

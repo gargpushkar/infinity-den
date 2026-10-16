@@ -17,17 +17,13 @@
       <span>03</span>
       Categories
     </a>
-    <a class="{% if active_nav == 'businesses' %}is-active{% endif %}" href="/admin/businesses">
-      <span>04</span>
-      Businesses
-    </a>
     <a class="{% if active_nav == 'submissions' %}is-active{% endif %}" href="/admin/submissions">
-      <span>05</span>
+      <span>04</span>
       Submissions
     </a>
     {% if admin.role == "admin" %}
       <a class="{% if active_nav == 'users' %}is-active{% endif %}" href="/admin/users">
-        <span>06</span>
+        <span>05</span>
         Users
       </a>
     {% endif %}

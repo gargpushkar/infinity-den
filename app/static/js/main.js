@@ -899,8 +899,6 @@ document.addEventListener("DOMContentLoaded", () => {
         is_featured: formData.get("is_featured") === "true",
         article_format: String(formData.get("article_format") || "news"),
         is_editors_pick: formData.get("is_editors_pick") === "true",
-        is_sponsored: formData.get("is_sponsored") === "true",
-        sponsor_name: String(formData.get("sponsor_name") || "").trim() || null,
         status,
         seo_title: String(formData.get("seo_title") || "").trim() || null,
         seo_description:
@@ -936,22 +934,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     });
-  });
-
-  document.querySelectorAll("[data-admin-sponsored-toggle]").forEach((toggle) => {
-    const form = toggle.closest("form");
-    const sponsorField = form?.querySelector("[data-admin-sponsor-field]");
-    if (!sponsorField) {
-      return;
-    }
-
-    const syncSponsorField = () => {
-      sponsorField.hidden = !toggle.checked;
-    };
-
-    toggle.addEventListener("change", syncSponsorField);
-    form.addEventListener("admin:editor-draft-applied", syncSponsorField);
-    syncSponsorField();
   });
 
   document.querySelectorAll("[data-admin-article-status-action]").forEach((button) => {
@@ -1127,117 +1109,6 @@ document.addEventListener("DOMContentLoaded", () => {
       form.querySelector("[data-admin-slug-target]").dataset.slugTouched = "true";
       form.querySelector("[data-admin-category-heading]").textContent =
         "Edit category";
-      form.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth" });
-    });
-  });
-
-  document.querySelectorAll("[data-admin-business-form]").forEach((form) => {
-    const heading = form.querySelector("[data-admin-business-heading]");
-    const resetButton = form.querySelector("[data-admin-business-reset]");
-    const message = form.querySelector("[data-admin-form-message]");
-    const idInput = form.querySelector("input[name='business_id']");
-
-    const resetForm = () => {
-      form.reset();
-      if (idInput) {
-        idInput.value = "";
-      }
-      const slugTarget = form.querySelector("[data-admin-slug-target]");
-      if (slugTarget) {
-        delete slugTarget.dataset.slugTouched;
-      }
-      if (heading) {
-        heading.textContent = "Add business";
-      }
-      setAdminMessage(message, "Ready to save.");
-    };
-
-    resetButton?.addEventListener("click", resetForm);
-
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        setAdminMessage(message, "Complete the required business fields.", "error");
-        return;
-      }
-
-      const formData = new FormData(form);
-      const businessId = String(formData.get("business_id") || "");
-      const payload = {
-        name: String(formData.get("name") || "").trim(),
-        slug: slugify(formData.get("slug")),
-        tagline: String(formData.get("tagline") || "").trim() || null,
-        description: String(formData.get("description") || "").trim() || null,
-        logo: String(formData.get("logo") || "").trim() || null,
-        website_url: String(formData.get("website_url") || "").trim() || null,
-        category_id: String(formData.get("category_id") || "").trim() || null,
-        location: String(formData.get("location") || "").trim() || null,
-        sort_order: Number(formData.get("sort_order") || 0),
-        is_featured: formData.get("is_featured") === "true",
-      };
-      const submitButton = form.querySelector("[type='submit']");
-
-      if (submitButton) {
-        submitButton.disabled = true;
-      }
-      setAdminMessage(message, "Saving business...");
-
-      try {
-        await adminJsonRequest(
-          businessId ? `/api/businesses/${businessId}` : "/api/businesses",
-          {
-            method: businessId ? "PATCH" : "POST",
-            body: payload,
-          },
-        );
-        setAdminMessage(message, "Business saved.", "success");
-        window.setTimeout(() => window.location.reload(), 450);
-      } catch (error) {
-        setAdminMessage(message, error.message, "error");
-      } finally {
-        if (submitButton) {
-          submitButton.disabled = false;
-        }
-      }
-    });
-  });
-
-  document.querySelectorAll("[data-admin-edit-business]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const row = button.closest("[data-admin-business-row]");
-      const form = document.querySelector("[data-admin-business-form]");
-      if (!row || !form) {
-        return;
-      }
-
-      const setValue = (selector, attribute, fallback = "") => {
-        const field = form.querySelector(selector);
-        if (field) {
-          field.value = row.getAttribute(attribute) || fallback;
-        }
-      };
-
-      setValue("input[name='business_id']", "data-business-id");
-      setValue("input[name='name']", "data-business-name");
-      setValue("input[name='slug']", "data-business-slug");
-      setValue("input[name='tagline']", "data-business-tagline");
-      setValue("textarea[name='description']", "data-business-description");
-      setValue("input[name='logo']", "data-business-logo");
-      setValue("input[name='website_url']", "data-business-website");
-      setValue("select[name='category_id']", "data-business-category");
-      setValue("input[name='location']", "data-business-location");
-      setValue("input[name='sort_order']", "data-business-sort-order", "0");
-
-      const featured = form.querySelector("input[name='is_featured']");
-      if (featured) {
-        featured.checked = row.getAttribute("data-business-featured") === "true";
-      }
-
-      form.querySelector("[data-admin-slug-target]").dataset.slugTouched = "true";
-      form.querySelector("[data-admin-business-heading]").textContent =
-        "Edit business";
       form.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth" });
     });
   });

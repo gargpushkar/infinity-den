@@ -47,8 +47,6 @@ class ArticleBase(BaseModel):
     is_featured: bool = False
     article_format: ArticleFormat = ARTICLE_FORMAT_NEWS
     is_editors_pick: bool = False
-    is_sponsored: bool = False
-    sponsor_name: str | None = Field(default=None, max_length=120)
     status: ArticleStatus = ARTICLE_STATUS_DRAFT
     seo_title: str | None = Field(default=None, max_length=70)
     seo_description: str | None = Field(default=None, max_length=160)
@@ -83,7 +81,6 @@ class ArticleBase(BaseModel):
         "category_id",
         "seo_title",
         "seo_description",
-        "sponsor_name",
         mode="before",
     )
     @classmethod
@@ -145,8 +142,6 @@ class ArticleUpdate(BaseModel):
     is_featured: bool | None = None
     article_format: ArticleFormat | None = None
     is_editors_pick: bool | None = None
-    is_sponsored: bool | None = None
-    sponsor_name: str | None = Field(default=None, max_length=120)
     status: ArticleStatus | None = None
     seo_title: str | None = Field(default=None, max_length=70)
     seo_description: str | None = Field(default=None, max_length=160)
@@ -181,7 +176,6 @@ class ArticleUpdate(BaseModel):
         "category_id",
         "seo_title",
         "seo_description",
-        "sponsor_name",
         mode="before",
     )
     @classmethod
@@ -272,7 +266,6 @@ class ArticleQueryParams(BaseModel):
     is_featured: bool | None = None
     article_format: ArticleFormat | None = None
     is_editors_pick: bool | None = None
-    is_sponsored: bool | None = None
     author: str | None = Field(default=None, max_length=120)
     published_from: datetime | None = None
     published_to: datetime | None = None

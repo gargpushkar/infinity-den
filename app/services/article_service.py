@@ -172,10 +172,6 @@ class ArticleService:
             article_filter["is_editors_pick"] = self._boolean_flag_filter(
                 query.is_editors_pick
             )
-        if query.is_sponsored is not None:
-            article_filter["is_sponsored"] = self._boolean_flag_filter(
-                query.is_sponsored
-            )
         if query.author is not None:
             article_filter["author"] = query.author
         if query.published_from is not None or query.published_to is not None:

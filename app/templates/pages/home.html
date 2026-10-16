@@ -1,7 +1,7 @@
 {% extends "layouts/base.html" %}
 
 {% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
-{% block meta_description %}Independent reporting, guides, and reviews on business, tech, food, and travel.{% endblock %}
+{% block meta_description %}A community where people discover knowledge, contribute lived experience, and explore ideas together.{% endblock %}
 
 {% block content %}
 <section class="home-canvas">
@@ -13,8 +13,8 @@
             {# Section names come from the nav context so this line cannot go
                stale when a category is added or renamed. #}
             <p class="eyebrow mb-3" data-reveal-child>{{ categories | join(" &middot; ") | safe }}</p>
-            <h1 id="homeHeroTitle" data-reveal-child>The stories behind the things you use every day.</h1>
-            <p class="hero-lede" data-reveal-child>Reported features, step-by-step guides, and reviews we actually tested &mdash; across every section, with no filler.</p>
+            <h1 id="homeHeroTitle" data-reveal-child>A universe of ideas. A community of minds.</h1>
+            <p class="hero-lede" data-reveal-child>Explore what you don&rsquo;t know. Share what you do. Question what you believe.</p>
             <div class="d-flex flex-wrap gap-2 mt-4" data-reveal-child>
               <a class="btn btn-primary px-4" href="/articles">Start reading</a>
               <a class="btn btn-outline-primary px-4" href="#newsletterSignup">Get the newsletter</a>
@@ -59,7 +59,9 @@
       </div>
     </section>
 
-    {% include "partials/featured_articles_section.html" %}
+    {% if featured_articles %}
+      {% include "partials/featured_articles_section.html" %}
+    {% endif %}
     {% include "partials/article_rails_section.html" %}
 
     <section class="content-section category-showcase" aria-labelledby="categoryShowcaseTitle" data-reveal>
@@ -78,7 +80,6 @@
       </div>
     </section>
 
-    {% include "partials/featured_businesses_section.html" %}
     {% include "partials/newsletter_signup_section.html" %}
     {% include "partials/write_for_us_section.html" %}
   </div>
