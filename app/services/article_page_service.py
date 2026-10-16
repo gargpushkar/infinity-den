@@ -355,8 +355,6 @@ def _article_to_card(
         "article_format": article.article_format,
         "format_label": ARTICLE_FORMAT_LABELS.get(article.article_format, ""),
         "is_editors_pick": article.is_editors_pick,
-        "is_sponsored": article.is_sponsored,
-        "sponsor_name": article.sponsor_name,
         "tags": article.tags,
         "tag_links": [
             {

@@ -41,8 +41,8 @@ async def category_listing(
             "page_title": "Categories",
             "seo_title": "Categories",
             "seo_description": (
-                f"Browse {settings.app_name} by section: business, tech, food, "
-                "and travel."
+                f"Explore every room in {settings.app_name}, from science and "
+                "history to philosophy and personal stories."
             ),
             **_breadcrumb_context(request, _category_listing_breadcrumbs()),
             **listing_context,

@@ -7,7 +7,7 @@
 {% set article_image = article.cover_image|default(article.image|default("/static/images/articles/editorial-default.svg", true), true) %}
 {% set article_image_alt = article.image_alt|default(article_title, true) %}
 
-<article class="card article-card h-100 w-100 overflow-hidden position-relative{% if article.is_sponsored %} article-card-sponsored{% endif %}">
+<article class="card article-card h-100 w-100 overflow-hidden position-relative">
   <a class="article-card-media d-block" href="{{ article_url }}" aria-label="Read {{ article_title }}">
     <img
       src="{{ article_image }}"
@@ -15,13 +15,6 @@
       alt="{{ article_image_alt }}"
       loading="lazy"
     >
-    {% if article.is_sponsored %}
-      {# Disclosure travels with the card, so it stays visible wherever the
-         card is reused rather than depending on the section around it. #}
-      <span class="sponsored-flag">
-        {% if article.sponsor_name %}Sponsored by {{ article.sponsor_name }}{% else %}Sponsored{% endif %}
-      </span>
-    {% endif %}
   </a>
 
   <div class="card-body d-flex flex-column p-4">

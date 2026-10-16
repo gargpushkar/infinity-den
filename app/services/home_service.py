@@ -12,7 +12,6 @@ from app.config.constants import (
 )
 from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION
-from app.models.business import BUSINESS_COLLECTION
 from app.models.category import CATEGORY_COLLECTION
 from app.schemas.article import ArticleRead
 from app.services.article_page_service import article_to_card_context
@@ -21,48 +20,39 @@ from app.services.article_page_service import article_to_card_context
 FEATURED_ARTICLE_LIMIT = 3
 RAIL_ARTICLE_LIMIT = 3
 CATEGORY_LINK_LIMIT = 8
-FEATURED_BUSINESS_LIMIT = 6
 
 PUBLISHED = {"status": ARTICLE_STATUS_PUBLISHED}
-# Articles predating these flags have no such field, so "not sponsored" has to
-# mean "not set to True" rather than "set to False".
-NOT_SPONSORED = {"is_sponsored": {"$ne": True}}
 
 RECENT_SORT: list[tuple[str, int]] = [
     ("published_at", DESCENDING),
     ("created_at", DESCENDING),
 ]
 
-# Each rail is one row of three cards on the homepage. Editorial rails exclude
-# sponsored articles so paid placement cannot leak into them; the sponsored
-# rail is the only place that content appears, and it is labelled.
+# Each rail is one row of three cards on the homepage.
 RAIL_DEFINITIONS: tuple[dict[str, Any], ...] = (
     {
         "key": "trending",
         "title": "Trending",
         "subtitle": "What readers are opening most right now.",
-        "filter": {**PUBLISHED, **NOT_SPONSORED},
+        "filter": PUBLISHED,
         "sort": [("views", DESCENDING), ("published_at", DESCENDING)],
         "url": "/articles?sort=popular",
-        "is_sponsored": False,
     },
     {
         "key": "editors-picks",
         "title": "Editor's Picks",
         "subtitle": "Hand-chosen by the editorial desk.",
-        "filter": {**PUBLISHED, **NOT_SPONSORED, "is_editors_pick": True},
+        "filter": {**PUBLISHED, "is_editors_pick": True},
         "sort": RECENT_SORT,
         "url": "/articles",
-        "is_sponsored": False,
     },
     {
         "key": "latest",
         "title": "Latest",
         "subtitle": "Fresh off the publishing queue.",
-        "filter": {**PUBLISHED, **NOT_SPONSORED},
+        "filter": PUBLISHED,
         "sort": RECENT_SORT,
         "url": "/articles",
-        "is_sponsored": False,
     },
     {
         "key": "guides",
@@ -70,12 +60,10 @@ RAIL_DEFINITIONS: tuple[dict[str, Any], ...] = (
         "subtitle": "Step-by-step explainers worth bookmarking.",
         "filter": {
             **PUBLISHED,
-            **NOT_SPONSORED,
             "article_format": ARTICLE_FORMAT_GUIDE,
         },
         "sort": RECENT_SORT,
         "url": f"/articles?format={ARTICLE_FORMAT_GUIDE}",
-        "is_sponsored": False,
     },
     {
         "key": "reviews",
@@ -83,21 +71,10 @@ RAIL_DEFINITIONS: tuple[dict[str, Any], ...] = (
         "subtitle": "Tested, rated, and written up honestly.",
         "filter": {
             **PUBLISHED,
-            **NOT_SPONSORED,
             "article_format": ARTICLE_FORMAT_REVIEW,
         },
         "sort": RECENT_SORT,
         "url": f"/articles?format={ARTICLE_FORMAT_REVIEW}",
-        "is_sponsored": False,
-    },
-    {
-        "key": "sponsored",
-        "title": "Sponsored",
-        "subtitle": "Paid placements from our partners.",
-        "filter": {**PUBLISHED, "is_sponsored": True},
-        "sort": RECENT_SORT,
-        "url": "/articles",
-        "is_sponsored": True,
     },
 )
 
@@ -112,7 +89,6 @@ async def get_homepage_context() -> dict[str, Any]:
         featured_articles = await _get_featured_articles(db, category_lookup)
         rails = await _get_rails(db, category_lookup)
         latest_articles = _rail_articles(rails, "latest")
-        featured_businesses = await _get_featured_businesses(db, category_lookup)
 
         if not featured_articles:
             featured_articles = latest_articles[:FEATURED_ARTICLE_LIMIT]
@@ -135,7 +111,6 @@ async def get_homepage_context() -> dict[str, Any]:
             "featured_articles": featured_articles,
             "article_rails": rails,
             "latest_articles": latest_articles,
-            "featured_businesses": featured_businesses,
             "categories": [category["name"] for category in category_options],
             "category_links": category_options,
         }
@@ -171,53 +146,11 @@ async def _get_rails(
                 "title": definition["title"],
                 "subtitle": definition["subtitle"],
                 "url": definition["url"],
-                "is_sponsored": definition["is_sponsored"],
                 "articles": articles,
             }
         )
 
     return rails
-
-
-async def _get_featured_businesses(
-    db: Any,
-    category_lookup: dict[str, str],
-) -> list[dict[str, Any]]:
-    """Partner businesses flagged for the homepage.
-
-    Like the article rails, this returns nothing rather than an empty shell
-    when no business has been featured yet.
-    """
-    cursor = (
-        db[BUSINESS_COLLECTION]
-        .find({"is_featured": True})
-        .sort([("sort_order", ASCENDING), ("name", ASCENDING)])
-        .limit(FEATURED_BUSINESS_LIMIT)
-    )
-
-    businesses: list[dict[str, Any]] = []
-    async for business in cursor:
-        name = str(business.get("name", "")).strip()
-        if not name:
-            continue
-
-        category_id = business.get("category_id")
-        businesses.append(
-            {
-                "name": name,
-                "slug": business.get("slug", ""),
-                "tagline": business.get("tagline"),
-                "logo": business.get("logo"),
-                "website_url": business.get("website_url"),
-                "location": business.get("location"),
-                "category": category_lookup.get(category_id or ""),
-                "category_url": (
-                    f"/articles?category={category_id}" if category_id else None
-                ),
-            }
-        )
-
-    return businesses
 
 
 def _rail_articles(rails: list[dict[str, Any]], key: str) -> list[dict[str, Any]]:
@@ -260,7 +193,7 @@ async def _get_featured_articles(
 ) -> list[dict[str, Any]]:
     return await _get_article_cards(
         db,
-        {**PUBLISHED, **NOT_SPONSORED, "is_featured": True},
+        {**PUBLISHED, "is_featured": True},
         category_lookup,
         [
             ("published_at", DESCENDING),
@@ -310,63 +243,17 @@ def _fallback_homepage_context() -> dict[str, Any]:
         {"name": "Food", "slug": "food", "url": "/articles?category=food"},
         {"name": "Travel", "slug": "travel", "url": "/articles?category=travel"},
     ]
-    sample_articles = [
-        {
-            "title": "The quiet rise of the four-day working week",
-            "url": "/articles",
-            "excerpt": "Companies that cut a day are reporting steadier output and far lower attrition.",
-            "category": "Business",
-            "read_time": "8 min read",
-            "cover_image": "/static/images/articles/editorial-default.svg",
-            "image_alt": "Abstract editorial article layout",
-            "is_sponsored": False,
-            "is_editors_pick": False,
-        },
-        {
-            "title": "What on-device AI actually changes for your phone",
-            "url": "/articles",
-            "excerpt": "Less round-tripping to the cloud, better privacy, and a battery cost worth knowing about.",
-            "category": "Tech",
-            "read_time": "6 min read",
-            "cover_image": "/static/images/articles/search-traffic.svg",
-            "image_alt": "Search growth dashboard illustration",
-            "is_sponsored": False,
-            "is_editors_pick": False,
-        },
-        {
-            "title": "Night trains are back, and they are better than you remember",
-            "url": "/articles",
-            "excerpt": "New routes across Europe are making the sleeper a serious alternative to flying.",
-            "category": "Travel",
-            "read_time": "5 min read",
-            "cover_image": "/static/images/articles/contributors.svg",
-            "image_alt": "Contributor collaboration illustration",
-            "is_sponsored": False,
-            "is_editors_pick": False,
-        },
-    ]
-    rails = [
-        {
-            "key": "latest",
-            "title": "Latest",
-            "subtitle": "Fresh off the publishing queue.",
-            "url": "/articles",
-            "is_sponsored": False,
-            "articles": sample_articles,
-        },
-    ]
 
     return {
         "hero_metrics": _hero_metrics(
-            article_count=len(sample_articles),
+            article_count=0,
             category_count=len(category_links),
-            featured_count=len(sample_articles),
+            featured_count=0,
         ),
-        "top_articles": sample_articles,
-        "featured_articles": sample_articles,
-        "article_rails": rails,
-        "latest_articles": sample_articles,
-        "featured_businesses": [],
+        "top_articles": [],
+        "featured_articles": [],
+        "article_rails": [],
+        "latest_articles": [],
         "categories": [category["name"] for category in category_links],
         "category_links": category_links,
     }

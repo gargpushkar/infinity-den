@@ -38,8 +38,6 @@ ARTICLE_DOCUMENT_FIELDS: Final[tuple[str, ...]] = (
     "is_featured",
     "article_format",
     "is_editors_pick",
-    "is_sponsored",
-    "sponsor_name",
     "status",
     "seo_title",
     "seo_description",
@@ -95,8 +93,6 @@ class ArticleDocument:
     is_featured: bool = False
     article_format: ArticleFormat = ARTICLE_FORMAT_NEWS
     is_editors_pick: bool = False
-    is_sponsored: bool = False
-    sponsor_name: str | None = None
     status: ArticleStatus = ARTICLE_STATUS_DRAFT
     seo_title: str | None = None
     seo_description: str | None = None
@@ -109,9 +105,6 @@ class ArticleDocument:
         self.status = normalize_article_status(self.status)
         self.article_format = normalize_article_format(self.article_format)
         self.tags = list(self.tags)
-        self.sponsor_name = (self.sponsor_name or "").strip() or None
-        if not self.is_sponsored:
-            self.sponsor_name = None
         if self.views < 0:
             raise ValueError("Article views cannot be negative.")
 
@@ -132,8 +125,6 @@ def create_article_document(
     is_featured: bool = False,
     article_format: str = ARTICLE_FORMAT_NEWS,
     is_editors_pick: bool = False,
-    is_sponsored: bool = False,
-    sponsor_name: str | None = None,
     status: str = ARTICLE_STATUS_DRAFT,
     seo_title: str | None = None,
     seo_description: str | None = None,
@@ -154,8 +145,6 @@ def create_article_document(
         is_featured=is_featured,
         article_format=normalize_article_format(article_format),
         is_editors_pick=is_editors_pick,
-        is_sponsored=is_sponsored,
-        sponsor_name=sponsor_name,
         status=normalize_article_status(status),
         seo_title=seo_title,
         seo_description=seo_description,

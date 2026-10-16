@@ -1,16 +1,13 @@
 {% for rail in article_rails | default([], true) %}
   <section
-    class="content-section rail-section{% if rail.is_sponsored %} rail-section-sponsored{% endif %}"
+    class="content-section rail-section"
     id="rail-{{ rail.key }}"
     aria-labelledby="railTitle{{ rail.key }}"
     data-reveal
   >
     <div class="rail-heading">
       <div>
-        <p class="eyebrow mb-2">
-          {{ rail.title }}
-          {% if rail.is_sponsored %}<span class="rail-paid-flag">Paid content</span>{% endif %}
-        </p>
+        <p class="eyebrow mb-2">{{ rail.title }}</p>
         <h2 id="railTitle{{ rail.key }}">{{ rail.subtitle }}</h2>
       </div>
 
