@@ -136,6 +136,13 @@ Basic import check:
 python -m compileall app scripts
 ```
 
+Run the tests (they need no database):
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest
+```
+
 Run the local server:
 
 ```bash

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from fastapi import status as http_status
 from fastapi.responses import Response
 
+from app.config.constants import ARTICLE_STATUS_PUBLISHED
 from app.models.article import ArticleStatus
 from app.schemas.article import (
     ArticleCreate,
@@ -20,6 +21,7 @@ from app.services.admin_permissions import (
     require_article_writer,
     require_destructive_admin,
 )
+from app.services.admin_session import get_optional_current_admin
 from app.services.article_service import (
     ArticleNotFoundError,
     ArticleService,
@@ -53,6 +55,7 @@ async def list_articles(
     search: str | None = Query(default=None, min_length=2, max_length=120),
     sort_by: ArticleSortField = Query(default="published_at"),
     sort_direction: SortDirection = Query(default="desc"),
+    admin: AdminRead | None = Depends(get_optional_current_admin),
     article_service: ArticleService = Depends(get_articles_service),
 ) -> ArticleListResponse:
     if (
@@ -64,6 +67,11 @@ async def list_articles(
             status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="published_from must be before published_to.",
         )
+
+    # Drafts and archived pieces are only visible to signed-in admins; everyone
+    # else gets published articles whatever status they ask for.
+    if admin is None:
+        article_status = ARTICLE_STATUS_PUBLISHED
 
     query = ArticleQueryParams(
         page=page,
@@ -111,10 +119,15 @@ async def create_article(
 )
 async def get_article_detail(
     article_identifier: str = Path(min_length=3, max_length=180),
+    admin: AdminRead | None = Depends(get_optional_current_admin),
     article_service: ArticleService = Depends(get_articles_service),
 ) -> ArticleRead:
     article = await article_service.get_article_detail(article_identifier)
-    if article is None:
+    # Unpublished articles answer 404 rather than 403 so the API does not
+    # reveal that a draft with this slug exists.
+    if article is None or (
+        admin is None and article.status != ARTICLE_STATUS_PUBLISHED
+    ):
         raise HTTPException(
             status_code=http_status.HTTP_404_NOT_FOUND,
             detail="Article was not found.",
