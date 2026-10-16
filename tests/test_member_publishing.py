@@ -12,7 +12,6 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 import pytest
-from bson import ObjectId
 
 from app.models.article import ARTICLE_COLLECTION
 from app.models.category import CATEGORY_COLLECTION
@@ -27,6 +26,7 @@ from app.services.member_article_service import (
     piece_slug,
 )
 from app.utils.markdown import render_markdown
+from tests.fakes import FakeCollection
 
 
 # --- safe markdown -------------------------------------------------------------
@@ -122,56 +122,10 @@ def _input(**overrides) -> MemberPieceInput:
     return MemberPieceInput(**data)
 
 
-class _Cursor:
-    def __init__(self, documents):
-        self.documents = documents
-
-    def sort(self, *_args, **_kwargs):
-        return self
-
-    def limit(self, *_args):
-        return self
-
-    def __aiter__(self):
-        async def iterate():
-            for document in self.documents:
-                yield document
-        return iterate()
-
-
-class _Collection:
-    def __init__(self, documents=None):
-        self.documents = list(documents or [])
-
-    def _matches(self, document, query):
-        return all(document.get(key) == value for key, value in query.items())
-
-    async def count_documents(self, query, **_kwargs):
-        return sum(self._matches(d, query) for d in self.documents)
-
-    async def find_one(self, query, *_args, **_kwargs):
-        return next((dict(d) for d in self.documents if self._matches(d, query)), None)
-
-    def find(self, query, *_args, **_kwargs):
-        return _Cursor([dict(d) for d in self.documents if self._matches(d, query)])
-
-    async def insert_one(self, document):
-        document = {**document, "_id": ObjectId()}
-        self.documents.append(document)
-        return type("Result", (), {"inserted_id": document["_id"]})()
-
-    async def find_one_and_update(self, query, update, **_kwargs):
-        for document in self.documents:
-            if self._matches(document, query):
-                document.update(update["$set"])
-                return dict(document)
-        return None
-
-
 def _service(*articles) -> MemberArticleService:
     database = {
-        ARTICLE_COLLECTION: _Collection(articles),
-        CATEGORY_COLLECTION: _Collection([{"slug": "personal-stories"}, {"slug": "science"}]),
+        ARTICLE_COLLECTION: FakeCollection(articles),
+        CATEGORY_COLLECTION: FakeCollection([{"slug": "personal-stories"}, {"slug": "science"}]),
     }
     return MemberArticleService(database=database)
 

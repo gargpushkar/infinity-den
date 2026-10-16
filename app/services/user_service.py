@@ -9,6 +9,7 @@ from pymongo.errors import DuplicateKeyError
 
 from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION
+from app.models.question import RESPONSE_COLLECTION
 from app.models.user import USER_COLLECTION, UserDocument
 from app.schemas.user import MemberLogin, MemberProfileUpdate, MemberRead, MemberSignup
 from app.utils.security import hash_password, verify_password
@@ -104,9 +105,13 @@ class UserService:
         if document is None:
             raise UserServiceError("Member was not found.")
 
-        # Pieces store the author's name for display; keep it current.
+        # Pieces and responses store the author's name for display; keep it current.
         await self.database[ARTICLE_COLLECTION].update_many(
             {"author_id": member_id},
+            {"$set": {"author": payload.display_name}},
+        )
+        await self.database[RESPONSE_COLLECTION].update_many(
+            {"user_id": member_id},
             {"$set": {"author": payload.display_name}},
         )
 

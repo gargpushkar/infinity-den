@@ -18,7 +18,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
 from app.config.constants import LAUNCH_ROOMS
@@ -27,7 +27,9 @@ from app.database.indexes import create_indexes
 from app.database.mongodb import close_mongo_connection, connect_to_mongo, get_database
 from app.models.article import ARTICLE_COLLECTION, create_article_document
 from app.models.category import CATEGORY_COLLECTION, create_category_document
+from app.models.question import QUESTION_COLLECTION, QuestionDocument
 from app.models.tag import TAG_COLLECTION
+from app.services.question_service import question_slug, site_today
 
 
 NOW = datetime(2026, 10, 16, 8, 0, tzinfo=timezone.utc)
@@ -273,6 +275,17 @@ ARTICLES: list[dict[str, Any]] = [
 ]
 
 
+# Question Room samples, dated relative to the day the seed runs so there is
+# always a question for "today" (plus past ones and one upcoming).
+QUESTIONS: list[dict[str, Any]] = [
+    {"days_from_today": 0, "category_id": "philosophy", "text": "Can a person be intelligent without being wise?", "intro": "We often use the two words together. Are they really the same thing, or can you have one without the other?"},
+    {"days_from_today": -1, "category_id": "personal-stories", "text": "What is something school never taught you but life did?", "intro": None},
+    {"days_from_today": -2, "category_id": "technology", "text": "Should AI-generated work be considered original creativity?", "intro": "If a person shapes the prompt and picks the result, who is the author?"},
+    {"days_from_today": -3, "category_id": "psychology", "text": "Is being successful the same as being happy?", "intro": None},
+    {"days_from_today": 1, "category_id": "science", "text": "Which scientific discovery would you most like to see in your lifetime?", "intro": None},
+]
+
+
 def _tags() -> list[dict[str, str]]:
     names = sorted({tag for article in ARTICLES for tag in article["tags"]})
     return [{"name": name, "slug": name.lower().replace(" ", "-")} for name in names]
@@ -343,6 +356,28 @@ async def _apply(db: Any) -> None:
             {"slug": article["slug"]}, {"$set": document}, upsert=True
         )
     print(f"Upserted {len(ARTICLES)} sample pieces.")
+
+    today = date.fromisoformat(site_today())
+    for question in QUESTIONS:
+        publish_date = (today + timedelta(days=question["days_from_today"])).isoformat()
+        document = QuestionDocument(
+            text=question["text"],
+            slug=question_slug(question["text"], publish_date),
+            publish_date=publish_date,
+            intro=question["intro"],
+            category_id=question["category_id"],
+            status="published",
+        ).to_mongo()
+        # Never displace a question an editor scheduled on that date.
+        if await db[QUESTION_COLLECTION].count_documents(
+            {"publish_date": publish_date, "text": {"$ne": question["text"]}}, limit=1
+        ):
+            print(f"  {publish_date} already has a question; skipped a sample.")
+            continue
+        # Keyed by text so reseeding on a later day moves each sample to its
+        # new date instead of piling up copies.
+        await db[QUESTION_COLLECTION].update_one({"text": question["text"]}, {"$set": document}, upsert=True)
+    print(f"Sample questions seeded (today is {today} in {settings.site_timezone}).")
 
 
 async def main() -> None:

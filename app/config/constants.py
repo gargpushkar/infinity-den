@@ -77,3 +77,14 @@ HUMAN_LIBRARY_PROMPTS: tuple[str, ...] = (
     "A mistake that taught me more than success",
     "A belief I used to hold but no longer do",
 )
+
+# Question Room response kinds (vision.md -> FEATURE DESTINATIONS).
+RESPONSE_KIND_LABELS: dict[str, str] = {
+    "thought": "Short thought",
+    "answer": "Answer",
+    "story": "Personal story",
+    "researched": "Researched answer",
+}
+RESPONSE_SHORT_KIND = "thought"
+RESPONSE_SHORT_MAX_LENGTH = 500
+RESPONSE_MAX_LENGTH = 3000

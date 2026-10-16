@@ -174,7 +174,7 @@ async def update_account(request: Request):
 
     updated = await UserService().update_profile(member.id, payload)
     response = RedirectResponse("/account?saved=1", status_code=303)
-    set_member_cookie(response, updated)  # the header shows the display name from the token
+    set_member_cookie(response, updated)  # keep the token's claims current
     return response
 
 

@@ -29,6 +29,8 @@ class Settings:
         cast=int,
         default=60,
     )
+    # Decides when "today's question" changes. The audience is US-based.
+    site_timezone: str = config("SITE_TIMEZONE", default="America/New_York")
     member_token_expire_days: int = config(
         "MEMBER_TOKEN_EXPIRE_DAYS",
         cast=int,

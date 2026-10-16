@@ -10,7 +10,7 @@ from app.config.constants import LAUNCH_ROOMS
 from app.database.mongodb import get_database
 from app.models.category import CATEGORY_COLLECTION
 from app.services.article_page_service import room_url
-from app.services.member_session import member_claims
+from app.services.member_session import get_current_member
 
 
 NAV_ROOM_LIMIT = 12
@@ -29,13 +29,16 @@ async def get_nav_context(request: Request) -> dict[str, Any]:
 
     rooms = rooms or fallback_rooms()
 
-    claims = member_claims(request)
+    # Checked against the database (one indexed lookup, signed-in visitors
+    # only) so a deleted or disabled account never looks signed in.
+    try:
+        member = await get_current_member(request)
+    except (RuntimeError, PyMongoError):
+        member = None
 
     return {
         "current_member": (
-            {"username": claims.get("username", ""), "display_name": claims.get("display_name", "")}
-            if claims
-            else None
+            {"username": member.username, "display_name": member.display_name} if member else None
         ),
         "nav_rooms": rooms,
         "category_links": rooms,

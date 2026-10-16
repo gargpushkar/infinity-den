@@ -21,6 +21,8 @@ from app.services.admin_csrf import ADMIN_CSRF_COOKIE, issue_admin_csrf_token
 from app.services.admin_permissions import require_admin_manager
 from app.services.admin_session import get_current_admin
 from app.services.article_service import ArticleService
+from app.services.nav_service import get_rooms
+from app.services.question_service import QuestionService, site_today
 from app.services.user_service import UserService
 
 
@@ -129,6 +131,56 @@ async def admin_categories_page(
         active_nav="categories",
         page_title="Categories",
         context=dashboard_context.to_template_context(),
+    )
+
+
+@router.get("/questions")
+async def admin_questions_page(
+    request: Request,
+    admin: AdminRead = Depends(get_current_admin),
+):
+    try:
+        db = get_database()
+        questions = await QuestionService(database=db).list_questions()
+        counts = await QuestionService(database=db).response_counts([q.id for q in questions])
+        rooms = await get_rooms(db)
+    except (RuntimeError, PyMongoError):
+        questions, counts, rooms = [], {}, []
+
+    return _admin_template(
+        request,
+        "pages/admin_questions.html",
+        admin=admin,
+        active_nav="questions",
+        page_title="Question Room",
+        context={"questions": questions, "response_counts": counts, "rooms": rooms, "today": site_today()},
+    )
+
+
+@router.get("/questions/{question_id}")
+async def admin_question_page(
+    request: Request,
+    question_id: str,
+    admin: AdminRead = Depends(get_current_admin),
+):
+    try:
+        db = get_database()
+        service = QuestionService(database=db)
+        question = await service.get_question(question_id)
+        responses = await service.all_responses(question_id) if question else []
+        rooms = await get_rooms(db)
+    except (RuntimeError, PyMongoError):
+        question, responses, rooms = None, [], []
+    if question is None:
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Question was not found.")
+
+    return _admin_template(
+        request,
+        "pages/admin_question_detail.html",
+        admin=admin,
+        active_nav="questions",
+        page_title="Question Room",
+        context={"question": question, "responses": responses, "rooms": rooms, "today": site_today()},
     )
 
 

@@ -1,0 +1,51 @@
+{% extends "layouts/admin.html" %}
+
+{% block admin_content %}
+<section class="admin-section-header">
+  <div>
+    <p class="admin-kicker mb-2">Question for {{ question.publish_date }}</p>
+    <h2>{{ question.text }}</h2>
+  </div>
+  <div class="admin-row-actions">
+    <a class="btn btn-outline-primary" href="/questions/{{ question.slug }}" target="_blank" rel="noopener">View</a>
+    <a class="btn btn-outline-primary" href="/admin/questions">All questions</a>
+  </div>
+</section>
+
+<section class="admin-split">
+  {% include "partials/admin_question_form.html" %}
+
+  <section class="admin-panel">
+    <div class="admin-panel-header">
+      <div>
+        <p class="admin-kicker mb-1">Responses</p>
+        <h2>{{ responses|length }} responses</h2>
+      </div>
+      <p class="admin-muted mb-0" data-admin-table-message role="status">Feature the most insightful, not the most popular.</p>
+    </div>
+    {% if responses %}
+      <div class="admin-list">
+        {% for response in responses %}
+          <article class="admin-resource-row" data-admin-response-row>
+            <div>
+              <strong>{{ response.author }}</strong>
+              <small>@{{ response.author_username }} &middot; {{ response.kind }} &middot; <span data-admin-response-state>{{ response.status }}{% if response.is_featured %}, featured{% endif %}</span></small>
+              <p>{{ response.body|truncate(400) }}</p>
+            </div>
+            <div class="admin-row-actions">
+              <button type="button" data-admin-response-action data-response-id="{{ response.id }}" data-field="is_featured" data-value="{{ 'false' if response.is_featured else 'true' }}">{{ "Unfeature" if response.is_featured else "Feature" }}</button>
+              <button type="button" data-admin-response-action data-response-id="{{ response.id }}" data-field="status" data-value="{{ 'published' if response.status == 'hidden' else 'hidden' }}">{{ "Restore" if response.status == "hidden" else "Hide" }}</button>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="admin-empty">No responses yet.</p>
+    {% endif %}
+
+    {% if admin.role == "admin" %}
+      <button class="btn btn-outline-danger mt-3" type="button" data-admin-delete-resource data-delete-url="/api/admin/questions/{{ question.id }}" data-delete-label="this question and its responses" data-after-delete="/admin/questions">Delete question</button>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}
