@@ -1,339 +1,167 @@
 # TASKS.md
 
-# CONTENT PUBLISHING PLATFORM TASK TRACKER
+# INFINITY DEN TASK TRACKER
+
+Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 
 ---
 
 # CURRENT STATUS
 
 ## Current Phase
-- [x] Initial Project Planning
-- [x] instructions.md created
-- [x] Initial FastAPI structure created
-- [x] MongoDB connection setup created
-- [x] Base templates created
-- [x] Static folders setup completed
-- [x] Bootstrap integration completed
-- [x] Homepage route created
-- [x] Reusable navbar/footer created
+- [x] Foundation (publishing platform)
+- [x] Product vision documented (`vision.md`)
+- [ ] Phase 1 — The foundation
+- [ ] Phase 2 — Interaction
+- [ ] Phase 3 — Community growth
 
 ## Current Focus
-- [x] Homepage UI refinement
-- [x] Reusable frontend components
-- [ ] Article system implementation
-- [ ] Category system
-- [x] Admin dashboard
+- [ ] `refactor/remove-sponsored-and-businesses`
 
 ---
 
-# FOUNDATION SETUP
+# FOUNDATION (DONE)
 
-## Repository Setup
-- [x] Initialize git repository
-- [x] Create instructions.md
-- [x] Create TASKS.md
-- [x] Create README.md
-- [x] Create .env.example
-- [x] Improve .gitignore
+Built before the current vision; kept and reused.
 
-## Backend Foundation
-- [x] Setup FastAPI application
-- [x] Setup application entrypoint
-- [x] Setup environment variable loading
-- [x] Setup MongoDB connection
-- [x] Setup logging system
-- [x] Add centralized exception handling
-- [x] Add health check endpoint
-
-## Frontend Foundation
-- [x] Setup Bootstrap integration
-- [x] Setup Jinja2 templates
-- [x] Setup static assets structure
-- [x] Create base.html
-- [x] Create navbar component
-- [x] Create footer component
-- [x] Create homepage route
+- [x] FastAPI app, settings, logging, centralized error handling, health check
+- [x] MongoDB connection and indexes
+- [x] Base layout, navbar, footer, reusable components
+- [x] Article system: model, schemas, CRUD APIs, pagination, filtering, sorting
+- [x] Article pages: listing, detail, related articles, breadcrumbs, read time, sharing
+- [x] Categories and tags: models, APIs, listing and detail pages, filtering
+- [x] Search: API, page, keyword search, filters, pagination
+- [x] Newsletter: API, form, validation, duplicate prevention
+- [x] Write-for-us pitch form and submission API
+- [x] Admin: JWT auth, roles, CSRF, dashboard, article editor, category, submission, and user management
+- [x] SEO: meta title/description, OpenGraph, Twitter cards, canonical URLs, breadcrumb schema
 
 ---
 
-# HOMEPAGE DEVELOPMENT
+# PHASE 1 — THE FOUNDATION
 
-## Homepage UI
-- [x] Improve homepage hero section
-- [x] Create featured articles carousel
-- [x] Create latest articles section
-- [x] Create category showcase section
-- [x] Create newsletter signup section
-- [x] Create write-for-us CTA section
-- [x] Improve homepage responsiveness
-- [x] Add homepage animations/interactions
+Goal: valuable even with a small community. Work through these branches in
+order; each assumes the previous ones are merged.
 
-## Reusable Components
-- [x] Create article_card.html
-- [x] Create featured_article_card.html
-- [x] Create category_badge.html
-- [x] Create pagination.html
-- [x] Create empty_state.html
-- [x] Create loading placeholders
+## 1. `refactor/remove-sponsored-and-businesses`
+- [ ] Remove the businesses model, service, API, admin page, homepage partial, and seed script
+- [ ] Remove `is_sponsored` / `sponsor_name` and the sponsored rail, notice, and filters
+- [ ] Remove the Business / Tech / Food / Travel fallback content
+- [ ] Verify the homepage and admin still render
 
----
+## 2. `feature/knowledge-rooms`
+- [ ] Point `MONGODB_DB_NAME` at a development database before reseeding
+- [ ] Add `subtitle` to categories (model, schema, admin form)
+- [ ] Replace news/guide/review with article/experience/perspective
+- [ ] Add `is_speculative` and format labels on cards and article pages
+- [ ] Add `sources` to articles; show them on the article page
+- [ ] Seed the six launch rooms from `vision.md`
+- [ ] Make `/categories/{slug}` the canonical room page; point nav and cards to it
+- [ ] Rebuild the navigation for rooms (name + subtitle) and feature destinations
 
-# ARTICLE SYSTEM
+## 3. `feature/member-accounts`
+- [ ] Users model, schemas, and indexes
+- [ ] Sign up, log in, log out, reusing existing hashing and JWT utilities
+- [ ] Rate-limit login and sign-up
+- [ ] Public contributor profile at a username URL
+- [ ] Link articles to `author_id`
 
-## Database Layer
-- [x] Create article schema/model
-- [x] Create article Pydantic schemas
-- [x] Create article service layer
-- [x] Add article database indexes
+## 4. `feature/member-publishing`
+- [ ] Render article markdown server-side with an allowlist sanitizer
+- [ ] Member editor (title, summary, room, format, tags, cover, sources)
+- [ ] `pending_review` status and review queue in admin, with `review_note`
+- [ ] Human Library page at `/experiences` with writing prompts
+- [ ] Retire the public pitch form
+- [ ] Check that unsafe HTML is not rendered
 
-## Article APIs
-- [x] Create article create API
-- [x] Create article update API
-- [x] Create article delete API
-- [x] Create article listing API
-- [x] Create article detail API
-- [x] Add article pagination
-- [x] Add article filtering
-- [x] Add article sorting
+## 5. `feature/question-of-the-day`
+- [ ] `daily_questions` and `responses` models, schemas, and indexes
+- [ ] Admin: create and schedule questions; feature and hide responses
+- [ ] `/questions` page: today's question, featured responses, past questions
+- [ ] Members respond as a thought, answer, story, or researched answer
 
-## Article Pages
-- [x] Create article listing page
-- [x] Create article detail page
-- [x] Create related articles section
-- [x] Add article SEO metadata
-- [x] Add social sharing section
-- [x] Add breadcrumbs
-- [x] Add read time calculation
+## 6. `feature/fact-or-fiction`
+- [ ] `quiz_items` model, schema, and admin management
+- [ ] `/play` page: answer, reveal the explanation, link to the deeper article
+- [ ] Reusable Fact or Fiction card for the homepage
 
----
+## 7. `feature/homepage-rebuild`
+- [ ] New visual identity: palette, typography, room card style
+- [ ] Homepage sections in the order given in `vision.md`
+- [ ] Remove the static "live" stats card
+- [ ] Real cover images; no placeholder SVGs on published content
+- [ ] Verify at 375px, 768px, 1024px, 1440px
 
-# CATEGORY SYSTEM
+## 8. `feature/comments-bookmarks`
+- [ ] Comments on articles
+- [ ] Bookmarks with a saved-items page
+- [ ] Reports on articles, responses, and comments; admin queue to hide or dismiss
 
-## Categories
-- [x] Create category schema/model
-- [x] Create category APIs
-- [x] Create category listing page
-- [x] Create category detail page
-- [x] Add category filtering
-
-## Tags
-- [x] Create tag schema/model
-- [x] Create tag APIs
-- [x] Add tag filtering
-
----
-
-# WRITE FOR US SYSTEM
-
-## Submission System
-- [x] Create article submission schema
-- [x] Create submission API
-- [x] Create submission form
-- [x] Add validation
-- [x] Add success/error states
-
----
-
-# SEARCH SYSTEM
-
-## Search Features
-- [x] Create search API
-- [x] Create search page
-- [x] Add article keyword search
-- [x] Add category/tag filters
-- [x] Add paginated search results
-
----
-
-# NEWSLETTER SYSTEM
-
-## Newsletter
-- [x] Create newsletter schema
-- [x] Create newsletter API
-- [x] Create newsletter subscription form
-- [x] Add email validation
-- [x] Prevent duplicate subscriptions
-
----
-
-# ADMIN AUTHENTICATION
-
-## JWT Authentication
-- [x] Create admin schema/model
-- [x] Setup JWT authentication
-- [x] Create login API
-- [x] Create login page
-- [x] Add password hashing
-- [x] Add protected admin routes
-
----
-
-# ADMIN DASHBOARD
-
-## Dashboard UI
-- [x] Create admin dashboard layout
-- [x] Create admin sidebar
-- [x] Create admin navbar
-- [x] Create dashboard homepage
-
-## Article Management
-- [x] Create article management table
-- [x] Create article editor page
-- [x] Add article publishing
-- [x] Add draft support
-- [x] Add feature article toggle
-
-## Category Management
-- [x] Create category management UI
-- [x] Add category CRUD operations
-
-## Submission Management
-- [x] Create submission review UI
-- [x] Add approve/reject actions
-
----
-
-# SEO FEATURES
-
-## Technical SEO
-- [x] Add meta title support
-- [x] Add meta description support
-- [x] Add OpenGraph tags
-- [x] Add Twitter cards
-- [x] Add canonical URLs
-- [ ] Generate sitemap.xml
-- [ ] Generate robots.txt
-
-## Structured Data
+## Platform items for Phase 1
+- [ ] Generate `sitemap.xml`
+- [ ] Generate `robots.txt`
 - [ ] Add article schema markup
-- [x] Add breadcrumb schema
 - [ ] Add organization schema
+- [ ] Add a favicon
+- [ ] Prevent XSS in all member-generated content
+- [ ] Validate all inputs; prevent NoSQL injection
+- [ ] Add a minimal test setup and one check per feature
 
 ---
 
-# PERFORMANCE OPTIMIZATION
+# PHASE 2 — INTERACTION
 
-## Backend
-- [ ] Optimize MongoDB queries
-- [ ] Add indexes
-- [ ] Reduce unnecessary DB calls
-- [ ] Optimize API responses
+- [ ] Debate Den with separate clarity / evidence / reasoning ratings
+- [ ] More Arcade games: One-Minute Quiz, Guess the Connection, Daily Brain Spark
+- [ ] Contributor reputation based on meaningful participation
+- [ ] Follow rooms and writers
+- [ ] Perspective Switch
+- [ ] Related-idea recommendations
+- [ ] Block members
+- [ ] Visible corrections on articles
 
-## Frontend
+---
+
+# PHASE 3 — COMMUNITY GROWTH
+
+- [ ] Idea Web and Reading Trails
+- [ ] Open Question Board
+- [ ] Community research projects and curated collections
+- [ ] My Curiosity Map and personalized discovery
+- [ ] Live discussions or challenges, if members want them
+
+---
+
+# PLATFORM BACKLOG
+
+Carried over from the foundation; pick up when needed.
+
+## Performance
+- [ ] Optimize MongoDB queries and reduce unnecessary DB calls
 - [ ] Lazy load images
-- [ ] Optimize CSS loading
-- [ ] Optimize JS loading
+- [ ] Optimize CSS and JS loading
 - [ ] Compress images
 
----
-
-# SECURITY
-
-## Backend Security
-- [ ] Validate all inputs
-- [ ] Prevent NoSQL injection
-- [ ] Add CSRF protection
-- [ ] Secure admin routes
-- [ ] Improve JWT security
-
-## Frontend Security
-- [ ] Prevent XSS vulnerabilities
-- [ ] Sanitize user-generated content
-
----
-
-# TESTING
-
-## Backend Testing
-- [ ] Test MongoDB connection
-- [ ] Test APIs
-- [ ] Test authentication
-- [ ] Test validation
-
-## Frontend Testing
-- [ ] Test responsive layout
-- [ ] Test navbar responsiveness
-- [ ] Test forms
-- [ ] Test article pages
-
----
-
-# DEPLOYMENT
-
-## Production Setup
-- [ ] Create production settings
-- [ ] Setup production environment variables
-- [ ] Configure static asset serving
-- [ ] Configure production MongoDB
-
 ## Deployment
-- [ ] Deploy application
-- [ ] Configure domain
-- [ ] Configure HTTPS
-- [ ] Setup monitoring/logging
+- [ ] Production settings and environment variables
+- [ ] Static asset serving
+- [ ] Production MongoDB
+- [ ] Deploy, domain, HTTPS, monitoring
 
----
-
-# FUTURE FEATURES
-
-## CMS Improvements
-- [ ] Rich text editor
-- [ ] Markdown support
+## CMS
 - [ ] Scheduled publishing
-- [ ] Draft autosave
 - [ ] Media library
-
-## User Features
-- [ ] User accounts
-- [ ] Comments system
-- [ ] Saved articles
-- [ ] Author profiles
 
 ## Analytics
 - [ ] Article analytics
-- [ ] Dashboard metrics
 - [ ] Popular articles section
-
-## AI Features
-- [ ] AI-generated summaries
-- [ ] AI SEO suggestions
-- [ ] AI tag generation
-
----
-
-# REFACTOR TASKS
-
-## Cleanup
-- [ ] Improve service layer separation
-- [ ] Reduce duplicate template code
-- [ ] Optimize template inheritance
-- [ ] Improve JS modularity
-
----
-
-# CURRENT PRIORITY TASKS
-
-## Immediate Next Tasks
-- [x] Create article_card.html component
-- [x] Improve homepage UI
-- [x] Create featured articles section
-- [x] Create article schema/model
-- [x] Create article listing API
 
 ---
 
 # DEVELOPMENT NOTES
 
 ## Workflow Rules
-- Follow instructions.md strictly
-- Build incrementally
-- Commit after stable features
+- Follow `instructions.md`; build only what the current phase of `vision.md` includes
+- One focused branch per task, merged to `main` through a pull request
 - Test before marking tasks complete
 - Prefer reusable architecture
-
-## Recommended Git Workflow
-```bash
-git checkout -b feature/homepage-ui
-git add .
-git commit -m "Improved homepage UI and reusable article cards"
-```
