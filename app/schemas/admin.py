@@ -76,6 +76,17 @@ class AdminArticleFeatureUpdate(BaseModel):
     is_featured: bool
 
 
+class AdminSendBack(BaseModel):
+    """An editor returning a member's piece to draft with a note they will see."""
+
+    note: str = Field(min_length=3, max_length=1000)
+
+    @field_validator("note", mode="before")
+    @classmethod
+    def strip_note(cls, value: Any) -> str:
+        return str(value or "").strip()
+
+
 class AdminRoleUpdate(BaseModel):
     role: AdminRole
 

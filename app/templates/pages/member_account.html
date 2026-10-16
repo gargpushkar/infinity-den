@@ -23,6 +23,27 @@
         <button class="btn btn-primary member-submit" type="submit">Save profile</button>
       </form>
 
+      <section class="member-contributions" aria-labelledby="contributionsTitle">
+        <div class="member-contributions-header">
+          <h2 id="contributionsTitle">Your contributions</h2>
+          <a class="btn btn-primary btn-sm" href="/write">Write something</a>
+        </div>
+        {% if pieces %}
+          <ul class="member-piece-list" role="list">
+            {% for piece in pieces %}
+              <li>
+                <a href="{% if piece.status in ['draft', 'pending_review'] %}/write/{{ piece.id }}{% else %}/articles/{{ piece.slug }}{% endif %}">{{ piece.title }}</a>
+                <span class="member-piece-status member-piece-status-{{ piece.status }}">
+                  {% if piece.status == "pending_review" %}Waiting for review{% elif piece.status == "draft" and piece.review_note %}Sent back with a note{% else %}{{ piece.status|capitalize }}{% endif %}
+                </span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="member-field-hint">Nothing yet. Your drafts and published pieces will appear here.</p>
+        {% endif %}
+      </section>
+
       <form class="member-signout" method="post" action="/logout">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <button class="btn btn-outline-primary" type="submit">Sign out</button>

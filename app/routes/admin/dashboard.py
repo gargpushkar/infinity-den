@@ -5,10 +5,11 @@ from fastapi import status as http_status
 from fastapi.templating import Jinja2Templates
 from pymongo.errors import PyMongoError
 
+from app.config.constants import ARTICLE_STATUS_PENDING_REVIEW
 from app.config.settings import settings
 from app.database.mongodb import get_database
 from app.schemas.admin import AdminRead
-from app.schemas.article import ArticleRead
+from app.schemas.article import ArticleQueryParams, ArticleRead
 from app.services.admin_dashboard_service import (
     get_admin_articles_context,
     get_admin_categories_context,
@@ -20,6 +21,7 @@ from app.services.admin_csrf import ADMIN_CSRF_COOKIE, issue_admin_csrf_token
 from app.services.admin_permissions import require_admin_manager
 from app.services.admin_session import get_current_admin
 from app.services.article_service import ArticleService
+from app.services.user_service import UserService
 
 
 router = APIRouter(prefix="/admin")
@@ -56,7 +58,10 @@ async def admin_articles_page(
         admin=admin,
         active_nav="articles",
         page_title="Articles",
-        context=dashboard_context.to_template_context(),
+        context={
+            **dashboard_context.to_template_context(),
+            "review_queue": await _load_review_queue(),
+        },
     )
 
 
@@ -104,6 +109,7 @@ async def admin_edit_article_page(
         context={
             **dashboard_context.to_template_context(),
             "article": article,
+            "submitted_by": await _load_member(article.author_id),
             "editor_mode": "update",
         },
     )
@@ -201,6 +207,31 @@ async def _load_admin_article(article_identifier: str) -> ArticleRead | None:
     try:
         db = get_database()
         return await ArticleService(database=db).get_article_detail(article_identifier)
+    except (RuntimeError, PyMongoError):
+        return None
+
+
+async def _load_review_queue() -> list[ArticleRead]:
+    """Member pieces waiting for an editor, oldest first."""
+    try:
+        listing = await ArticleService(database=get_database()).list_articles(
+            ArticleQueryParams(
+                per_page=100,
+                status=ARTICLE_STATUS_PENDING_REVIEW,
+                sort_by="updated_at",
+                sort_direction="asc",
+            )
+        )
+        return listing.items
+    except (RuntimeError, PyMongoError):
+        return []
+
+
+async def _load_member(member_id: str | None) -> Any:
+    if not member_id:
+        return None
+    try:
+        return await UserService(database=get_database()).get_member_by_id(member_id)
     except (RuntimeError, PyMongoError):
         return None
 

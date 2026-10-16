@@ -1,93 +1,28 @@
 <section class="content-section write-section" id="writeForUs" aria-labelledby="writeForUsTitle" data-reveal>
-  <div class="write-layout">
+  <div class="write-layout write-layout-invite">
     <div class="write-copy" data-reveal-child>
       <p class="eyebrow mb-2">Contribute</p>
-      <h2 id="writeForUsTitle">Pitch us a story.</h2>
-      <p>We publish researched articles, personal experiences, and perspectives from people who know the subject first-hand.</p>
-      <div class="pitch-brief" id="pitchGuidelines" aria-label="Pitch review priorities">
-        <div class="pitch-brief-row" data-reveal-child>
-          <span>01</span>
-          <strong>A story only you can tell</strong>
-        </div>
-        <div class="pitch-brief-row" data-reveal-child>
-          <span>02</span>
-          <strong>Something the reader takes away</strong>
-        </div>
-        <div class="pitch-brief-row" data-reveal-child>
-          <span>03</span>
-          <strong>Reporting, not opinion alone</strong>
-        </div>
+      <h2 id="writeForUsTitle">Write for Infinity Den.</h2>
+      <p>Share a researched article, a personal experience, or a perspective. Editors read every piece before it&rsquo;s published.</p>
+      <div class="write-actions">
+        <a class="btn btn-primary px-4" href="/write">Start writing</a>
+        <a class="section-link" href="/experiences">Browse the Human Library</a>
       </div>
     </div>
 
-    <form class="submission-form" action="/api/submissions" method="post" data-submission-form data-reveal-child>
-      <div class="submission-form-header">
-        <span>Pitch queue</span>
-        <strong>New submission</strong>
+    <div class="pitch-brief" aria-label="How publishing works" data-reveal-child>
+      <div class="pitch-brief-row">
+        <span>01</span>
+        <strong>Write it in your own words</strong>
       </div>
-
-      <div class="submission-field-grid">
-        <div>
-          <label class="submission-label" for="submissionName">Name</label>
-          <input
-            class="form-control submission-input"
-            id="submissionName"
-            name="name"
-            type="text"
-            autocomplete="name"
-            minlength="2"
-            maxlength="120"
-            required
-          >
-        </div>
-        <div>
-          <label class="submission-label" for="submissionEmail">Email</label>
-          <input
-            class="form-control submission-input"
-            id="submissionEmail"
-            name="email"
-            type="email"
-            autocomplete="email"
-            maxlength="254"
-            required
-          >
-        </div>
+      <div class="pitch-brief-row">
+        <span>02</span>
+        <strong>An editor reviews it</strong>
       </div>
-
-      <div>
-        <label class="submission-label" for="submissionTopic">Working topic</label>
-        <input
-          class="form-control submission-input"
-          id="submissionTopic"
-          name="topic"
-          type="text"
-          minlength="5"
-          maxlength="160"
-          placeholder="Example: How night trains came back"
-          required
-        >
+      <div class="pitch-brief-row">
+        <span>03</span>
+        <strong>It goes live with your name on it</strong>
       </div>
-
-      <div>
-        <label class="submission-label" for="submissionIdea">Your pitch</label>
-        <textarea
-          class="form-control submission-input submission-textarea"
-          id="submissionIdea"
-          name="content_idea"
-          minlength="20"
-          maxlength="2000"
-          rows="5"
-          placeholder="What happened, why it matters, and why you are the one to write it."
-          required
-        ></textarea>
-      </div>
-
-      <div class="submission-actions">
-        <button class="btn btn-primary submission-submit" type="submit">Submit pitch</button>
-        <a class="section-link" href="#pitchGuidelines">Review guidelines</a>
-      </div>
-
-      <p class="submission-note" data-submission-message role="status">Specific pitches get read first.</p>
-    </form>
+    </div>
   </div>
 </section>

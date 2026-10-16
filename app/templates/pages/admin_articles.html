@@ -9,6 +9,28 @@
   <a class="btn btn-primary" href="/admin/articles/new">Create article</a>
 </section>
 
+<section class="admin-panel" id="reviewQueue">
+  <div class="admin-panel-header">
+    <div>
+      <p class="admin-kicker mb-1">Review queue</p>
+      <h2>{{ review_queue|length }} waiting for review</h2>
+    </div>
+    <p class="admin-muted mb-0">Oldest first. Publish, or send back with a note the member will see.</p>
+  </div>
+  {% if review_queue %}
+    <div class="admin-list">
+      {% for article in review_queue %}
+        <a class="admin-list-row" href="/admin/articles/{{ article.id }}/edit">
+          <span>{{ article.title }}</span>
+          <small>{{ article.author }} &middot; {{ article.article_format }} &middot; submitted {{ article.updated_at.strftime("%d %b %Y") }}</small>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="admin-empty">Nothing is waiting for review.</p>
+  {% endif %}
+</section>
+
 <section class="admin-panel">
   <div class="admin-panel-header">
     <div>

@@ -44,6 +44,7 @@
     </div>
     <div class="admin-status-rail" aria-label="Article status counts">
       <span>Draft <strong>{{ status_counts.draft }}</strong></span>
+      <a href="/admin/articles#reviewQueue">Awaiting review <strong>{{ status_counts.pending_review }}</strong></a>
       <span>Published <strong>{{ status_counts.published }}</strong></span>
       <span>Archived <strong>{{ status_counts.archived }}</strong></span>
     </div>

@@ -97,6 +97,7 @@ Creative names are display text. Everything permanent is plain and descriptive.
 | Member profile | `/members/{username}` |
 | Join / sign in / sign out | `/join`, `/login`, `/logout` |
 | Your account | `/account` |
+| Write / edit your piece | `/write`, `/write/{id}` |
 
 Do not add a second URL for the same page. Nav and cards link to the canonical
 URL.
@@ -508,7 +509,9 @@ Implement:
 
 Member content is untrusted input. In addition to the above:
 
-- render markdown server-side with an allowlist; never pass member HTML through `| safe`
+- render content with `app/utils/markdown.py`, which escapes first and only links http(s); never pass member HTML through `| safe`
+- keep `app/utils/markdown.py` and `renderMarkdownPreview` in `main.js` in step (a test compares them)
+- members can edit drafts and pieces awaiting review; published pieces are locked for them
 - rate-limit member writes (posts, responses, comments, reports) and login
 - never expose member emails or password hashes in public pages or API responses
 - every member-generated item can be reported by members and hidden by editors

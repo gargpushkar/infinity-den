@@ -148,72 +148,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  document.querySelectorAll("[data-submission-form]").forEach((form) => {
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      const message = form.querySelector("[data-submission-message]");
-      const submitButton = form.querySelector("[type='submit']");
-      if (!message) {
-        return;
-      }
-
-      message.classList.remove("is-success", "is-error");
-
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        message.textContent = "Complete each field before sending your pitch.";
-        message.classList.add("is-error");
-        return;
-      }
-
-      const formData = new FormData(form);
-      const payload = {
-        name: String(formData.get("name") || "").trim(),
-        email: String(formData.get("email") || "").trim(),
-        topic: String(formData.get("topic") || "").trim(),
-        content_idea: String(formData.get("content_idea") || "").trim(),
-      };
-
-      if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.setAttribute("aria-busy", "true");
-      }
-      message.textContent = "Sending pitch...";
-
-      try {
-        const response = await fetch(form.action, {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
-        const responsePayload = await response.json().catch(() => ({}));
-
-        if (response.ok) {
-          message.textContent = "Pitch received. We'll review it with the next editorial batch.";
-          message.classList.add("is-success");
-          form.reset();
-          return;
-        }
-
-        message.textContent =
-          responsePayload?.error?.message || "We could not save that pitch right now.";
-        message.classList.add("is-error");
-      } catch (error) {
-        message.textContent = "Connection issue. Try again in a moment.";
-        message.classList.add("is-error");
-      } finally {
-        if (submitButton) {
-          submitButton.disabled = false;
-          submitButton.removeAttribute("aria-busy");
-        }
-      }
-    });
-  });
-
   document.querySelectorAll("[data-admin-login-form]").forEach((form) => {
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -385,16 +319,28 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
 
+  // Mirrors app/utils/markdown.py so the preview matches the published page.
+  const formatInlineMarkdown = (html) =>
+    html
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/_([^_]+)_/g, "<em>$1</em>");
+
   const renderInlineMarkdown = (value) => {
-    let html = escapeHtml(value);
-    html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-    html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-    html = html.replace(/_([^_]+)_/g, "<em>$1</em>");
-    html = html.replace(
-      /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>',
-    );
-    return html;
+    // Links first, URLs untouched, so an underscore in a URL never breaks it.
+    const html = escapeHtml(value);
+    const linkPattern = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+    const parts = [];
+    let position = 0;
+    for (const match of html.matchAll(linkPattern)) {
+      parts.push(formatInlineMarkdown(html.slice(position, match.index)));
+      parts.push(
+        `<a href="${match[2]}" target="_blank" rel="noopener noreferrer nofollow">${formatInlineMarkdown(match[1])}</a>`,
+      );
+      position = match.index + match[0].length;
+    }
+    parts.push(formatInlineMarkdown(html.slice(position)));
+    return parts.join("");
   };
 
   const renderMarkdownPreview = (value) => {
@@ -871,6 +817,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Member editor: same toolbar and preview, but the form posts normally.
+  document.querySelectorAll("[data-markdown-editor]").forEach(setupAdminMarkdownEditor);
+
   document.querySelectorAll("[data-admin-article-editor]").forEach((form) => {
     const tagEditor = setupAdminTagEditor(form);
     setupAdminCategorySelector(form);
@@ -977,6 +926,31 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (error) {
         setAdminMessage(message, error.message, "error");
       } finally {
+        button.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-admin-send-back]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const form = button.closest("form");
+      const message = form?.querySelector("[data-admin-form-message]");
+      const note = form?.querySelector("[data-admin-send-back-note]")?.value.trim() || "";
+      if (note.length < 3) {
+        setAdminMessage(message, "Write a short note so the member knows what to change.", "error");
+        return;
+      }
+
+      button.disabled = true;
+      try {
+        await adminJsonRequest(`/api/admin/articles/${button.getAttribute("data-article-id")}/send-back`, {
+          method: "PATCH",
+          body: { note },
+        });
+        setAdminMessage(message, "Sent back to the member.", "success");
+        window.setTimeout(() => window.location.assign("/admin/articles#reviewQueue"), 450);
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
         button.disabled = false;
       }
     });

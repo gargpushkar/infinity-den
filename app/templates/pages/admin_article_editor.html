@@ -68,6 +68,23 @@
   </section>
 
   <aside class="admin-panel admin-editor-side">
+    {% if article and article.author_id %}
+      <div class="admin-review-box">
+        <p class="admin-kicker mb-1">Member submission</p>
+        <p class="mb-2">
+          By {% if submitted_by %}<a href="/members/{{ submitted_by.username }}" target="_blank" rel="noopener">{{ submitted_by.display_name }} (@{{ submitted_by.username }})</a>{% else %}{{ article.author }} (account unavailable){% endif %}
+          &middot; <strong>{{ article.status|replace("_", " ") }}</strong>
+        </p>
+        {% if article.review_note %}<p class="admin-muted mb-2">Last note: {{ article.review_note }}</p>{% endif %}
+        {% if article.status == "pending_review" %}
+          <label for="sendBackNote">Note for the member</label>
+          <textarea class="form-control mb-2" id="sendBackNote" rows="3" maxlength="1000" data-admin-send-back-note></textarea>
+          <button class="btn btn-outline-primary w-100" type="button" data-admin-send-back data-article-id="{{ article.id }}">Send back to the member</button>
+          <p class="admin-field-note">To approve it, set Status to Published and save.</p>
+        {% endif %}
+      </div>
+    {% endif %}
+
     <div class="admin-validation-summary" data-admin-validation-summary hidden>
       <p class="admin-kicker mb-1">Validation</p>
       <ul></ul>
@@ -110,6 +127,7 @@
       <label for="articleStatus">Status</label>
       <select class="form-select" id="articleStatus" name="status">
         <option value="draft" {% if not article or article.status == "draft" %}selected{% endif %}>Draft</option>
+        <option value="pending_review" {% if article and article.status == "pending_review" %}selected{% endif %}>Waiting for review</option>
         <option value="published" {% if article and article.status == "published" %}selected{% endif %}>Published</option>
         <option value="archived" {% if article and article.status == "archived" %}selected{% endif %}>Archived</option>
       </select>

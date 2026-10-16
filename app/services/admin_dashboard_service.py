@@ -8,6 +8,7 @@ from pymongo.errors import PyMongoError
 from app.config.constants import (
     ARTICLE_STATUS_ARCHIVED,
     ARTICLE_STATUS_DRAFT,
+    ARTICLE_STATUS_PENDING_REVIEW,
     ARTICLE_STATUS_PUBLISHED,
     SUBMISSION_STATUS_ACCEPTED,
     SUBMISSION_STATUS_NEW,
@@ -88,6 +89,9 @@ async def get_admin_dashboard_context(
             ARTICLE_STATUS_PUBLISHED: await db[ARTICLE_COLLECTION].count_documents(
                 {"status": ARTICLE_STATUS_PUBLISHED}
             ),
+            ARTICLE_STATUS_PENDING_REVIEW: await db[ARTICLE_COLLECTION].count_documents(
+                {"status": ARTICLE_STATUS_PENDING_REVIEW}
+            ),
             ARTICLE_STATUS_ARCHIVED: await db[ARTICLE_COLLECTION].count_documents(
                 {"status": ARTICLE_STATUS_ARCHIVED}
             ),
@@ -163,6 +167,7 @@ def _empty_admin_dashboard_context() -> AdminDashboardContext:
         status_counts={
             ARTICLE_STATUS_DRAFT: 0,
             ARTICLE_STATUS_PUBLISHED: 0,
+            ARTICLE_STATUS_PENDING_REVIEW: 0,
             ARTICLE_STATUS_ARCHIVED: 0,
         },
         submission_counts={
