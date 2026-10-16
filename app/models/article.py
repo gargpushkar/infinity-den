@@ -3,6 +3,9 @@ from datetime import datetime, timezone
 from typing import Any, Final, Literal, cast
 
 from app.config.constants import (
+    ARTICLE_FORMAT_GUIDE,
+    ARTICLE_FORMAT_NEWS,
+    ARTICLE_FORMAT_REVIEW,
     ARTICLE_STATUS_ARCHIVED,
     ARTICLE_STATUS_DRAFT,
     ARTICLE_STATUS_PUBLISHED,
@@ -10,12 +13,18 @@ from app.config.constants import (
 
 
 ArticleStatus = Literal["draft", "published", "archived"]
+ArticleFormat = Literal["news", "guide", "review"]
 
 ARTICLE_COLLECTION: Final = "articles"
 ARTICLE_STATUSES: Final[tuple[ArticleStatus, ...]] = (
     ARTICLE_STATUS_DRAFT,
     ARTICLE_STATUS_PUBLISHED,
     ARTICLE_STATUS_ARCHIVED,
+)
+ARTICLE_FORMATS: Final[tuple[ArticleFormat, ...]] = (
+    ARTICLE_FORMAT_NEWS,
+    ARTICLE_FORMAT_GUIDE,
+    ARTICLE_FORMAT_REVIEW,
 )
 ARTICLE_DOCUMENT_FIELDS: Final[tuple[str, ...]] = (
     "title",
@@ -27,6 +36,10 @@ ARTICLE_DOCUMENT_FIELDS: Final[tuple[str, ...]] = (
     "category_id",
     "tags",
     "is_featured",
+    "article_format",
+    "is_editors_pick",
+    "is_sponsored",
+    "sponsor_name",
     "status",
     "seo_title",
     "seo_description",
@@ -58,6 +71,17 @@ def normalize_article_status(status: str) -> ArticleStatus:
     return cast(ArticleStatus, status)
 
 
+def normalize_article_format(article_format: str) -> ArticleFormat:
+    if article_format not in ARTICLE_FORMATS:
+        valid_formats = ", ".join(ARTICLE_FORMATS)
+        raise ValueError(
+            f"Invalid article format '{article_format}'. "
+            f"Expected one of: {valid_formats}."
+        )
+
+    return cast(ArticleFormat, article_format)
+
+
 @dataclass(slots=True)
 class ArticleDocument:
     title: str
@@ -69,6 +93,10 @@ class ArticleDocument:
     category_id: str | None = None
     tags: list[str] = field(default_factory=list)
     is_featured: bool = False
+    article_format: ArticleFormat = ARTICLE_FORMAT_NEWS
+    is_editors_pick: bool = False
+    is_sponsored: bool = False
+    sponsor_name: str | None = None
     status: ArticleStatus = ARTICLE_STATUS_DRAFT
     seo_title: str | None = None
     seo_description: str | None = None
@@ -79,7 +107,11 @@ class ArticleDocument:
 
     def __post_init__(self) -> None:
         self.status = normalize_article_status(self.status)
+        self.article_format = normalize_article_format(self.article_format)
         self.tags = list(self.tags)
+        self.sponsor_name = (self.sponsor_name or "").strip() or None
+        if not self.is_sponsored:
+            self.sponsor_name = None
         if self.views < 0:
             raise ValueError("Article views cannot be negative.")
 
@@ -98,10 +130,15 @@ def create_article_document(
     category_id: str | None = None,
     tags: list[str] | None = None,
     is_featured: bool = False,
+    article_format: str = ARTICLE_FORMAT_NEWS,
+    is_editors_pick: bool = False,
+    is_sponsored: bool = False,
+    sponsor_name: str | None = None,
     status: str = ARTICLE_STATUS_DRAFT,
     seo_title: str | None = None,
     seo_description: str | None = None,
     published_at: datetime | None = None,
+    views: int = 0,
 ) -> ArticleDocument:
     now = utc_now()
 
@@ -115,10 +152,15 @@ def create_article_document(
         category_id=category_id,
         tags=list(tags or []),
         is_featured=is_featured,
+        article_format=normalize_article_format(article_format),
+        is_editors_pick=is_editors_pick,
+        is_sponsored=is_sponsored,
+        sponsor_name=sponsor_name,
         status=normalize_article_status(status),
         seo_title=seo_title,
         seo_description=seo_description,
         created_at=now,
         updated_at=now,
         published_at=published_at,
+        views=views,
     )

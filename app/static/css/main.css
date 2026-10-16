@@ -83,9 +83,29 @@ button:focus-visible,
   }
 }
 
+.skip-link {
+  background: var(--text);
+  border-radius: 0 0 8px 0;
+  color: var(--card);
+  font-weight: 800;
+  left: 0;
+  padding: 0.75rem 1.25rem;
+  position: absolute;
+  top: 0;
+  transform: translateY(-120%);
+  transition: transform 160ms ease;
+  z-index: 1080;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
 .site-header {
-  background: var(--bg-main);
-  padding: 1rem 0 0.75rem;
+  background: rgba(248, 250, 252, 0.88);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  padding: 0.85rem 0;
   position: sticky;
   top: 0;
   z-index: 1020;
@@ -93,77 +113,152 @@ button:focus-visible,
 
 .topbar {
   align-items: center;
-  display: grid;
-  gap: 1.25rem;
-  grid-template-columns: 8rem 1fr 7rem;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: space-between;
 }
 
-.logo-box,
-.category-header,
-.menu-box {
+/* Brand lockup: monogram tile plus serif wordmark, matching the footer. */
+.brand-lockup {
+  align-items: center;
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 0.6rem;
+}
+
+.brand-mark {
+  align-items: center;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-violet) 55%, var(--accent-cyan) 100%);
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(var(--accent-rgb), 0.28);
+  color: #ffffff;
+  display: inline-flex;
+  font-size: 1.02rem;
+  font-weight: 900;
+  height: 2.6rem;
+  justify-content: center;
+  letter-spacing: 0.02em;
+  width: 2.6rem;
+}
+
+.brand-word {
+  color: var(--text);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: -0.015em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.topic-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.topic-nav-link {
+  align-items: center;
+  border-radius: 8px;
+  color: var(--text);
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  padding: 0.62rem 0.85rem;
+  text-transform: uppercase;
+}
+
+.topic-nav-link:hover,
+.topic-nav-link:focus-visible,
+.topic-nav-item.show .topic-nav-link {
+  background: rgba(var(--accent-rgb), 0.08);
+  color: var(--accent-hover);
+}
+
+/* Bootstrap's default caret is a solid triangle; this is a thinner chevron
+   that rotates to point up while the panel is open. */
+.topic-nav-link.dropdown-toggle::after {
+  border: 0;
+  border-bottom: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  content: "";
+  height: 0.42rem;
+  margin-left: 0.5rem;
+  transform: translateY(-0.12rem) rotate(45deg);
+  transition: transform 180ms var(--motion-ease);
+  vertical-align: middle;
+  width: 0.42rem;
+}
+
+.topic-nav-item.show .topic-nav-link.dropdown-toggle::after {
+  transform: translateY(0.06rem) rotate(-135deg);
+}
+
+.topic-dropdown {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.13);
+  margin-top: 0.4rem;
+  min-width: 12rem;
+  padding: 0.4rem;
+}
+
+.topic-dropdown .dropdown-item {
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  font-weight: 700;
+  padding: 0.55rem 0.75rem;
+}
+
+.topic-dropdown .dropdown-item:hover,
+.topic-dropdown .dropdown-item:focus-visible {
+  background: rgba(var(--accent-rgb), 0.08);
+  color: var(--accent-hover);
+}
+
+.topbar-actions {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.5rem;
+}
+
+.topbar-search {
+  align-items: center;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 8px;
-  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
-}
-
-.logo-box {
-  align-items: center;
-  color: var(--card);
-  background: var(--text);
-  display: inline-flex;
-  font-size: 1.45rem;
-  font-weight: 800;
-  height: 4.5rem;
-  justify-content: center;
-}
-
-.category-header {
-  align-items: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 4.5rem;
-  padding: 0.6rem 1rem;
-  text-align: center;
-}
-
-.header-label {
   color: var(--text);
-  font-size: 1.05rem;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.category-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem 1rem;
+  display: inline-flex;
+  height: 2.75rem;
   justify-content: center;
-  margin-top: 0.35rem;
+  width: 2.75rem;
 }
 
-.category-links a {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.category-links a:hover,
-.footer-links a:hover,
-.social-block a:hover {
+.topbar-search:hover,
+.topbar-search:focus-visible {
+  border-color: rgba(var(--accent-rgb), 0.4);
   color: var(--accent-hover);
 }
 
 .menu-box {
   align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
   color: var(--text);
-  display: inline-flex;
+  display: none;
   flex-direction: column;
-  gap: 0.28rem;
-  height: 4.5rem;
+  gap: 0.22rem;
+  height: 2.75rem;
   justify-content: center;
-  padding: 0.5rem;
+  padding: 0.4rem 0.7rem;
 }
 
 .menu-box span {
@@ -171,12 +266,60 @@ button:focus-visible,
   border-radius: 999px;
   display: block;
   height: 2px;
-  width: 1.65rem;
+  width: 1.15rem;
 }
 
 .menu-box strong {
-  font-size: 0.78rem;
+  font-size: 0.6rem;
   line-height: 1;
+  margin-top: 0.1rem;
+}
+
+.menu-topics {
+  margin-bottom: 1.75rem;
+}
+
+.menu-topics .accordion-item {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.menu-topics .accordion-button {
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 0.9rem 0.25rem;
+  text-transform: uppercase;
+}
+
+.menu-topics .accordion-button:not(.collapsed) {
+  color: var(--accent-hover);
+}
+
+.menu-topics .accordion-body {
+  padding: 0 0.25rem 0.9rem;
+}
+
+.menu-sublist {
+  display: grid;
+  gap: 0.6rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu-sublist a {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.menu-sublist a:hover,
+.menu-sublist a:focus-visible {
+  color: var(--accent-hover);
 }
 
 .menu-list,
@@ -3631,21 +3774,20 @@ button:focus-visible,
 
   .topbar {
     gap: 0.75rem;
-    grid-template-columns: 5.5rem 1fr 5.25rem;
   }
 
-  .logo-box,
-  .menu-box {
-    height: 4rem;
-  }
-
-  .category-header {
-    min-height: 4rem;
-    padding: 0.5rem;
-  }
-
-  .category-links {
+  /* Topics move into the offcanvas accordion rather than leaving an empty
+     shell in the header, which is what the old layout did. */
+  .topic-nav {
     display: none;
+  }
+
+  .menu-box {
+    display: inline-flex;
+  }
+
+  .brand-word {
+    font-size: 1.25rem;
   }
 
   .carousel-panel,
@@ -4096,5 +4238,336 @@ button:focus-visible,
   .pitch-brief-row span {
     height: 2.6rem;
     width: 2.6rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Homepage article rails
+   One horizontally scrollable row per section. Native overflow scrolling keeps
+   touch and trackpad gestures working; the arrows are progressive enhancement
+   and stay hidden when everything already fits.
+   --------------------------------------------------------------------------- */
+
+.rail-section {
+  margin-bottom: 3rem;
+}
+
+.rail-heading {
+  align-items: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.rail-heading h2 {
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  margin: 0;
+  max-width: 34rem;
+}
+
+.rail-controls {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+}
+
+.rail-arrows {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.rail-arrows button {
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text);
+  display: inline-flex;
+  height: 2.5rem;
+  justify-content: center;
+  width: 2.5rem;
+}
+
+.rail-arrows button:hover:not(:disabled) {
+  border-color: rgba(var(--accent-rgb), 0.45);
+  color: var(--accent-hover);
+}
+
+.rail-arrows button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.rail-track {
+  display: grid;
+  gap: 1.25rem;
+  grid-auto-columns: minmax(17rem, 1fr);
+  grid-auto-flow: column;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 0.25rem 0.25rem 1rem;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+
+.rail-track::-webkit-scrollbar {
+  height: 6px;
+}
+
+.rail-track::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 999px;
+}
+
+.rail-item {
+  scroll-snap-align: start;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-track {
+    scroll-behavior: auto;
+  }
+}
+
+/* Three cards is the target, but a rail with fewer should fill the row rather
+   than leaving a stranded gap. */
+@media (min-width: 992px) {
+  .rail-track {
+    grid-auto-columns: minmax(0, calc((100% - 2.5rem) / 3));
+  }
+}
+
+/* The sponsored rail is deliberately set apart from editorial sections. */
+.rail-section-sponsored {
+  background: var(--bg-secondary);
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  padding: 1.75rem 1.5rem 0.75rem;
+}
+
+.rail-paid-flag {
+  background: var(--text);
+  border-radius: 999px;
+  color: var(--card);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  margin-left: 0.5rem;
+  padding: 0.22rem 0.5rem;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.article-card-media {
+  position: relative;
+}
+
+.sponsored-flag {
+  background: rgba(15, 23, 42, 0.88);
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  left: 0.75rem;
+  letter-spacing: 0.06em;
+  padding: 0.3rem 0.65rem;
+  position: absolute;
+  text-transform: uppercase;
+  top: 0.75rem;
+  z-index: 2;
+}
+
+@media (max-width: 767.98px) {
+  .rail-track {
+    grid-auto-columns: minmax(15rem, 78%);
+  }
+
+  .rail-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .rail-section-sponsored {
+    padding: 1.25rem 1rem 0.5rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Featured businesses
+   A partner directory rather than editorial content, so it uses a calmer grid
+   than the article rails and is visually grouped with the commercial units.
+   --------------------------------------------------------------------------- */
+
+.business-section {
+  background: var(--bg-secondary);
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  margin-bottom: 3rem;
+  padding: 1.75rem 1.5rem;
+}
+
+.business-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+}
+
+.business-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  height: 100%;
+  padding: 1.1rem;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.business-card:hover {
+  border-color: rgba(var(--accent-rgb), 0.35);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+  transform: translateY(-2px);
+}
+
+.business-card-head {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.business-logo {
+  border-radius: 10px;
+  flex-shrink: 0;
+  height: 3rem;
+  object-fit: contain;
+  width: 3rem;
+}
+
+.business-logo-fallback {
+  align-items: center;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-violet) 100%);
+  color: #ffffff;
+  display: inline-flex;
+  font-size: 0.95rem;
+  font-weight: 900;
+  justify-content: center;
+  letter-spacing: 0.02em;
+}
+
+.business-card-titles {
+  min-width: 0;
+}
+
+.business-name {
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.25;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.business-location {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin: 0.15rem 0 0;
+}
+
+.business-tagline {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.business-card-foot {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 0.25rem;
+}
+
+.business-sector {
+  background: rgba(var(--accent-rgb), 0.08);
+  border-radius: 999px;
+  color: var(--accent-hover);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 0.28rem 0.6rem;
+  text-transform: uppercase;
+}
+
+.business-visit {
+  align-items: center;
+  color: var(--text);
+  display: inline-flex;
+  font-size: 0.85rem;
+  font-weight: 800;
+  gap: 0.3rem;
+}
+
+.business-visit:hover,
+.business-visit:focus-visible {
+  color: var(--accent-hover);
+}
+
+@media (max-width: 767.98px) {
+  .business-section {
+    padding: 1.25rem 1rem;
+  }
+
+  .business-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Paid-content disclosure on the article page. Deliberately high-contrast and
+   placed above the headline so it reads as a label, not a decoration. */
+.article-sponsored-notice {
+  align-items: center;
+  background: var(--bg-secondary);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--text);
+  border-radius: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+}
+
+.article-sponsored-flag {
+  background: var(--text);
+  border-radius: 999px;
+  color: var(--card);
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  padding: 0.3rem 0.65rem;
+  text-transform: uppercase;
+}
+
+.article-sponsored-text {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.45;
+  min-width: 0;
+}
+
+@media (max-width: 575.98px) {
+  .article-sponsored-notice {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 }

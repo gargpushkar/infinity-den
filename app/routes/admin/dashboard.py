@@ -20,6 +20,8 @@ from app.services.admin_csrf import ADMIN_CSRF_COOKIE, issue_admin_csrf_token
 from app.services.admin_permissions import require_admin_manager
 from app.services.admin_session import get_current_admin
 from app.services.article_service import ArticleService
+from app.schemas.business import BusinessQueryParams
+from app.services.business_service import BusinessService
 
 
 router = APIRouter(prefix="/admin")
@@ -126,6 +128,31 @@ async def admin_categories_page(
     )
 
 
+@router.get("/businesses")
+async def admin_businesses_page(
+    request: Request,
+    admin: AdminRead = Depends(get_current_admin),
+):
+    # Reuses the categories context for the stats header and the section
+    # dropdown; the business list is fetched separately so the shared
+    # dashboard dataclass does not need to know about businesses.
+    dashboard_context = await get_admin_categories_context()
+    businesses = await _load_admin_businesses()
+
+    context = dashboard_context.to_template_context()
+    context["businesses"] = businesses
+    context["business_count"] = len(businesses)
+
+    return _admin_template(
+        request,
+        "pages/admin_businesses.html",
+        admin=admin,
+        active_nav="businesses",
+        page_title="Businesses",
+        context=context,
+    )
+
+
 @router.get("/submissions")
 async def admin_submissions_page(
     request: Request,
@@ -158,6 +185,16 @@ async def admin_users_page(
         page_title="Admin users",
         context=context,
     )
+
+
+async def _load_admin_businesses() -> list[Any]:
+    try:
+        listing = await BusinessService().list_businesses(
+            BusinessQueryParams(per_page=100, sort_by="sort_order")
+        )
+        return listing.items
+    except (RuntimeError, PyMongoError):
+        return []
 
 
 def _admin_template(

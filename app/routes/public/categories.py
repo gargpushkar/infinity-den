@@ -9,6 +9,7 @@ from app.services.category_page_service import (
     get_category_detail_context,
     get_category_listing_context,
 )
+from app.services.nav_service import get_nav_context
 
 
 router = APIRouter()
@@ -23,6 +24,7 @@ async def category_listing(
     article_state: str = Query(default="all", max_length=20),
     sort: str = Query(default="name_asc", max_length=40),
 ):
+    nav_context = await get_nav_context()
     listing_context = await get_category_listing_context(
         page=page,
         search=search,
@@ -34,12 +36,13 @@ async def category_listing(
         request,
         "pages/categories.html",
         {
+            **nav_context,
             "app_name": settings.app_name,
             "page_title": "Categories",
             "seo_title": "Categories",
             "seo_description": (
-                f"Browse {settings.app_name} topic hubs by category and explore "
-                "published article collections."
+                f"Browse {settings.app_name} by section: business, tech, food, "
+                "and travel."
             ),
             **_breadcrumb_context(request, _category_listing_breadcrumbs()),
             **listing_context,
@@ -53,6 +56,7 @@ async def category_detail(
     category_slug: str = Path(min_length=3, max_length=120),
     page: int = Query(default=1, ge=1),
 ):
+    nav_context = await get_nav_context()
     detail_context = await get_category_detail_context(
         category_slug=category_slug,
         page=page,
@@ -69,6 +73,7 @@ async def category_detail(
         request,
         "pages/category_detail.html",
         {
+            **nav_context,
             "app_name": settings.app_name,
             "page_title": category["seo_title"],
             **_category_seo_context(request, category),

@@ -1,7 +1,7 @@
 {% extends "layouts/base.html" %}
 
 {% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
-{% block meta_description %}Launch and manage articles, categories, newsletters, and editorial submissions from a modular FastAPI platform.{% endblock %}
+{% block meta_description %}Independent reporting, guides, and reviews on business, tech, food, and travel.{% endblock %}
 
 {% block content %}
 <section class="home-canvas">
@@ -10,34 +10,38 @@
       <div class="row g-4 align-items-center">
         <div class="col-lg-7">
           <div class="hero-copy">
-            <p class="eyebrow mb-3" data-reveal-child>Editorial command center</p>
-            <h1 id="homeHeroTitle" data-reveal-child>Publish sharper stories with a calmer workflow.</h1>
-            <p class="hero-lede" data-reveal-child>Plan articles, shape categories, invite contributors, and grow reader trust from one clean publishing platform.</p>
+            {# Section names come from the nav context so this line cannot go
+               stale when a category is added or renamed. #}
+            <p class="eyebrow mb-3" data-reveal-child>{{ categories | join(" &middot; ") | safe }}</p>
+            <h1 id="homeHeroTitle" data-reveal-child>The stories behind the things you use every day.</h1>
+            <p class="hero-lede" data-reveal-child>Reported features, step-by-step guides, and reviews we actually tested &mdash; across every section, with no filler.</p>
             <div class="d-flex flex-wrap gap-2 mt-4" data-reveal-child>
-              <a class="btn btn-primary px-4" href="/articles">Explore articles</a>
-              <a class="btn btn-outline-primary px-4" href="#writeForUs">Pitch a story</a>
+              <a class="btn btn-primary px-4" href="/articles">Start reading</a>
+              <a class="btn btn-outline-primary px-4" href="#newsletterSignup">Get the newsletter</a>
             </div>
           </div>
         </div>
 
         <div class="col-lg-5">
-          <aside class="hero-briefing" aria-label="Platform highlights">
+          <aside class="hero-briefing" aria-label="What is on the site right now">
             <div class="briefing-topline">
-              <span>Publishing pulse</span>
+              <span>In the den</span>
               <strong>Live</strong>
             </div>
             <div class="briefing-window">
               <div class="briefing-row active" data-briefing-row>
-                <span>Published library</span>
-                <strong>{{ hero_metrics[0].value }} articles</strong>
+                <span>Stories to read</span>
+                <strong>{{ hero_metrics[0].value }} published</strong>
               </div>
               <div class="briefing-row" data-briefing-row>
-                <span>Featured rotation</span>
-                <strong>{{ featured_articles|length }} stories</strong>
+                {# Same source as the metric below; featured_articles is capped
+                   at the carousel size and would contradict it. #}
+                <span>Featured now</span>
+                <strong>{{ hero_metrics[2].value }} stories</strong>
               </div>
               <div class="briefing-row" data-briefing-row>
-                <span>Topic map</span>
-                <strong>{{ categories|length }} hubs</strong>
+                <span>Sections</span>
+                <strong>{{ categories|length }} to browse</strong>
               </div>
             </div>
             <div class="row g-3 mt-1">
@@ -56,24 +60,25 @@
     </section>
 
     {% include "partials/featured_articles_section.html" %}
-    {% include "partials/latest_articles_section.html" %}
+    {% include "partials/article_rails_section.html" %}
 
     <section class="content-section category-showcase" aria-labelledby="categoryShowcaseTitle" data-reveal>
       <div class="section-heading">
-        <p class="eyebrow mb-2">Topic hubs</p>
-        <h2 id="categoryShowcaseTitle">Give every reader a clear path in.</h2>
+        <p class="eyebrow mb-2">Sections</p>
+        <h2 id="categoryShowcaseTitle">Pick a corner and dig in.</h2>
       </div>
       <div class="category-showcase-grid">
         {% for category_item in category_links %}
           {% set category = category_item.name %}
           <a class="category-showcase-item" href="{{ category_item.url }}" data-reveal-child>
             {% include "components/category_pill.html" %}
-            <span>Browse {{ category_item.name|lower }} articles</span>
+            <span>Everything in {{ category_item.name|lower }}</span>
           </a>
         {% endfor %}
       </div>
     </section>
 
+    {% include "partials/featured_businesses_section.html" %}
     {% include "partials/newsletter_signup_section.html" %}
     {% include "partials/write_for_us_section.html" %}
   </div>

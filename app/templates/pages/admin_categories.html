@@ -42,6 +42,12 @@
         <input class="form-control" id="categoryImage" name="image" maxlength="500">
       </div>
 
+      <div class="admin-field">
+        <label for="categoryNavOrder">Navigation order</label>
+        <input class="form-control" id="categoryNavOrder" name="nav_order" type="number" min="0" max="999" value="0">
+        <p class="admin-field-note">Lower numbers sit further left in the header. Ties fall back to alphabetical.</p>
+      </div>
+
       <p class="admin-form-message" data-admin-form-message role="status">Ready to save.</p>
       <button class="btn btn-primary w-100" type="submit">Save category</button>
     </form>
@@ -76,10 +82,11 @@
             data-category-slug="{{ category.slug }}"
             data-category-description="{{ category.description if category.description else '' }}"
             data-category-image="{{ category.image if category.image else '' }}"
+            data-category-nav-order="{{ category.nav_order }}"
           >
             <div>
               <strong>{{ category.name }}</strong>
-              <small>{{ category.slug }}</small>
+              <small>{{ category.slug }} &middot; nav {{ category.nav_order }}</small>
               {% if category.description %}
                 <p>{{ category.description }}</p>
               {% endif %}

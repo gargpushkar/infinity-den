@@ -10,6 +10,7 @@ from app.services.article_page_service import (
     get_article_detail_context,
     get_article_listing_context,
 )
+from app.services.nav_service import get_nav_context
 
 
 router = APIRouter()
@@ -23,18 +24,22 @@ async def article_listing(
     category: str | None = Query(default=None, max_length=120),
     tag: str | None = Query(default=None, max_length=64),
     sort: str = Query(default="newest", max_length=40),
+    format: str | None = Query(default=None, max_length=20),
 ):
+    nav_context = await get_nav_context()
     listing_context = await get_article_listing_context(
         page=page,
         category=category,
         tag=tag,
         sort=sort,
+        article_format=format,
     )
 
     return templates.TemplateResponse(
         request,
         "pages/articles.html",
         {
+            **nav_context,
             "app_name": settings.app_name,
             "page_title": "Articles",
             **_breadcrumb_context(
@@ -51,6 +56,7 @@ async def article_detail(
     request: Request,
     article_slug: str = Path(min_length=3, max_length=180),
 ):
+    nav_context = await get_nav_context()
     detail_context = await get_article_detail_context(article_slug)
     if detail_context is None:
         raise HTTPException(
@@ -64,6 +70,7 @@ async def article_detail(
         request,
         "pages/article_detail.html",
         {
+            **nav_context,
             "app_name": settings.app_name,
             "page_title": detail_context["article"]["seo_title"],
             **_article_seo_context(request, detail_context["article"]),

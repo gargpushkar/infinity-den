@@ -16,6 +16,7 @@ from app.routes.api.admin_auth import router as admin_auth_router
 from app.routes.api.admin_dashboard import router as admin_dashboard_api_router
 from app.routes.api.admin_users import router as admin_users_router
 from app.routes.api.articles import router as articles_router
+from app.routes.api.businesses import router as businesses_router
 from app.routes.api.categories import router as categories_router
 from app.routes.api.health import router as health_router
 from app.routes.api.newsletter import router as newsletter_router
@@ -66,6 +67,7 @@ app.include_router(admin_auth_router)
 app.include_router(admin_dashboard_api_router)
 app.include_router(admin_users_router)
 app.include_router(articles_router)
+app.include_router(businesses_router)
 app.include_router(categories_router)
 app.include_router(health_router)
 app.include_router(newsletter_router)

@@ -1,29 +1,51 @@
+<a class="skip-link" href="#mainContent">Skip to main content</a>
+
 <header class="site-header">
   <div class="container">
     <nav class="topbar" aria-label="Primary navigation">
-      <a class="logo-box" href="/" aria-label="{{ app_name }} homepage">ID</a>
+      <a class="brand-lockup" href="/" aria-label="{{ app_name }} homepage">
+        <span class="brand-mark" aria-hidden="true">ID</span>
+        <span class="brand-word">{{ app_name }}</span>
+      </a>
 
-      <div class="category-header" aria-label="Featured categories">
-        <span class="header-label">Topics</span>
-        <div class="category-links">
-          {% if category_links | default([], true) %}
-            {% for category_item in category_links[:4] %}
-              <a href="{{ category_item.url }}">{{ category_item.name }}</a>
-            {% endfor %}
-          {% else %}
-            {% for category in (categories | default([]))[:4] %}
-              <a href="/categories">{{ category }}</a>
-            {% endfor %}
-          {% endif %}
-        </div>
+      <ul class="topic-nav" role="list">
+        {% for topic in nav_topics | default([], true) %}
+          <li class="topic-nav-item dropdown" data-topic-nav-item>
+            <a
+              class="topic-nav-link dropdown-toggle"
+              href="{{ topic.url }}"
+              id="topicNav{{ loop.index }}"
+              data-bs-toggle="dropdown"
+              data-bs-auto-close="true"
+              aria-expanded="false"
+            >{{ topic.name }}</a>
+
+            <ul class="dropdown-menu topic-dropdown" aria-labelledby="topicNav{{ loop.index }}">
+              {% for link in topic.links %}
+                <li>
+                  <a class="dropdown-item" href="{{ link.url }}">{{ link.label }}</a>
+                </li>
+              {% endfor %}
+            </ul>
+          </li>
+        {% endfor %}
+      </ul>
+
+      <div class="topbar-actions">
+        <a class="topbar-search" href="/search" aria-label="Search articles">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-3.2-3.2"></path>
+          </svg>
+        </a>
+
+        <button class="menu-box" type="button" data-bs-toggle="offcanvas" data-bs-target="#siteMenu" aria-controls="siteMenu" aria-label="Open menu">
+          <span></span>
+          <span></span>
+          <span></span>
+          <strong>Menu</strong>
+        </button>
       </div>
-
-      <button class="menu-box" type="button" data-bs-toggle="offcanvas" data-bs-target="#siteMenu" aria-controls="siteMenu" aria-label="Open menu">
-        <span></span>
-        <span></span>
-        <span></span>
-        <strong>Menu</strong>
-      </button>
     </nav>
   </div>
 </header>
@@ -34,18 +56,44 @@
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
   <div class="offcanvas-body">
+    <div class="accordion menu-topics" id="menuTopics">
+      {% for topic in nav_topics | default([], true) %}
+        <div class="accordion-item">
+          <h3 class="accordion-header" id="menuTopicHeading{{ loop.index }}">
+            <button
+              class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#menuTopicPanel{{ loop.index }}"
+              aria-expanded="false"
+              aria-controls="menuTopicPanel{{ loop.index }}"
+            >{{ topic.name }}</button>
+          </h3>
+          <div
+            class="accordion-collapse collapse"
+            id="menuTopicPanel{{ loop.index }}"
+            aria-labelledby="menuTopicHeading{{ loop.index }}"
+            data-bs-parent="#menuTopics"
+          >
+            <div class="accordion-body">
+              <ul class="menu-sublist" role="list">
+                {% for link in topic.links %}
+                  <li><a href="{{ link.url }}">{{ link.label }}</a></li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
     <ul class="menu-list">
       <li><a href="/">Home</a></li>
       <li><a href="/articles">Articles</a></li>
-      <li><a href="/categories">Categories</a></li>
+      <li><a href="/categories">Topics</a></li>
       <li><a href="/search">Search</a></li>
       <li><a href="/#writeForUs">Write for us</a></li>
       <li><a href="/#newsletterSignup">Newsletter</a></li>
     </ul>
-    <div class="menu-categories">
-      {% for category in categories | default([]) %}
-        {% include "components/category_pill.html" %}
-      {% endfor %}
-    </div>
   </div>
 </div>

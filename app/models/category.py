@@ -8,6 +8,7 @@ CATEGORY_DOCUMENT_FIELDS: Final[tuple[str, ...]] = (
     "slug",
     "description",
     "image",
+    "nav_order",
 )
 CATEGORY_REQUIRED_FIELDS: Final[tuple[str, ...]] = (
     "name",
@@ -21,6 +22,7 @@ class CategoryDocument:
     slug: str
     description: str | None = None
     image: str | None = None
+    nav_order: int = 0
 
     def __post_init__(self) -> None:
         self.name = self.name.strip()
@@ -38,12 +40,14 @@ def create_category_document(
     slug: str,
     description: str | None = None,
     image: str | None = None,
+    nav_order: int = 0,
 ) -> CategoryDocument:
     return CategoryDocument(
         name=name,
         slug=slug,
         description=description,
         image=image,
+        nav_order=nav_order,
     )
 
 

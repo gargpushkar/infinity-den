@@ -7,9 +7,14 @@ from urllib.parse import urlencode
 from pymongo import ASCENDING, DESCENDING
 from pymongo.errors import PyMongoError
 
-from app.config.constants import ARTICLE_STATUS_PUBLISHED
+from app.config.constants import (
+    ARTICLE_FORMAT_GUIDE,
+    ARTICLE_FORMAT_NEWS,
+    ARTICLE_FORMAT_REVIEW,
+    ARTICLE_STATUS_PUBLISHED,
+)
 from app.database.mongodb import get_database
-from app.models.article import ARTICLE_COLLECTION
+from app.models.article import ARTICLE_COLLECTION, ARTICLE_FORMATS
 from app.models.tag import TAG_COLLECTION
 from app.schemas.article import ArticleQueryParams, ArticleRead
 from app.services.article_service import ArticleService
@@ -18,6 +23,12 @@ from app.utils.reading_time import calculate_reading_time
 
 ARTICLE_LISTING_PER_PAGE = 6
 RELATED_ARTICLE_LIMIT = 3
+
+ARTICLE_FORMAT_LABELS: dict[str, str] = {
+    ARTICLE_FORMAT_NEWS: "News",
+    ARTICLE_FORMAT_GUIDE: "Guides",
+    ARTICLE_FORMAT_REVIEW: "Reviews",
+}
 
 SORT_OPTIONS: tuple[dict[str, str], ...] = (
     {
@@ -53,12 +64,14 @@ async def get_article_listing_context(
     category: str | None,
     tag: str | None,
     sort: str,
+    article_format: str | None = None,
 ) -> dict[str, Any]:
     try:
         db = get_database()
         category_options = await _get_category_options(db)
         sort_option = _resolve_sort_option(sort)
         category_filter = _clean_optional_slug(category)
+        format_filter = _resolve_article_format(article_format)
         tag_options = await _get_tag_options(db, category=category_filter)
         tag_filter = _resolve_tag_filter(tag, tag_options)
         tag_filter_name = tag_filter["name"] if tag_filter else None
@@ -70,6 +83,7 @@ async def get_article_listing_context(
             status="published",
             category_id=category_filter,
             tag=tag_filter_name,
+            article_format=format_filter,
             sort_by=sort_option["sort_by"],
             sort_direction=sort_option["sort_direction"],
         )
@@ -93,6 +107,7 @@ async def get_article_listing_context(
                     category_filter,
                     tag_filter_slug,
                     sort_option["value"],
+                    format_filter,
                 ),
                 "aria_label": "Article pages",
             },
@@ -101,18 +116,22 @@ async def get_article_listing_context(
                 active_category=category_filter,
                 active_tag=tag_filter_slug,
                 sort=sort_option["value"],
+                article_format=format_filter,
             ),
             "tag_filters": _tag_filters(
                 tag_options,
                 active_tag=tag_filter_slug,
                 category=category_filter,
                 sort=sort_option["value"],
+                article_format=format_filter,
             ),
             "sort_options": _mark_active_filter(list(SORT_OPTIONS), sort_option["value"]),
             "active_category": category_lookup.get(category_filter or ""),
             "active_tag": tag_filter["name"] if tag_filter else None,
             "active_tag_slug": tag_filter_slug,
             "active_sort": sort_option["label"],
+            "active_format": format_filter,
+            "active_format_label": _format_label(format_filter),
             "categories": [item["name"] for item in category_options],
             "is_database_available": True,
         }
@@ -132,6 +151,7 @@ async def get_article_detail_context(article_slug: str) -> dict[str, Any] | None
         if article is None or article.status != "published":
             return None
 
+        await _record_article_view(db, article.slug)
         article_context = _article_to_detail(article, category_lookup, tag_lookup)
         related_articles = await _get_related_articles(
             db,
@@ -292,6 +312,17 @@ async def _fetch_related_article_cards(
     ]
 
 
+async def _record_article_view(db: Any, article_slug: str) -> None:
+    """Count a read. Never let this break the page it is counting."""
+    try:
+        await db[ARTICLE_COLLECTION].update_one(
+            {"slug": article_slug},
+            {"$inc": {"views": 1}},
+        )
+    except PyMongoError:
+        pass
+
+
 def _article_to_card(
     article: ArticleRead,
     category_lookup: dict[str, str],
@@ -321,6 +352,11 @@ def _article_to_card(
         "author": article.author,
         "published_label": published_at,
         "views": article.views,
+        "article_format": article.article_format,
+        "format_label": ARTICLE_FORMAT_LABELS.get(article.article_format, ""),
+        "is_editors_pick": article.is_editors_pick,
+        "is_sponsored": article.is_sponsored,
+        "sponsor_name": article.sponsor_name,
         "tags": article.tags,
         "tag_links": [
             {
@@ -404,6 +440,7 @@ def _category_filters(
     active_category: str | None,
     active_tag: str | None,
     sort: str,
+    article_format: str | None = None,
 ) -> list[dict[str, Any]]:
     return [
         {
@@ -413,6 +450,7 @@ def _category_filters(
                 category=option.get("slug"),
                 tag=active_tag,
                 sort=sort,
+                article_format=article_format,
             ),
         }
         for option in options
@@ -425,6 +463,7 @@ def _tag_filters(
     active_tag: str | None,
     category: str | None,
     sort: str,
+    article_format: str | None = None,
 ) -> list[dict[str, Any]]:
     return [
         {
@@ -434,6 +473,7 @@ def _tag_filters(
                 category=category,
                 tag=option.get("slug"),
                 sort=sort,
+                article_format=article_format,
             ),
         }
         for option in options
@@ -444,12 +484,15 @@ def _pagination_url_template(
     category: str | None,
     tag: str | None,
     sort: str,
+    article_format: str | None = None,
 ) -> str:
     params = {"page": "__page__", "sort": sort}
     if category:
         params["category"] = category
     if tag:
         params["tag"] = tag
+    if article_format:
+        params["format"] = article_format
 
     return f"/articles?{urlencode(params)}".replace("__page__", "{page}")
 
@@ -459,14 +502,32 @@ def _article_filter_url(
     category: str | None,
     tag: str | None,
     sort: str,
+    article_format: str | None = None,
 ) -> str:
     params = {"sort": sort}
     if category:
         params["category"] = category
     if tag:
         params["tag"] = tag
+    if article_format:
+        params["format"] = article_format
 
     return f"/articles?{urlencode(params)}"
+
+
+def _resolve_article_format(value: str | None) -> str | None:
+    clean_value = _clean_optional_slug(value)
+    if clean_value not in ARTICLE_FORMATS:
+        return None
+
+    return clean_value
+
+
+def _format_label(article_format: str | None) -> str | None:
+    if article_format is None:
+        return None
+
+    return ARTICLE_FORMAT_LABELS.get(article_format)
 
 
 def _clean_optional_slug(value: str | None) -> str | None:
