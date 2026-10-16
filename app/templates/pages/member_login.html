@@ -1,0 +1,27 @@
+{% extends "layouts/base.html" %}
+{% from "components/form_fields.html" import field, form_alert %}
+
+{% block title %}Sign in | {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="member-page">
+  <div class="container">
+    <div class="member-panel">
+      <p class="eyebrow mb-2">Welcome back</p>
+      <h1>Sign in</h1>
+
+      {{ form_alert(error) }}
+
+      <form class="member-form" method="post" action="/login" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="next" value="{{ values.get('next', '') }}">
+        {{ field("email", "Email", values, field_errors, type="email", attrs='autocomplete="email" required') }}
+        {{ field("password", "Password", values, field_errors, type="password", attrs='autocomplete="current-password" required') }}
+        <button class="btn btn-primary member-submit" type="submit">Sign in</button>
+      </form>
+
+      <p class="member-switch">New here? <a href="/join">Create an account</a></p>
+    </div>
+  </div>
+</section>
+{% endblock %}

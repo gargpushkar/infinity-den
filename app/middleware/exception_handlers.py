@@ -92,7 +92,7 @@ async def _error_response(
         request,
         "pages/error.html",
         {
-            **await _safe_nav_context(),
+            **await _safe_nav_context(request),
             "app_name": settings.app_name,
             "page_title": _status_phrase(status_code),
             "status_code": status_code,
@@ -104,11 +104,11 @@ async def _error_response(
     )
 
 
-async def _safe_nav_context() -> dict[str, Any]:
+async def _safe_nav_context(request: Request) -> dict[str, Any]:
     # The error page must render even when whatever broke the request also
     # breaks the navigation lookup.
     try:
-        return await get_nav_context()
+        return await get_nav_context(request)
     except Exception:  # noqa: BLE001 - last resort on the error path
         logger.exception("Navigation context failed while rendering an error page")
         return {}

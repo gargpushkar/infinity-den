@@ -212,6 +212,8 @@ class ArticleService:
             )
         if query.author is not None:
             article_filter["author"] = query.author
+        if query.author_id is not None:
+            article_filter["author_id"] = query.author_id
         if query.published_from is not None or query.published_to is not None:
             article_filter["published_at"] = self._date_range_filter(
                 query.published_from,

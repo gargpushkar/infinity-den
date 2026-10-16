@@ -214,7 +214,7 @@ class AdminAuthService:
             subject=admin.id,
             secret_key=settings.auth_secret_key,
             expires_delta=timedelta(minutes=settings.auth_token_expire_minutes),
-            claims={"role": admin.role, "username": admin.username},
+            claims={"kind": "admin", "role": admin.role, "username": admin.username},
         )
 
     def _to_object_id(self, value: str) -> ObjectId | None:

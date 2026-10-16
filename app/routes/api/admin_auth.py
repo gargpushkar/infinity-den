@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi import status as http_status
 
 from app.config.settings import settings
@@ -10,6 +10,7 @@ from app.services.admin_auth_service import (
 )
 from app.services.admin_csrf import ADMIN_CSRF_COOKIE, verify_admin_csrf
 from app.services.admin_session import ADMIN_AUTH_COOKIE, get_current_admin
+from app.utils.rate_limit import admin_login_limiter, client_key
 from app.utils.security import SecurityError
 
 
@@ -27,9 +28,16 @@ def get_admin_service() -> AdminAuthService:
 )
 async def login_admin(
     payload: AdminLoginRequest,
+    request: Request,
     response: Response,
     admin_service: AdminAuthService = Depends(get_admin_service),
 ) -> AdminTokenResponse:
+    if not admin_login_limiter.allow(client_key(request)):
+        raise HTTPException(
+            status_code=http_status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many sign-in attempts. Try again in a few minutes.",
+        )
+
     try:
         admin = await admin_service.authenticate_admin(
             username=payload.username,

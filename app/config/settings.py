@@ -29,6 +29,11 @@ class Settings:
         cast=int,
         default=60,
     )
+    member_token_expire_days: int = config(
+        "MEMBER_TOKEN_EXPIRE_DAYS",
+        cast=int,
+        default=30,
+    )
     auth_cookie_secure: bool = config(
         "AUTH_COOKIE_SECURE",
         cast=bool,

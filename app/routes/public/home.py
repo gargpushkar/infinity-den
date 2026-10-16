@@ -12,7 +12,7 @@ templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/")
 async def homepage(request: Request):
-    nav_context = await get_nav_context()
+    nav_context = await get_nav_context(request)
     homepage_context = await get_homepage_context()
 
     return templates.TemplateResponse(

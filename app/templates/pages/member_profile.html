@@ -1,0 +1,37 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ member.display_name }} | {{ app_name }}{% endblock %}
+{% block meta_description %}{{ seo_description }}{% endblock %}
+
+{% block content %}
+<section class="member-profile">
+  <div class="container">
+    <header class="member-profile-header">
+      <p class="eyebrow mb-2">Member</p>
+      <h1>{{ member.display_name }}</h1>
+      <p class="member-profile-handle">@{{ member.username }} &middot; Joined {{ member.joined_label }}</p>
+      {% if member.bio %}<p class="member-profile-bio">{{ member.bio }}</p>{% endif %}
+      {% if current_member and current_member.username == member.username %}
+        <a class="btn btn-outline-primary" href="/account">Edit profile</a>
+      {% endif %}
+    </header>
+
+    <section aria-labelledby="memberPiecesTitle">
+      <h2 class="member-profile-section-title" id="memberPiecesTitle">
+        Contributions{% if piece_count %} <span>{{ piece_count }}</span>{% endif %}
+      </h2>
+      {% if pieces %}
+        <div class="related-articles-grid">
+          {% for article in pieces %}
+            <div class="related-articles-item">
+              {% include "components/article_card.html" %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="member-profile-empty">No published contributions yet.</p>
+      {% endif %}
+    </section>
+  </div>
+</section>
+{% endblock %}

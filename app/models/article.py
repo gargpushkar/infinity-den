@@ -33,6 +33,7 @@ ARTICLE_DOCUMENT_FIELDS: Final[tuple[str, ...]] = (
     "content",
     "cover_image",
     "author",
+    "author_id",
     "category_id",
     "tags",
     "is_featured",
@@ -107,6 +108,7 @@ class ArticleDocument:
     content: str
     author: str
     cover_image: str | None = None
+    author_id: str | None = None
     category_id: str | None = None
     tags: list[str] = field(default_factory=list)
     is_featured: bool = False
@@ -142,6 +144,7 @@ def create_article_document(
     content: str,
     author: str,
     cover_image: str | None = None,
+    author_id: str | None = None,
     category_id: str | None = None,
     tags: list[str] | None = None,
     is_featured: bool = False,
@@ -164,6 +167,7 @@ def create_article_document(
         content=content,
         author=author,
         cover_image=cover_image,
+        author_id=author_id,
         category_id=category_id,
         tags=list(tags or []),
         is_featured=is_featured,

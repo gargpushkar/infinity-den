@@ -24,7 +24,7 @@ async def category_listing(
     article_state: str = Query(default="all", max_length=20),
     sort: str = Query(default="name_asc", max_length=40),
 ):
-    nav_context = await get_nav_context()
+    nav_context = await get_nav_context(request)
     listing_context = await get_category_listing_context(
         page=page,
         search=search,
@@ -57,7 +57,7 @@ async def category_detail(
     page: int = Query(default=1, ge=1),
     format: str | None = Query(default=None, max_length=20),
 ):
-    nav_context = await get_nav_context()
+    nav_context = await get_nav_context(request)
     detail_context = await get_category_detail_context(
         category_slug=category_slug,
         page=page,

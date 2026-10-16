@@ -27,8 +27,9 @@ async def get_current_admin(
     except TokenValidationError as exc:
         raise _unauthorized() from exc
 
+    # Member tokens are signed with the same key; only admin tokens count here.
     admin_id = payload.get("sub")
-    if not isinstance(admin_id, str):
+    if payload.get("kind") != "admin" or not isinstance(admin_id, str):
         raise _unauthorized()
 
     admin = await admin_service.get_admin_by_id(admin_id)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from fastapi import Request
 from pymongo import ASCENDING
 from pymongo.errors import PyMongoError
 
@@ -9,12 +10,13 @@ from app.config.constants import LAUNCH_ROOMS
 from app.database.mongodb import get_database
 from app.models.category import CATEGORY_COLLECTION
 from app.services.article_page_service import room_url
+from app.services.member_session import member_claims
 
 
 NAV_ROOM_LIMIT = 12
 
 
-async def get_nav_context() -> dict[str, Any]:
+async def get_nav_context(request: Request) -> dict[str, Any]:
     """Navigation shared by every public page.
 
     Built once here instead of per page, so header links behave the same
@@ -27,7 +29,14 @@ async def get_nav_context() -> dict[str, Any]:
 
     rooms = rooms or fallback_rooms()
 
+    claims = member_claims(request)
+
     return {
+        "current_member": (
+            {"username": claims.get("username", ""), "display_name": claims.get("display_name", "")}
+            if claims
+            else None
+        ),
         "nav_rooms": rooms,
         "category_links": rooms,
         "categories": [room["name"] for room in rooms],

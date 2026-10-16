@@ -1,0 +1,33 @@
+{% extends "layouts/base.html" %}
+{% from "components/form_fields.html" import field, form_alert %}
+
+{% block title %}Your account | {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="member-page">
+  <div class="container">
+    <div class="member-panel">
+      <p class="eyebrow mb-2">Your account</p>
+      <h1>{{ member.display_name }}</h1>
+      <p class="member-lede">
+        Your public profile: <a href="{{ member.url }}">{{ member.url }}</a><br>
+        Signed in as {{ email }} (only you can see this).
+      </p>
+
+      {{ form_alert(error, notice) }}
+
+      <form class="member-form" method="post" action="/account" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        {{ field("display_name", "Your name", values, field_errors, attrs='autocomplete="name" maxlength="60" required') }}
+        {{ field("bio", "About you", values, field_errors, type="textarea", hint="A sentence or two for your profile. Up to 300 characters.", attrs='maxlength="300"') }}
+        <button class="btn btn-primary member-submit" type="submit">Save profile</button>
+      </form>
+
+      <form class="member-signout" method="post" action="/logout">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="btn btn-outline-primary" type="submit">Sign out</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

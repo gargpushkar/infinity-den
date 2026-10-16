@@ -1,0 +1,29 @@
+{% extends "layouts/base.html" %}
+{% from "components/form_fields.html" import field, form_alert %}
+
+{% block title %}Join | {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="member-page">
+  <div class="container">
+    <div class="member-panel">
+      <p class="eyebrow mb-2">Join {{ app_name }}</p>
+      <h1>Share what you know.</h1>
+      <p class="member-lede">Create an account to share experiences, perspectives, and research with the community.</p>
+
+      {{ form_alert(error) }}
+
+      <form class="member-form" method="post" action="/join" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        {{ field("display_name", "Your name", values, field_errors, hint="Shown on everything you publish.", attrs='autocomplete="name" maxlength="60" required') }}
+        {{ field("username", "Username", values, field_errors, hint="Your profile lives at /members/your-username. Lowercase letters, numbers, - and _.", attrs='autocomplete="username" maxlength="30" required') }}
+        {{ field("email", "Email", values, field_errors, type="email", hint="Used to sign in. Never shown publicly.", attrs='autocomplete="email" required') }}
+        {{ field("password", "Password", values, field_errors, type="password", hint="At least " ~ password_min_length ~ " characters.", attrs='autocomplete="new-password" minlength="' ~ password_min_length ~ '" required') }}
+        <button class="btn btn-primary member-submit" type="submit">Create account</button>
+      </form>
+
+      <p class="member-switch">Already a member? <a href="/login">Sign in</a></p>
+    </div>
+  </div>
+</section>
+{% endblock %}
