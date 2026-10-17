@@ -1,10 +1,10 @@
 /* ---------------------------------------------------------------------------
    Tokens. The brand palette comes from the logo kit: Ink at the edge, warming
-   to Amber at the centre. Night values follow the visitor's device setting.
+   to Amber at the centre. Night values live in night.css.
    Every colour below is used through a token so night mode stays complete.
    --------------------------------------------------------------------------- */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
   /* brand (fixed in both modes) */
   --ink: #171a2b;
@@ -96,56 +96,6 @@
   --bs-link-hover-color: var(--accent-hover);
   --bs-heading-color: inherit;
   --bs-form-select-bg-img: var(--select-arrow);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-main: #171a2b;
-    --bg-secondary: #1b1f33;
-    --card: #1f2337;
-    --line: #2f3450;
-    --line-strong: #4a4f6a;
-    --text: #fbf7f0;
-    --text-secondary: #a9a6a0;
-    --text-muted: #8e8b86;
-
-    --accent: #f2a33a;
-    --accent-hover: #f5b961;
-    --accent-rgb: 242, 163, 58;
-    --accent-tint: #2a2830;
-    --action: #f2a33a;
-    --action-hover: #f5b961;
-    --on-action: #171a2b;
-    --focus: #f2a33a;
-
-    --header-bg: #10121f;
-    --header-line: #262a40;
-
-    --success: #9fd8ae;
-    --success-bg: #17291f;
-    --success-line: #2d4a37;
-    --danger: #f4b4a3;
-    --danger-bg: #2e1a18;
-    --danger-line: #553029;
-    --warning-fg: #f1cf8e;
-    --warning-bg: #2b2416;
-    --warning-line: #4f4126;
-
-    --label-experience: #f5c27a;
-
-    --arcade-bg: #1f2337;
-    --arcade-fg: #fbf7f0;
-    --arcade-muted: #a9a6a0;
-    --arcade-line: #4a4f6a;
-    --arcade-motif: #3a3f5c;
-    --arcade-btn-bg: #f2a33a;
-    --arcade-btn-fg: #171a2b;
-
-    --shadow-rgb: 0, 0, 0;
-    --select-arrow: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23fbf7f0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-    --close-filter: invert(1) grayscale(100%) brightness(200%);
-    --bs-secondary-rgb: 169, 166, 160;
-  }
 }
 
 body {
@@ -411,6 +361,7 @@ button:focus-visible,
 }
 
 .topbar-search,
+.theme-toggle,
 .menu-box {
   align-items: center;
   background: transparent;
@@ -422,12 +373,20 @@ button:focus-visible,
   justify-content: center;
 }
 
-.topbar-search {
+.topbar-search,
+.theme-toggle {
   width: 2.75rem;
+}
+
+/* night.css swaps these: the switch shows the mode it changes to. */
+.theme-icon-sun {
+  display: none;
 }
 
 .topbar-search:hover,
 .topbar-search:focus-visible,
+.theme-toggle:hover,
+.theme-toggle:focus-visible,
 .menu-box:hover,
 .menu-box:focus-visible {
   border-color: var(--amber);

@@ -1,6 +1,22 @@
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Light or dark: switches night.css on or off and remembers the choice in a
+  // cookie, so the server renders the next page in the same mode.
+  const nightStyles = document.querySelector("[data-night-styles]");
+  document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
+    const isDark = () => window.matchMedia(nightStyles.media).matches;
+    const label = () => button.setAttribute("aria-label", isDark() ? "Switch to light mode" : "Switch to dark mode");
+    label();
+    button.addEventListener("click", () => {
+      const theme = isDark() ? "light" : "dark";
+      nightStyles.media = theme === "dark" ? "all" : "not all";
+      const secure = location.protocol === "https:" ? "; Secure" : "";
+      document.cookie = `theme=${theme}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+      label();
+    });
+  });
+
   if (window.bootstrap?.Tooltip) {
     document.querySelectorAll("[data-bs-toggle='tooltip']").forEach((element) => {
       new bootstrap.Tooltip(element);

@@ -7,6 +7,7 @@ import pytest
 
 
 CSS = Path("app/static/css/main.css").read_text()
+NIGHT_CSS = Path("app/static/css/night.css").read_text()
 
 # (text token, background token) pairs the templates actually use.
 TEXT_PAIRS = [
@@ -21,9 +22,9 @@ TEXT_PAIRS = [
 ]
 
 
-def _block(start: str) -> str:
-    i = CSS.index(start)
-    return CSS[i: CSS.index("\n}\n", i)]
+def _block(start: str, css: str = CSS) -> str:
+    i = css.index(start)
+    return css[i: css.index("\n}\n", i)]
 
 
 def _tokens(*blocks: str) -> dict[str, str]:
@@ -54,7 +55,7 @@ def _contrast(a: str, b: str) -> float:
 
 
 DAY = _tokens(_block(":root {"))
-NIGHT = {**DAY, **_tokens(_block("@media (prefers-color-scheme: dark) {\n  :root {"))}
+NIGHT = {**DAY, **_tokens(_block(":root {", NIGHT_CSS))}
 
 
 @pytest.mark.parametrize("mode", [DAY, NIGHT], ids=["day", "night"])
