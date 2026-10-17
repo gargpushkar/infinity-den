@@ -40,6 +40,7 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       {{ field("body", "Add a comment", values, field_errors, type="textarea", hint="Up to 2,000 characters. **bold**, _italic_ and [links](https://example.org) work. Critique arguments, not people.", attrs='maxlength="2000" required') }}
       <button class="btn btn-primary member-submit" type="submit">Post comment</button>
+      <p class="member-field-hint">Comments appear right away and follow the <a href="/guidelines">community guidelines</a>.</p>
     </form>
   {% else %}
     <p class="comments-signin"><a href="/login?next=/articles/{{ article.slug }}%23comments">Sign in</a> or <a href="/join">join</a> to add a comment.</p>

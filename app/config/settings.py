@@ -36,6 +36,8 @@ class Settings:
         cast=int,
         default=30,
     )
+    # Shown in the footer and the policy pages for questions and data requests.
+    contact_email: str = config("CONTACT_EMAIL", default="gargpushkar96@gmail.com")
     # Uploaded images. Keep it outside the code checkout on servers, and back it up.
     media_dir: str = config("MEDIA_DIR", default="media")
     auth_cookie_secure: bool = config(

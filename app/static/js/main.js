@@ -884,6 +884,9 @@ document.addEventListener("DOMContentLoaded", () => {
           String(formData.get("seo_description") || "").trim() || null,
       };
 
+      if (formData.has("correction_note")) {
+        payload.correction_note = String(formData.get("correction_note") || "").trim() || null;
+      }
       if (status === "published") {
         payload.published_at = new Date().toISOString();
       }

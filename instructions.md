@@ -101,6 +101,7 @@ Creative names are display text. Everything permanent is plain and descriptive.
 | Saved pieces | `/saved` |
 | Report something | `/report?type=article\|response\|comment&id=…` |
 | Comment on / save a piece (form posts) | `/articles/{slug}/comments`, `/articles/{slug}/bookmark` |
+| Community guidelines, editorial policy, privacy, terms | `/guidelines`, `/editorial-policy`, `/privacy`, `/terms` |
 
 Do not add a second URL for the same page. Nav and cards link to the canonical
 URL.
@@ -230,6 +231,7 @@ Fields:
 - is_editors_pick
 - status — `draft` | `pending_review` *(new)* | `published` | `archived`
 - review_note *(new)* — editor feedback when a submission is sent back
+- correction_note, corrected_at — an editor's correction, shown dated at the end of the piece; set only through the admin editor
 - seo_title
 - seo_description
 - created_at
@@ -555,9 +557,11 @@ Implement:
   breadcrumbs where they appear
 
 The Content Security Policy (`app/middleware/security_headers.py`) allows
-scripts and styles only from this site, jsDelivr, and Google Fonts. Keep
+scripts and styles only from this site and jsDelivr. Fonts are self-hosted
+(`static/css/fonts.css`), so no visitor's browser contacts Google. Keep
 templates free of inline scripts and `style=""` attributes; add a host to the
-policy rather than loosening it.
+policy rather than loosening it, and update `/privacy` when a new outside
+service sees visitors' requests.
 
 ---
 
@@ -584,6 +588,7 @@ Member content is untrusted input. In addition to the above:
 - rate-limit member writes (posts, responses, comments, reports) and login
 - never expose member emails or password hashes in public pages or API responses
 - every member-generated item can be reported by members and hidden by editors
+- the policy pages (`app/routes/public/pages.py`) describe what the site really does: when a change affects what is stored, which cookies are set, or which outside services see visitors' requests, update `/privacy` and its date in the same branch
 - member pieces (articles, experiences, perspectives) publish only after editorial review in Phase 1
 - responses and comments post immediately; editors can hide them, and members can report them
 

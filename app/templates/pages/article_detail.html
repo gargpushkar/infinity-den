@@ -66,6 +66,13 @@
            text before formatting it, so it is safe to output as-is. #}
         <div class="article-content">{{ article.content_html }}</div>
 
+        {% if article.correction_html %}
+          <aside class="article-correction" aria-labelledby="articleCorrectionTitle">
+            <h2 id="articleCorrectionTitle">Correction{% if article.corrected_on %} &middot; <time>{{ article.corrected_on }}</time>{% endif %}</h2>
+            <div>{{ article.correction_html }}</div>
+          </aside>
+        {% endif %}
+
         {% if article.sources %}
           <section class="article-sources" aria-labelledby="articleSourcesTitle">
             <h2 id="articleSourcesTitle">Sources</h2>

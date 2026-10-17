@@ -20,6 +20,7 @@
         {{ field("email", "Email", values, field_errors, type="email", hint="Used to sign in. Never shown publicly.", attrs='autocomplete="email" required') }}
         {{ field("password", "Password", values, field_errors, type="password", hint="At least " ~ password_min_length ~ " characters.", attrs='autocomplete="new-password" minlength="' ~ password_min_length ~ '" required') }}
         <button class="btn btn-primary member-submit" type="submit">Create account</button>
+        <p class="member-field-hint">You must be 13 or older. By joining, you agree to the <a href="/terms">terms</a> and the <a href="/guidelines">community guidelines</a>. The <a href="/privacy">privacy policy</a> explains what we store.</p>
       </form>
 
       <p class="member-switch">Already a member? <a href="/login">Sign in</a></p>

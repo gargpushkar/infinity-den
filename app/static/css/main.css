@@ -2937,7 +2937,7 @@ button:focus-visible,
 .footer-main {
   display: grid;
   gap: clamp(1.75rem, 4vw, 3rem);
-  grid-template-columns: minmax(0, 1.1fr) minmax(16rem, 0.9fr) minmax(18rem, 0.9fr);
+  grid-template-columns: minmax(0, 0.9fr) minmax(24rem, 1.3fr) minmax(18rem, 0.8fr);
 }
 
 .footer-brand {
@@ -2987,7 +2987,7 @@ button:focus-visible,
 .footer-link-grid {
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .footer-link-grid h2,
@@ -3613,6 +3613,26 @@ button:focus-visible,
 }
 
 /* Sources under researched articles */
+.article-correction {
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-line);
+  border-radius: var(--radius);
+  color: var(--text);
+  margin-top: 2rem;
+  padding: 1rem 1.25rem;
+}
+
+.article-correction h2 {
+  color: var(--warning-fg);
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.article-correction p:last-child {
+  margin-bottom: 0;
+}
+
 .article-sources {
   border-top: 1px solid var(--line);
   margin-top: 2rem;
@@ -3656,6 +3676,79 @@ button:focus-visible,
 
   .menu-box {
     display: inline-flex;
+  }
+}
+
+.policy-page {
+  padding: 3rem 0 4rem;
+}
+
+.policy-layout {
+  display: grid;
+  gap: 2rem;
+}
+
+.policy-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.policy-nav a {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  display: block;
+  font-size: 0.9rem;
+  padding: 0.45rem 0.8rem;
+  text-decoration: none;
+}
+
+.policy-nav a:hover,
+.policy-nav a:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.policy-nav a[aria-current="page"] {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.policy-body {
+  max-width: 44rem;
+}
+
+.policy-updated {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* A calmer opening than an article's lede. */
+.policy-body .article-content > p:first-child {
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.policy-body .article-content h3 {
+  font-size: 1.1rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 992px) {
+  .policy-layout {
+    grid-template-columns: 14rem minmax(0, 1fr);
+  }
+
+  .policy-nav ul {
+    flex-direction: column;
+    position: sticky;
+    top: 6rem;
   }
 }
 

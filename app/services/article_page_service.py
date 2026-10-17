@@ -408,6 +408,8 @@ def _article_to_detail(
         "content": article.content,
         "content_html": render_markdown(article.content),
         "sources": [source.model_dump() for source in article.sources],
+        "correction_html": render_markdown(article.correction_note) if article.correction_note else "",
+        "corrected_on": _format_date(article.corrected_at) if article.corrected_at else "",
         "seo_title": article.seo_title or article.title,
         "seo_description": article.seo_description or article.excerpt,
         "published_iso": article.published_at.isoformat() if article.published_at else "",
