@@ -133,7 +133,7 @@ async def logout(request: Request):
 # --- your account ------------------------------------------------------------
 
 @router.get("/account")
-async def account_page(request: Request, welcome: bool = False, saved: bool = False):
+async def account_page(request: Request, welcome: bool = False, saved: bool = False, reset: bool = False):
     member = await get_current_member(request)
     if member is None:
         return RedirectResponse("/login?next=/account", status_code=303)
@@ -146,7 +146,8 @@ async def account_page(request: Request, welcome: bool = False, saved: bool = Fa
         member=public_profile(member),
         email=member.email,
         pieces=await MemberArticleService().list_own(member),
-        notice="Welcome to Infinity Den." if welcome else "Profile saved." if saved else None,
+        notice="Welcome to Infinity Den." if welcome else "Profile saved." if saved
+        else "Your new password is saved, and every other device is signed out." if reset else None,
     )
 
 

@@ -17,7 +17,8 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 
 ## Current Focus
 - [ ] `feature/community-pages`
-- [ ] Password reset by email (Brevo over SMTP, free plan)
+- [x] Password reset by email (`feature/password-reset`; Brevo over SMTP)
+- [ ] Set up Brevo: authenticate the domain in GoDaddy DNS, then set the SMTP settings and `SITE_URL` on the server
 - [ ] Self-serve account deletion
 - [ ] Then Phase 2, starting with the Debate Den
 
@@ -185,7 +186,9 @@ Carried over from the foundation; pick up when needed.
 - [ ] Set `MEDIA_DIR` outside the checkout, back it up, and set nginx `client_max_body_size 6m`
 
 ## Accounts
-- [ ] Password reset by email (needs an email-sending service)
+- [x] Password reset by email: one-hour, single-use links; a reset signs out every other device
+- [ ] Email verification at sign-up (if fake sign-ups become a problem)
+- [ ] Tighten DMARC to `p=quarantine` once emails arrive reliably
 - [ ] Move rate-limit counters out of process memory before running several workers
 
 ## CMS

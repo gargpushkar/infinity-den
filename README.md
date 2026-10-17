@@ -128,6 +128,11 @@ The app reads configuration from `.env` through `app/config/settings.py`.
 | `SITE_TIMEZONE` | `America/New_York` | When "today's question" changes |
 | `MEDIA_DIR` | `media` | Where uploaded cover images are stored (served at `/media/`) |
 | `CONTACT_EMAIL` | the owner's address | Shown in the footer and on the policy pages for questions and data requests |
+| `SITE_URL` | *(empty)* | Public address for links in emails, e.g. `https://infinityden.com`; required in production |
+| `SMTP_HOST` | *(empty)* | Outgoing mail server; empty means emails are logged instead of sent |
+| `SMTP_PORT` | `587` | `587` or `2525` (STARTTLS), or `465` (TLS) |
+| `SMTP_USERNAME`, `SMTP_PASSWORD` | *(empty)* | The SMTP login and key from the email provider |
+| `MAIL_FROM` | `Infinity Den <noreply@infinityden.com>` | Sender of every email; replies go to `CONTACT_EMAIL` |
 
 `APP_ENV=production` also turns off the API docs (`/docs`, `/redoc`, `/openapi.json`).
 
@@ -153,6 +158,12 @@ The app reads configuration from `.env` through `app/config/settings.py`.
    AUTH_COOKIE_SECURE=true
    SITE_TIMEZONE=America/New_York
    MEDIA_DIR=/var/lib/infinity-den/media
+   SITE_URL=https://infinityden.com
+   SMTP_HOST=smtp-relay.brevo.com
+   SMTP_PORT=587
+   SMTP_USERNAME=<Brevo SMTP login>
+   SMTP_PASSWORD=<Brevo SMTP key>
+   MAIL_FROM=Infinity Den <noreply@infinityden.com>
    ```
 
    Always set `MONGODB_DB_NAME`: the code default is `infinity_den`.
@@ -181,7 +192,15 @@ The app reads configuration from `.env` through `app/config/settings.py`.
    claims, a few pieces per room (some personal experiences, some marked
    "Editor's pick"). Tags appear as filters once a piece using them is
    published.
-6. **After launch.** Turn on HSTS in nginx once the site will only ever be
+6. **Email (Brevo, free plan: 300 a day).** In Brevo, add `infinityden.com`
+   under Senders, Domains & Dedicated IPs → Domains, and add the records it
+   shows in GoDaddy's DNS (the Brevo code, DKIM, and DMARC with `p=none`).
+   GoDaddy adds `.infinityden.com` to names itself, and a domain must have only
+   one SPF and one DMARC record. Once the domain shows as authenticated, create
+   an SMTP key under SMTP & API and put it in `.env` as above. To check, use
+   "Forgot your password?" on the site with your own account. If the server
+   can't connect, the host may block port 587: set `SMTP_PORT=2525`.
+7. **After launch.** Turn on HSTS in nginx once the site will only ever be
    served over HTTPS.
 
 ## Development Notes

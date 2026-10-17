@@ -41,6 +41,10 @@ member_login_limiter = RateLimiter(limit=10, window_seconds=15 * 60)
 newsletter_limiter = RateLimiter(limit=5, window_seconds=60 * 60)
 member_signup_limiter = RateLimiter(limit=5, window_seconds=60 * 60)
 admin_login_limiter = RateLimiter(limit=10, window_seconds=15 * 60)
+# Reset emails: per IP, and per address so one inbox can't be flooded.
+reset_request_limiter = RateLimiter(limit=5, window_seconds=60 * 60)
+reset_email_limiter = RateLimiter(limit=3, window_seconds=60 * 60)
+reset_password_limiter = RateLimiter(limit=10, window_seconds=15 * 60)
 # Keyed by member id rather than IP: these protect editors' review time.
 member_submit_limiter = RateLimiter(limit=5, window_seconds=60 * 60)
 member_save_limiter = RateLimiter(limit=30, window_seconds=60 * 60)

@@ -36,6 +36,7 @@ def create_member_token(member: MemberRead) -> str:
             "kind": MEMBER_TOKEN_KIND,
             "username": member.username,
             "display_name": member.display_name,
+            "sv": member.session_version,
         },
     )
 
@@ -81,7 +82,12 @@ async def get_current_member(request: Request) -> MemberRead | None:
     if claims is None:
         return None
 
-    return await UserService().get_member_by_id(claims["sub"])
+    member = await UserService().get_member_by_id(claims["sub"])
+    # Cookies from before a password reset carry an older session number.
+    # Cookies issued before session numbers existed carry none, which counts as 0.
+    if member is None or member.session_version != claims.get("sv", 0):
+        return None
+    return member
 
 
 def form_csrf_token(request: Request) -> str:
