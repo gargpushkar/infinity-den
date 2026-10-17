@@ -1,7 +1,7 @@
 {% set category_name = category.name|default("Room", true) %}
 {% set category_subtitle = category.subtitle|default("", true) %}
 {% set category_description = category.description|default("", true) %}
-{% set category_image = category.image|default("/static/images/articles/editorial-default.svg", true) %}
+{% set category_image = category.image %}
 {% set category_image_alt = category.image_alt|default(category_name, true) %}
 {% set category_url = category.category_url|default("/categories", true) %}
 {% set category_article_count = category.article_count_label|default("0 articles", true) %}

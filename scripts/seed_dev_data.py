@@ -37,15 +37,6 @@ from app.services.quiz_service import quiz_slug
 NOW = datetime(2026, 10, 16, 8, 0, tzinfo=timezone.utc)
 AUTHOR = "Sample writer"
 
-ROOM_IMAGES: dict[str, str] = {
-    "science": "/static/images/articles/search-traffic.svg",
-    "psychology": "/static/images/articles/newsletter-loops.svg",
-    "history": "/static/images/articles/content-engine.svg",
-    "technology": "/static/images/articles/search-traffic.svg",
-    "philosophy": "/static/images/articles/editorial-default.svg",
-    "personal-stories": "/static/images/articles/contributors.svg",
-}
-
 ARTICLES: list[dict[str, Any]] = [
     # --- science -------------------------------------------------------------
     {
@@ -341,7 +332,7 @@ async def _apply(db: Any) -> None:
             slug=str(room["slug"]),
             subtitle=str(room["subtitle"]),
             description=str(room["description"]),
-            image=ROOM_IMAGES.get(str(room["slug"])),
+            image=None,  # generated from the room
             nav_order=int(room["nav_order"]),
         ).to_mongo()
         await db[CATEGORY_COLLECTION].update_one(
@@ -362,7 +353,7 @@ async def _apply(db: Any) -> None:
             excerpt=article["excerpt"],
             content="\n\n".join(article["body"]),
             author=AUTHOR,
-            cover_image=ROOM_IMAGES.get(article["category_id"]),
+            cover_image=None,  # generated from the room and slug
             category_id=article["category_id"],
             tags=article["tags"],
             is_featured=article.get("is_featured", False),

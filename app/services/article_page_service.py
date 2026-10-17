@@ -19,6 +19,7 @@ from app.schemas.article import ArticleQueryParams, ArticleRead
 from app.services.article_service import ArticleService
 from app.services.user_service import UserService
 from app.utils.markdown import render_markdown
+from app.utils.covers import resolve_cover
 from app.utils.reading_time import calculate_reading_time
 
 
@@ -339,7 +340,7 @@ def _article_to_card(
         "read_time_minutes": reading_time.minutes,
         "word_count": reading_time.word_count,
         "word_count_label": _format_word_count(reading_time.word_count),
-        "cover_image": article.cover_image or "/static/images/articles/editorial-default.svg",
+        "cover_image": resolve_cover(article.cover_image, article.category_id, article.slug),
         "image_alt": article.title,
         "author": article.author,
         "published_label": published_at,

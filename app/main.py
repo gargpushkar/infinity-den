@@ -25,6 +25,7 @@ from app.routes.api.search import router as search_router
 from app.routes.api.tags import router as tags_router
 from app.routes.public.articles import router as public_articles_router
 from app.routes.public.categories import router as public_categories_router
+from app.routes.public.covers import router as covers_router
 from app.routes.public.experiences import router as experiences_router
 from app.routes.public.home import router as home_router
 from app.routes.public.members import router as members_router
@@ -81,6 +82,7 @@ app.include_router(search_router)
 app.include_router(tags_router)
 app.include_router(public_articles_router)
 app.include_router(public_categories_router)
+app.include_router(covers_router)
 app.include_router(experiences_router)
 app.include_router(home_router)
 app.include_router(members_router)

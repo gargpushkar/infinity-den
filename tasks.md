@@ -16,7 +16,7 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 - [ ] Phase 3 — Community growth
 
 ## Current Focus
-- [ ] `feature/visual-identity`
+- [ ] `feature/generated-covers`
 
 ---
 
@@ -95,9 +95,9 @@ order; each assumes the previous ones are merged.
 - [x] Verify at 375px, 768px, 1024px, 1440px, day and night
 
 ## 7b. `feature/generated-covers`
-- [ ] Generated covers from the logo motif, one pattern per room
-- [ ] Uploaded covers override; no placeholder SVGs on published content
-- [ ] One branded preview image for social sharing
+- [x] Generated covers from the logo motif, one pattern per room
+- [x] Uploaded covers override; no placeholder SVGs on published content
+- [x] One branded preview image for social sharing
 
 ## 7c. `feature/homepage-rebuild`
 - [ ] Homepage sections in the order given in `vision.md` (Direction C)

@@ -14,6 +14,7 @@ from app.schemas.category import CategoryRead
 from app.services.article_page_service import article_to_card_context, room_url
 from app.services.article_service import ArticleService
 from app.services.category_service import CategoryService
+from app.utils.covers import resolve_cover
 
 
 CATEGORY_LISTING_PER_PAGE = 9
@@ -285,8 +286,7 @@ def _category_to_card(
         "subtitle": category_data["subtitle"],
         "description": category_data["description"]
         or "A collection of ideas, stories, and perspectives from this room.",
-        "image": category_data["image"]
-        or "/static/images/articles/editorial-default.svg",
+        "image": resolve_cover(category_data["image"], category_data["slug"], category_data["slug"]),
         "image_alt": f"{category_data['name']} category",
         "article_count": article_count,
         "article_count_label": _format_article_count(article_count),
@@ -308,7 +308,7 @@ def _category_to_detail(
         "subtitle": category.subtitle or "",
         "slug": category.slug,
         "description": description,
-        "image": category.image or "/static/images/articles/editorial-default.svg",
+        "image": resolve_cover(category.image, category.slug, category.slug),
         "image_alt": f"{category.name} category",
         "article_count": article_count,
         "article_count_label": _format_article_count(article_count),
