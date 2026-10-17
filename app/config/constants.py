@@ -88,5 +88,15 @@ RESPONSE_KIND_LABELS: dict[str, str] = {
 RESPONSE_SHORT_KIND = "thought"
 
 COMMENT_MAX_LENGTH = 2000
+
+# Why a member is reporting something. Shown in this order on the report form.
+REPORT_REASONS: dict[str, str] = {
+    "spam": "Spam or advertising",
+    "harassment": "Harassment or hate",
+    "misinformation": "Misinformation",
+    "plagiarism": "Plagiarism or undisclosed AI",
+    "other": "Something else",
+}
+REPORT_DETAIL_MAX_LENGTH = 500
 RESPONSE_SHORT_MAX_LENGTH = 500
 RESPONSE_MAX_LENGTH = 3000

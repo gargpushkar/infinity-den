@@ -24,6 +24,7 @@ from app.services.article_service import ArticleService
 from app.services.nav_service import get_rooms
 from app.services.question_service import QuestionService, site_today
 from app.services.quiz_service import QuizService
+from app.services.report_service import ReportService
 from app.services.user_service import UserService
 
 
@@ -38,7 +39,7 @@ async def admin_dashboard_page(
 ):
     dashboard_context = await get_admin_dashboard_context()
 
-    return _admin_template(
+    return await _admin_template(
         request,
         "pages/admin_dashboard.html",
         admin=admin,
@@ -55,7 +56,7 @@ async def admin_articles_page(
 ):
     dashboard_context = await get_admin_articles_context()
 
-    return _admin_template(
+    return await _admin_template(
         request,
         "pages/admin_articles.html",
         admin=admin,
@@ -75,7 +76,7 @@ async def admin_new_article_page(
 ):
     dashboard_context = await get_admin_articles_context()
 
-    return _admin_template(
+    return await _admin_template(
         request,
         "pages/admin_article_editor.html",
         admin=admin,
@@ -103,7 +104,7 @@ async def admin_edit_article_page(
             detail="Article was not found.",
         )
 
-    return _admin_template(
+    return await _admin_template(
         request,
         "pages/admin_article_editor.html",
         admin=admin,
@@ -125,7 +126,7 @@ async def admin_categories_page(
 ):
     dashboard_context = await get_admin_categories_context()
 
-    return _admin_template(
+    return await _admin_template(
         request,
         "pages/admin_categories.html",
         admin=admin,
@@ -148,7 +149,7 @@ async def admin_questions_page(
     except (RuntimeError, PyMongoError):
         questions, counts, rooms = [], {}, []
 
-    return _admin_template(
+    return await _admin_template(
         request,
         "pages/admin_questions.html",
         admin=admin,
@@ -175,7 +176,7 @@ async def admin_question_page(
     if question is None:
         raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Question was not found.")
 
-    return _admin_template(
+    return await _admin_template(
         request,
         "pages/admin_question_detail.html",
         admin=admin,
@@ -219,13 +220,34 @@ async def _arcade_page(request: Request, admin: AdminRead, *, item_id: str | Non
     if item_id and item is None:
         raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Claim was not found.")
 
-    return _admin_template(
+    return await _admin_template(
         request,
         "pages/admin_arcade.html",
         admin=admin,
         active_nav="arcade",
         page_title="Arcade",
         context={"item": item, "items": items, "rooms": rooms, "articles": articles},
+    )
+
+
+@router.get("/reports")
+async def admin_reports_page(
+    request: Request,
+    admin: AdminRead = Depends(get_current_admin),
+):
+    try:
+        service = ReportService()
+        queue, handled, available = await service.queue(), await service.recently_handled(), True
+    except (RuntimeError, PyMongoError):
+        queue, handled, available = [], [], False
+
+    return await _admin_template(
+        request,
+        "pages/admin_reports.html",
+        admin=admin,
+        active_nav="reports",
+        page_title="Reports",
+        context={"queue": queue, "handled": handled, "is_database_available": available},
     )
 
 
@@ -236,7 +258,7 @@ async def admin_submissions_page(
 ):
     dashboard_context = await get_admin_submissions_context()
 
-    return _admin_template(
+    return await _admin_template(
         request,
         "pages/admin_submissions.html",
         admin=admin,
@@ -253,7 +275,7 @@ async def admin_users_page(
 ):
     context = await _load_admin_users_context()
 
-    return _admin_template(
+    return await _admin_template(
         request,
         "pages/admin_users.html",
         admin=admin,
@@ -263,7 +285,7 @@ async def admin_users_page(
     )
 
 
-def _admin_template(
+async def _admin_template(
     request: Request,
     template_name: str,
     *,
@@ -273,6 +295,10 @@ def _admin_template(
     context: dict[str, Any],
 ):
     csrf_token = issue_admin_csrf_token()
+    try:
+        open_reports = await ReportService().open_count()  # the sidebar shows it on every page
+    except (RuntimeError, PyMongoError):
+        open_reports = 0
     response = templates.TemplateResponse(
         request,
         template_name,
@@ -286,6 +312,7 @@ def _admin_template(
             "admin": admin,
             "csrf_token": csrf_token,
             "active_nav": active_nav,
+            "open_reports": open_reports,
             **context,
         },
     )

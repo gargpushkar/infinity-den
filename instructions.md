@@ -99,6 +99,7 @@ Creative names are display text. Everything permanent is plain and descriptive.
 | Your account | `/account` |
 | Write / edit your piece | `/write`, `/write/{id}` |
 | Saved pieces | `/saved` |
+| Report something | `/report?type=article\|response\|comment&id=…` |
 | Comment on / save a piece (form posts) | `/articles/{slug}/comments`, `/articles/{slug}/bookmark` |
 
 Do not add a second URL for the same page. Nav and cards link to the canonical
@@ -348,16 +349,24 @@ Answering is a plain link and nothing is stored: no per-visitor state and no
 answer statistics in Phase 1. Never render the answer before the visitor
 chooses.
 
-### reports *(new)*
+### reports
+
+Members report from `/report?type=…&id=…`; editors decide in `/admin/reports`.
+One open report per member per item (reporting again updates it); members
+cannot report their own work. Nothing changes publicly until an editor acts:
+**Hide** sets a response or comment to `hidden` and archives an article, and
+closes every open report on that item as `resolved`; **Dismiss** closes them
+as `dismissed`.
 
 Fields:
 
 - target_type — `article` | `response` | `comment`
 - target_id
 - reporter_id
-- reason
+- reason — a key of `REPORT_REASONS` in `constants.py`
+- detail — optional note, required when the reason is "Something else"
 - status — `open` | `resolved` | `dismissed`
-- created_at
+- created_at, updated_at, resolved_at, resolved_by
 
 ### tags
 
@@ -565,7 +574,7 @@ Member content is untrusted input. In addition to the above:
 - never expose member emails or password hashes in public pages or API responses
 - every member-generated item can be reported by members and hidden by editors
 - member pieces (articles, experiences, perspectives) publish only after editorial review in Phase 1
-- responses and comments post immediately; editors can hide them, and members can report them (branch 8)
+- responses and comments post immediately; editors can hide them, and members can report them
 
 ---
 

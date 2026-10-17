@@ -1041,6 +1041,27 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  document.querySelectorAll("[data-admin-report-action]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const message = document.querySelector("[data-admin-table-message]");
+      button.disabled = true;
+      try {
+        await adminJsonRequest("/api/admin/reports/action", {
+          method: "POST",
+          body: {
+            target_type: button.getAttribute("data-target-type"),
+            target_id: button.getAttribute("data-target-id"),
+            action: button.getAttribute("data-action"),
+          },
+        });
+        window.location.reload();
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
+        button.disabled = false;
+      }
+    });
+  });
+
   document.querySelectorAll("[data-admin-category-form]").forEach((form) => {
     const heading = form.querySelector("[data-admin-category-heading]");
     const resetButton = form.querySelector("[data-admin-category-reset]");

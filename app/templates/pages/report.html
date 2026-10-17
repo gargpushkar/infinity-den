@@ -1,0 +1,52 @@
+{% extends "layouts/base.html" %}
+{% from "components/form_fields.html" import field, form_alert %}
+
+{% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="member-page">
+  <div class="container">
+    <div class="member-panel">
+      <p class="eyebrow mb-2">Report</p>
+      {% if not target %}
+        <h1>This isn&rsquo;t available</h1>
+        <p class="member-lede">It may have been removed already. Thanks for looking out for the community.</p>
+        <a class="btn btn-primary" href="/">Back to the homepage</a>
+      {% elif is_done %}
+        <h1>Thanks for telling us</h1>
+        <p class="member-lede">An editor will look at it. Nothing changes publicly until they do, and the person who posted it won&rsquo;t know who reported it.</p>
+        <a class="btn btn-primary" href="{{ target.url }}">Back to where you were</a>
+      {% elif is_own %}
+        <h1>This is your own {{ target.label|lower }}</h1>
+        <p class="member-lede">You can&rsquo;t report your own contribution.</p>
+        <a class="btn btn-primary" href="{{ target.url }}">Back</a>
+      {% else %}
+        <h1>What&rsquo;s wrong with this {{ target.label|lower }}?</h1>
+        <figure class="report-target">
+          <blockquote>{{ target.text }}</blockquote>
+          <figcaption>{{ target.label }} by {{ target.author }}</figcaption>
+        </figure>
+        {{ form_alert(error) }}
+        <form class="member-form" method="post" action="/report" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <input type="hidden" name="target_type" value="{{ values.target_type }}">
+          <input type="hidden" name="target_id" value="{{ values.target_id }}">
+          <fieldset class="member-field member-format-choice report-reasons">
+            <legend>Reason</legend>
+            {% for value, label in reasons.items() %}
+              <label class="member-radio">
+                <input type="radio" name="reason" value="{{ value }}" {% if values.reason == value %}checked{% endif %} required>
+                <span>{{ label }}</span>
+              </label>
+            {% endfor %}
+            {% if field_errors.get("reason") %}<p class="member-field-error">{{ field_errors.get("reason") }}</p>{% endif %}
+          </fieldset>
+          {{ field("detail", "Anything editors should know?", values, field_errors, type="textarea", hint="Optional, unless you chose “Something else”. Up to 500 characters.", attrs='maxlength="500"') }}
+          <button class="btn btn-primary member-submit" type="submit">Send report</button>
+          <p class="member-field-hint">Editors review every report. Disagreeing with an argument is not a reason to report it.</p>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

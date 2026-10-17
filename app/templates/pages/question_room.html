@@ -5,7 +5,7 @@
 {% block meta_description %}{{ seo_description }}{% endblock %}
 
 {% macro response_card(item) -%}
-  <article class="response-card{% if item.is_featured %} is-featured{% endif %}">
+  <article class="response-card{% if item.is_featured %} is-featured{% endif %}" id="response-{{ item.id }}">
     <header class="response-card-meta">
       <a class="response-author" href="{{ item.author_url }}">{{ item.author }}</a>
       <span class="content-label">{{ item.kind_label }}</span>
@@ -20,6 +20,9 @@
           <li><a href="{{ source.url }}" rel="noopener nofollow" target="_blank">{{ source.title }}</a></li>
         {% endfor %}
       </ol>
+    {% endif %}
+    {% if not (current_member and item.author_url == "/members/" ~ current_member.username) %}
+      <a class="report-link" href="/report?type=response&amp;id={{ item.id }}" rel="nofollow">Report</a>
     {% endif %}
   </article>
 {%- endmacro %}

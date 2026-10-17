@@ -47,6 +47,9 @@
       <aside class="article-detail-aside" aria-label="Article tools">
         <a class="back-link" href="/articles">Back to articles</a>
         {% include "components/save_button.html" %}
+        {% if not (current_member and article.author_url == "/members/" ~ current_member.username) %}
+          <p class="mb-3"><a class="report-link" href="/report?type=article&amp;id={{ article.id }}" rel="nofollow">Report this piece</a></p>
+        {% endif %}
         {% include "components/share_actions.html" %}
         {% if article.tag_links %}
           <div class="article-tag-list">
