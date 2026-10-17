@@ -36,6 +36,16 @@ class Settings:
         cast=int,
         default=30,
     )
+    # The public address used in emailed links (https://infinityden.com in
+    # production), never the request's Host header, which a visitor controls.
+    site_url: str = config("SITE_URL", default="")
+    # Outgoing email over SMTP (Brevo: smtp-relay.brevo.com, port 587 or 2525).
+    # Without SMTP_HOST, emails are written to the log instead of sent.
+    smtp_host: str = config("SMTP_HOST", default="")
+    smtp_port: int = config("SMTP_PORT", cast=int, default=587)
+    smtp_username: str = config("SMTP_USERNAME", default="")
+    smtp_password: str = config("SMTP_PASSWORD", default="")
+    mail_from: str = config("MAIL_FROM", default="Infinity Den <noreply@infinityden.com>")
     # Shown in the footer and the policy pages for questions and data requests.
     contact_email: str = config("CONTACT_EMAIL", default="gargpushkar96@gmail.com")
     # Uploaded images. Keep it outside the code checkout on servers, and back it up.

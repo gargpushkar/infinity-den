@@ -14,7 +14,8 @@ from app.services.sitemap_service import SECTION_PAGES, sitemap_entries
 router = APIRouter()
 
 TAGLINE = "A universe of ideas. A community of minds."
-PRIVATE_PATHS = ("/admin", "/api/", "/account", "/write", "/saved", "/report", "/login", "/join", "/logout")
+PRIVATE_PATHS = ("/admin", "/api/", "/account", "/write", "/saved", "/report", "/login", "/join", "/logout",
+                 "/forgot-password", "/reset-password")
 
 
 def site_url(request: Request) -> str:

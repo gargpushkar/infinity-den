@@ -99,6 +99,7 @@ class MemberRead(BaseModel):
     email: str
     bio: str | None = None
     is_active: bool = True
+    session_version: int = 0
     created_at: datetime
 
     @field_validator("id", mode="before")
@@ -114,3 +115,23 @@ class MemberPublic(BaseModel):
     display_name: str
     bio: str | None = None
     created_at: datetime
+
+
+class PasswordResetRequest(BaseModel):
+    email: str = Field(min_length=5, max_length=254)
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email(cls, value: Any) -> str:
+        return _clean_email(value)
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        if not EMAIL_PATTERN.fullmatch(value):
+            raise ValueError("Enter a valid email address.")
+        return value
+
+
+class PasswordResetInput(BaseModel):
+    password: str = Field(min_length=PASSWORD_MIN_LENGTH, max_length=PASSWORD_MAX_LENGTH)

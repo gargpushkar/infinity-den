@@ -11,6 +11,7 @@ USER_DOCUMENT_FIELDS: Final[tuple[str, ...]] = (
     "password_hash",
     "bio",
     "is_active",
+    "session_version",
     "created_at",
     "updated_at",
 )
@@ -30,6 +31,8 @@ class UserDocument:
     password_hash: str
     bio: str | None = None
     is_active: bool = True
+    # Raised by a password reset; sign-in cookies with an older number stop working.
+    session_version: int = 0
     created_at: datetime = field(default_factory=utc_now)
     updated_at: datetime = field(default_factory=utc_now)
 

@@ -96,6 +96,7 @@ Creative names are display text. Everything permanent is plain and descriptive.
 | Debate Den (Phase 2) | `/debates` |
 | Member profile | `/members/{username}` |
 | Join / sign in / sign out | `/join`, `/login`, `/logout` |
+| Forgot / reset password | `/forgot-password`, `/reset-password?token=…` |
 | Your account | `/account` |
 | Write / edit your piece | `/write`, `/write/{id}` |
 | Saved pieces | `/saved` |
@@ -272,6 +273,7 @@ Fields:
 - password_hash
 - bio
 - is_active
+- session_version — raised by a password reset; sign-in cookies carry it, and older ones stop working
 - created_at
 - updated_at
 
