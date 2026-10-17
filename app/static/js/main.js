@@ -58,14 +58,10 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        if (response.status === 409) {
-          message.textContent = "You're already on the list.";
-          message.classList.add("is-success");
-          return;
-        }
-
         message.textContent =
-          payload?.error?.message || "We could not save that email right now.";
+          payload?.error?.message ||
+          (typeof payload?.detail === "string" ? payload.detail : "") ||
+          "We could not save that email right now.";
         message.classList.add("is-error");
       } catch (error) {
         message.textContent = "Connection issue. Try again in a moment.";

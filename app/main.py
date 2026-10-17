@@ -10,6 +10,7 @@ from app.config.settings import settings
 from app.database.indexes import create_indexes
 from app.database.mongodb import close_mongo_connection, connect_to_mongo
 from app.middleware.exception_handlers import register_exception_handlers
+from app.middleware.security_headers import register_security_middleware
 from app.routes.admin.auth import router as admin_auth_pages_router
 from app.routes.admin.dashboard import router as admin_dashboard_router
 from app.routes.api.admin_auth import router as admin_auth_router
@@ -35,6 +36,7 @@ from app.routes.public.questions import router as questions_router
 from app.routes.public.reports import router as reports_router
 from app.routes.public.saved import router as saved_router
 from app.routes.public.search import router as public_search_router
+from app.routes.public.seo import router as seo_router
 from app.routes.public.write import router as write_router
 
 
@@ -72,6 +74,7 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 register_exception_handlers(app)
+register_security_middleware(app)
 app.include_router(admin_auth_router)
 app.include_router(admin_dashboard_api_router)
 app.include_router(admin_questions_router)
@@ -95,6 +98,7 @@ app.include_router(questions_router)
 app.include_router(reports_router)
 app.include_router(saved_router)
 app.include_router(public_search_router)
+app.include_router(seo_router)
 app.include_router(write_router)
 app.include_router(admin_auth_pages_router)
 app.include_router(admin_dashboard_router)

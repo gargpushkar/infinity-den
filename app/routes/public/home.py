@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 
 from app.config.settings import settings
+from app.routes.public.seo import site_schema
 from app.services.home_service import get_homepage_context
 from app.services.nav_service import get_nav_context
 
@@ -33,6 +34,7 @@ async def homepage(
             # One homepage: answered views point back to it and stay out of search.
             "canonical_url": str(request.url_for("homepage")),
             "robots": "noindex, follow" if is_answered else "index, follow",
+            "page_schema": site_schema(request),
         },
     )
 

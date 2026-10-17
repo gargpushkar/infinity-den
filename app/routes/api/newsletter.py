@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi import status as http_status
 
 from app.schemas.newsletter import (
@@ -10,9 +10,12 @@ from app.services.newsletter_service import (
     NewsletterSubscriberConflictError,
     get_newsletter_service,
 )
+from app.utils.rate_limit import client_key, newsletter_limiter
 
 
 router = APIRouter(prefix="/api/newsletter", tags=["Newsletter"])
+
+SUBSCRIBED = "You're on the list."
 
 
 def get_public_newsletter_service() -> NewsletterService:
@@ -22,22 +25,21 @@ def get_public_newsletter_service() -> NewsletterService:
 @router.post(
     "/subscribe",
     response_model=NewsletterSubscriptionResponse,
-    response_model_by_alias=False,
     status_code=http_status.HTTP_201_CREATED,
 )
 async def subscribe_to_newsletter(
+    request: Request,
     payload: NewsletterSubscriptionCreate,
     newsletter_service: NewsletterService = Depends(get_public_newsletter_service),
 ) -> NewsletterSubscriptionResponse:
-    try:
-        subscriber = await newsletter_service.create_subscription(payload)
-    except NewsletterSubscriberConflictError as exc:
+    if not newsletter_limiter.allow(client_key(request)):
         raise HTTPException(
-            status_code=http_status.HTTP_409_CONFLICT,
-            detail="This email is already subscribed.",
-        ) from exc
-
-    return NewsletterSubscriptionResponse(
-        subscriber=subscriber,
-        message="Newsletter subscription created.",
-    )
+            status_code=http_status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many attempts. Please try again later.",
+        )
+    try:
+        await newsletter_service.create_subscription(payload)
+    except NewsletterSubscriberConflictError:
+        # Same answer either way, so nobody can test whose email is on the list.
+        pass
+    return NewsletterSubscriptionResponse(message=SUBSCRIBED)

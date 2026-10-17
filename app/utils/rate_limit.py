@@ -38,6 +38,7 @@ def client_key(request: Request) -> str:
 
 
 member_login_limiter = RateLimiter(limit=10, window_seconds=15 * 60)
+newsletter_limiter = RateLimiter(limit=5, window_seconds=60 * 60)
 member_signup_limiter = RateLimiter(limit=5, window_seconds=60 * 60)
 admin_login_limiter = RateLimiter(limit=10, window_seconds=15 * 60)
 # Keyed by member id rather than IP: these protect editors' review time.
