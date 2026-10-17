@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any
 from urllib.parse import urlencode
 
@@ -161,7 +162,7 @@ async def _render_article(
         )
 
     article = detail_context["article"]
-    member = await get_current_member(request)
+    nav_context, member = await asyncio.gather(get_nav_context(request), get_current_member(request))
     breadcrumbs = _article_detail_breadcrumbs(article)
     csrf_token = form_csrf_token(request)
 
@@ -169,7 +170,7 @@ async def _render_article(
         request,
         "pages/article_detail.html",
         {
-            **await get_nav_context(request),
+            **nav_context,
             "app_name": settings.app_name,
             "page_title": article["seo_title"],
             **_article_seo_context(request, article),

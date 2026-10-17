@@ -156,7 +156,9 @@ order; each assumes the previous ones are merged.
 Carried over from the foundation; pick up when needed.
 
 ## Performance
-- [ ] Optimize MongoDB queries and reduce unnecessary DB calls
+- [x] Count rooms and tags in one grouped query instead of one per row; run independent lookups in parallel (`fix/page-speed`)
+- [ ] Put the app server and the Atlas cluster in the same region
+- [ ] Optimize MongoDB queries and reduce unnecessary DB calls (ongoing)
 - [ ] Lazy load images
 - [ ] Optimize CSS and JS loading
 - [ ] Compress images
@@ -167,6 +169,7 @@ Carried over from the foundation; pick up when needed.
 - [ ] Production MongoDB
 - [ ] Run uvicorn with `--proxy-headers` behind the host, so the sitemap, robots.txt, and canonical links use https
 - [ ] Turn on HSTS once the site is served only over HTTPS
+- [x] API docs (`/docs`, `/openapi.json`) are off when `APP_ENV=production`
 - [ ] Deploy, domain, HTTPS, monitoring
 
 ## Accounts

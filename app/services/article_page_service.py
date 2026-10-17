@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime
 from typing import Any
 from urllib.parse import urlencode
@@ -14,6 +15,7 @@ from app.config.constants import (
 )
 from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION, ARTICLE_FORMATS
+from app.models.category import CATEGORY_COLLECTION
 from app.models.tag import TAG_COLLECTION
 from app.schemas.article import ArticleQueryParams, ArticleRead
 from app.services.article_service import ArticleService
@@ -64,11 +66,13 @@ async def get_article_listing_context(
 ) -> dict[str, Any]:
     try:
         db = get_database()
-        category_options = await _get_category_options(db)
         sort_option = _resolve_sort_option(sort)
         category_filter = _clean_optional_slug(category)
         format_filter = _resolve_article_format(article_format)
-        tag_options = await _get_tag_options(db, category=category_filter)
+        # Independent lookups run together: each one is a round trip to the database.
+        category_options, tag_options = await asyncio.gather(
+            _get_category_options(db), _get_tag_options(db, category=category_filter)
+        )
         tag_filter = _resolve_tag_filter(tag, tag_options)
         tag_filter_name = tag_filter["name"] if tag_filter else None
         tag_filter_slug = tag_filter["slug"] if tag_filter else None
@@ -138,25 +142,24 @@ async def get_article_listing_context(
 async def get_article_detail_context(article_slug: str, *, record_view: bool = True) -> dict[str, Any] | None:
     try:
         db = get_database()
-        category_options = await _get_category_options(db)
+        category_options, tag_options, article = await asyncio.gather(
+            _get_category_options(db),
+            _get_tag_options(db),
+            ArticleService(database=db).get_article_detail(article_slug),
+        )
         category_lookup = {item["slug"]: item["name"] for item in category_options}
-        tag_options = await _get_tag_options(db)
         tag_lookup = {item["name"].lower(): item["slug"] for item in tag_options}
-        article = await ArticleService(database=db).get_article_detail(article_slug)
 
         if article is None or article.status != "published":
             return None
 
-        if record_view:
-            await _record_article_view(db, article.slug)
         article_context = _article_to_detail(article, category_lookup, tag_lookup)
-        article_context["author_url"] = await _author_profile_url(db, article.author_id)
-        related_articles = await _get_related_articles(
-            db,
-            article,
-            category_lookup,
-            tag_lookup,
+        author_url, related_articles, _ = await asyncio.gather(
+            _author_profile_url(db, article.author_id),
+            _get_related_articles(db, article, category_lookup, tag_lookup),
+            _record_article_view(db, article.slug) if record_view else asyncio.sleep(0),
         )
+        article_context["author_url"] = author_url
 
         return {
             "article": article_context,
@@ -168,9 +171,23 @@ async def get_article_detail_context(article_slug: str, *, record_view: bool = T
         return None
 
 
+async def published_counts(db: Any, field: str, article_filter: dict[str, Any]) -> dict[str, int]:
+    """How many matching articles each room (or tag) has, in one query.
+
+    One grouped aggregation instead of a count per row, so the cost stays the
+    same however many rooms and tags there are.
+    """
+    pipeline: list[dict[str, Any]] = [{"$match": article_filter}]
+    if field == "tags":
+        pipeline.append({"$unwind": "$tags"})
+    pipeline.append({"$group": {"_id": f"${field}", "total": {"$sum": 1}}})
+    return {row["_id"]: row["total"] async for row in db[ARTICLE_COLLECTION].aggregate(pipeline)}
+
+
 async def _get_category_options(db: Any) -> list[dict[str, Any]]:
+    counts = await published_counts(db, "category_id", {"status": ARTICLE_STATUS_PUBLISHED})
     categories = []
-    cursor = db.categories.find({}, {"_id": 0}).sort("name", ASCENDING)
+    cursor = db[CATEGORY_COLLECTION].find({}, {"_id": 0}).sort("name", ASCENDING)
 
     async for category in cursor:
         slug = str(category.get("slug", "")).strip()
@@ -178,16 +195,13 @@ async def _get_category_options(db: Any) -> list[dict[str, Any]]:
         if not slug or not name:
             continue
 
-        total = await db[ARTICLE_COLLECTION].count_documents(
-            {"category_id": slug, "status": "published"}
-        )
         categories.append(
             {
                 "name": name,
                 "slug": slug,
                 "value": slug,
                 "url": room_url(slug),
-                "total": total,
+                "total": counts.get(slug, 0),
             }
         )
 
@@ -199,6 +213,11 @@ async def _get_tag_options(
     *,
     category: str | None = None,
 ) -> list[dict[str, Any]]:
+    article_filter: dict[str, Any] = {"status": ARTICLE_STATUS_PUBLISHED}
+    if category:
+        article_filter["category_id"] = category
+    counts = await published_counts(db, "tags", article_filter)
+
     tags = []
     cursor = db[TAG_COLLECTION].find({}, {"_id": 0}).sort("name", ASCENDING)
 
@@ -208,21 +227,12 @@ async def _get_tag_options(
         if not slug or not name:
             continue
 
-        article_filter: dict[str, Any] = {
-            "status": ARTICLE_STATUS_PUBLISHED,
-            "tags": name,
-        }
-        if category:
-            article_filter["category_id"] = category
-
-        total = await db[ARTICLE_COLLECTION].count_documents(article_filter)
-
         tags.append(
             {
                 "name": name,
                 "slug": slug,
                 "value": slug,
-                "total": total,
+                "total": counts.get(name, 0),
             }
         )
 

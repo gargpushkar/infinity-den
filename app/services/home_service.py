@@ -6,6 +6,7 @@ as broken rather than as one waiting to be filled.
 
 from __future__ import annotations
 
+import asyncio
 import re
 from typing import Any
 
@@ -43,17 +44,26 @@ async def get_homepage_context(
         room_names = {room["slug"]: room["name"] for room in rooms}
         shown: set[str] = set()
 
-        experiences = await _pieces(
-            db, {**PUBLISHED, "article_format": ARTICLE_FORMAT_EXPERIENCE},
-            [("is_featured", DESCENDING), *NEWEST], room_names, shown,
-        )
-        ideas = await _pieces(db, {**PUBLISHED, "is_editors_pick": True}, NEWEST, room_names, shown)
-        community = await _pieces(db, {**PUBLISHED, "author_id": {"$ne": None}}, NEWEST, room_names, shown)
+        async def reading_sections() -> tuple[list, list, list]:
+            # In order, because each section skips what an earlier one showed.
+            experiences = await _pieces(
+                db, {**PUBLISHED, "article_format": ARTICLE_FORMAT_EXPERIENCE},
+                [("is_featured", DESCENDING), *NEWEST], room_names, shown,
+            )
+            ideas = await _pieces(db, {**PUBLISHED, "is_editors_pick": True}, NEWEST, room_names, shown)
+            community = await _pieces(db, {**PUBLISHED, "author_id": {"$ne": None}}, NEWEST, room_names, shown)
+            return experiences, ideas, community
 
+        # The question, the Arcade, and the reading sections don't depend on each other.
+        question, arcade, (experiences, ideas, community) = await asyncio.gather(
+            _todays_question(db, room_names),
+            _arcade(db, claim_slug=claim_slug, answer=answer, after=after),
+            reading_sections(),
+        )
         return {
-            "question": await _todays_question(db, room_names),
+            "question": question,
             "experiences": experiences,
-            "arcade": await _arcade(db, claim_slug=claim_slug, answer=answer, after=after),
+            "arcade": arcade,
             "rooms": rooms,
             "ideas": ideas,
             "community": community,
