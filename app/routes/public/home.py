@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
@@ -20,14 +22,17 @@ async def homepage(
     after: str | None = Query(default=None, max_length=120),
 ):
     """`?claim=…&answer=…` answers the Fact or Fiction card in place."""
-    context = await get_homepage_context(claim_slug=claim, answer=answer, after=after)
+    nav_context, context = await asyncio.gather(
+        get_nav_context(request),
+        get_homepage_context(claim_slug=claim, answer=answer, after=after),
+    )
     is_answered = bool(context["arcade"] and context["arcade"]["is_answered"])
 
     return templates.TemplateResponse(
         request,
         "pages/home.html",
         {
-            **await get_nav_context(request),
+            **nav_context,
             **context,
             "app_name": settings.app_name,
             "page_title": "A universe of ideas",

@@ -65,10 +65,16 @@ async def lifespan(app: FastAPI):
     await close_mongo_connection()
 
 
+# The interactive API docs list every endpoint, admin ones included; keep them off the public site.
+IS_PRODUCTION = settings.app_env.lower() == "production"
+
 app = FastAPI(
     title=settings.app_name,
     debug=settings.debug,
     lifespan=lifespan,
+    docs_url=None if IS_PRODUCTION else "/docs",
+    redoc_url=None if IS_PRODUCTION else "/redoc",
+    openapi_url=None if IS_PRODUCTION else "/openapi.json",
 )
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")

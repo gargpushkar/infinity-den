@@ -1,6 +1,7 @@
 """A tiny in-memory stand-in for the Motor collections the services use.
 
-Supports only what the tests need: equality, $lte, $ne, $in, $nin, $set, sort,
+Supports only what the tests need: equality, $lte, $ne, $in, $nin, $set, a counting
+aggregate, sort,
 limit, and optional unique keys. Not a MongoDB emulator.
 """
 
@@ -40,8 +41,9 @@ class FakeCursor:
         self._sort: list[tuple[str, int]] | None = None
         self._limit: int | None = None
 
-    def sort(self, sort, *_args):
-        self._sort = sort
+    def sort(self, sort, direction=1):
+        # Motor accepts both sort("field", 1) and sort([("field", 1), ...]).
+        self._sort = [(sort, direction)] if isinstance(sort, str) else sort
         return self
 
     def limit(self, count):
@@ -72,6 +74,24 @@ class FakeCollection:
 
     def find(self, query, *_args, **_kwargs):
         return FakeCursor([d for d in self.documents if _matches(d, query)])
+
+    def aggregate(self, pipeline):
+        """Only $match, $unwind, and a $group that counts ({"$sum": 1})."""
+        rows = [dict(d) for d in self.documents]
+        for stage in pipeline:
+            (operator, spec), = stage.items()
+            if operator == "$match":
+                rows = [d for d in rows if _matches(d, spec)]
+            elif operator == "$unwind":
+                field = spec.lstrip("$")
+                rows = [{**d, field: value} for d in rows for value in d.get(field) or []]
+            elif operator == "$group":
+                key = spec["_id"].lstrip("$")
+                counts: dict = {}
+                for d in rows:
+                    counts[d.get(key)] = counts.get(d.get(key), 0) + 1
+                rows = [{"_id": k, "total": v} for k, v in counts.items()]
+        return FakeCursor(rows)
 
     async def insert_one(self, document):
         if self.unique and any(all(d.get(k) == document.get(k) for k in self.unique) for d in self.documents):
