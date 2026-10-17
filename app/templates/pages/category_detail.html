@@ -8,7 +8,7 @@
   <div class="container">
     {% include "components/breadcrumbs.html" %}
 
-    <header class="category-detail-hero" data-reveal>
+    <header class="category-detail-hero">
       <div class="category-detail-copy">
         <p class="eyebrow mb-3">{{ category.subtitle or "Room" }}</p>
         <h1>{{ category.name }}</h1>
@@ -27,7 +27,7 @@
       </figure>
     </header>
 
-    <section class="category-detail-articles" aria-labelledby="categoryArticlesTitle" data-reveal>
+    <section class="category-detail-articles" aria-labelledby="categoryArticlesTitle">
       <div class="section-heading section-heading-split">
         <div>
           <p class="eyebrow mb-2">Latest in {{ category.name }}</p>
@@ -45,7 +45,7 @@
       {% if articles %}
         <div class="category-detail-grid">
           {% for article in articles %}
-            <div class="category-detail-item" data-reveal-child>
+            <div class="category-detail-item">
               {% include "components/article_card.html" %}
               <div class="article-card-meta">
                 <span>{{ article.author }}</span>

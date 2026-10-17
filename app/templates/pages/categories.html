@@ -8,7 +8,7 @@
   <div class="container">
     {% include "components/breadcrumbs.html" %}
 
-    <header class="category-index-header" data-reveal>
+    <header class="category-index-header">
       <div>
         <p class="eyebrow mb-3">Rooms</p>
         <h1>Every room is a different way in.</h1>
@@ -25,7 +25,7 @@
       </div>
     </header>
 
-    <div class="category-index-summary" data-reveal>
+    <div class="category-index-summary">
       {% if is_category_filter_active %}
         <p class="mb-0">
           Showing <strong>{{ category_count }}</strong> rooms
@@ -48,7 +48,7 @@
       {% set empty_state_hints = ["MongoDB unavailable", "Public route is ready", "Category API supported"] %}
       {% include "components/empty_state.html" %}
     {% else %}
-      <section class="category-index-controls" aria-label="Room filters" data-reveal>
+      <section class="category-index-controls" aria-label="Room filters">
         <div class="filter-group">
           <span class="filter-label">Article coverage</span>
           <div class="filter-scroll">
@@ -92,9 +92,9 @@
     {% endif %}
 
     {% if is_database_available and category_cards %}
-      <section class="category-index-grid" aria-label="Rooms" data-reveal>
+      <section class="category-index-grid" aria-label="Rooms">
         {% for category in category_cards %}
-          <div class="category-index-item" data-reveal-child>
+          <div class="category-index-item">
             {% include "components/category_card.html" %}
           </div>
         {% endfor %}

@@ -21,7 +21,7 @@
     <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
       {% include "components/category_badge.html" %}
       <span
-        class="article-read-time text-secondary small fw-semibold"
+        class="article-read-time"
         {% if article_word_count %}aria-label="{{ article_read_time }} based on {{ article_word_count }}"{% endif %}
         {% if article_word_count %}title="{{ article_word_count }}"{% endif %}
       >{{ article_read_time }}</span>
@@ -29,12 +29,10 @@
 
     {% include "components/content_labels.html" %}
 
-    <h3 class="card-title h5 fw-bold lh-sm mb-3">
+    <h3 class="card-title">
       <a class="article-title-link stretched-link" href="{{ article_url }}">{{ article_title }}</a>
     </h3>
 
-    <p class="card-text article-excerpt text-secondary mb-4">{{ article_excerpt }}</p>
-
-    <span class="read-link mt-auto fw-bold" aria-hidden="true">Read article</span>
+    <p class="card-text article-excerpt">{{ article_excerpt }}</p>
   </div>
 </article>

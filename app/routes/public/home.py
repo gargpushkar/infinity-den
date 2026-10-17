@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request
+from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 
 from app.config.settings import settings
@@ -24,4 +25,14 @@ async def homepage(request: Request):
             "page_title": "A universe of ideas",
             **homepage_context,
         },
+    )
+
+
+@router.get("/favicon.ico", include_in_schema=False)
+async def favicon() -> FileResponse:
+    # Browsers request /favicon.ico on every page, whatever the <link> tags say.
+    return FileResponse(
+        "app/static/icons/favicon.ico",
+        media_type="image/x-icon",
+        headers={"Cache-Control": "public, max-age=604800"},
     )

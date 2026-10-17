@@ -16,7 +16,7 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 - [ ] Phase 3 — Community growth
 
 ## Current Focus
-- [ ] `feature/homepage-rebuild`
+- [ ] `feature/visual-identity`
 
 ---
 
@@ -85,12 +85,25 @@ order; each assumes the previous ones are merged.
 - [x] `/play` page: answer, reveal the explanation, link to the deeper article
 - [x] Reusable Fact or Fiction card for the homepage
 
-## 7. `feature/homepage-rebuild`
-- [ ] New visual identity: palette, typography, room card style
-- [ ] Homepage sections in the order given in `vision.md`
-- [ ] Remove the static "live" stats card
-- [ ] Real cover images; no placeholder SVGs on published content
-- [ ] Verify at 375px, 768px, 1024px, 1440px
+## 7a. `feature/visual-identity`
+- [x] Palette and night mode from the logo kit, as CSS tokens
+- [x] Newsreader and Poppins; no black weights or all-caps labels
+- [x] Ink header and footer with the logo; favicon and app icons
+- [x] Remove the grid background and scroll fade-in
+- [x] Quieter cards: room and format as text, no pills
+- [x] Colour contrast check for day and night
+- [x] Verify at 375px, 768px, 1024px, 1440px, day and night
+
+## 7b. `feature/generated-covers`
+- [ ] Generated covers from the logo motif, one pattern per room
+- [ ] Uploaded covers override; no placeholder SVGs on published content
+- [ ] One branded preview image for social sharing
+
+## 7c. `feature/homepage-rebuild`
+- [ ] Homepage sections in the order given in `vision.md` (Direction C)
+- [ ] Remove the static "live" stats card, carousel, and rails
+- [ ] Fact or Fiction answered in place on the homepage
+- [ ] Verify at 375px, 768px, 1024px, 1440px, day and night
 
 ## 8. `feature/comments-bookmarks`
 - [ ] Comments on articles
@@ -102,7 +115,7 @@ order; each assumes the previous ones are merged.
 - [ ] Generate `robots.txt`
 - [ ] Add article schema markup
 - [ ] Add organization schema
-- [ ] Add a favicon
+- [x] Add a favicon
 - [x] Prevent XSS in all member-generated content
 - [ ] Validate all inputs; prevent NoSQL injection
 - [x] Add a minimal test setup (`pytest`, `tests/`)

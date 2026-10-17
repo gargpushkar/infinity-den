@@ -410,8 +410,34 @@ Keep these qualities from the existing system:
 
 - spacious, responsive layouts
 - clean typography with a serif display face
-- soft rounded corners
-- card-based content
+- gently rounded corners (8px)
+- card-based content, used sparingly
+
+## Visual identity
+
+The palette comes from the logo (`app/static/images/brand/`): colour runs from
+Ink at the edge to Amber at the centre, "the deeper you go, the warmer the light".
+
+| Token | Colour | Use |
+| --- | --- | --- |
+| Ink | `#171A2B` | Text, the header and footer, dark surfaces |
+| Copper | `#C2562F` | Buttons, the logo, large type |
+| Text copper | `#A8461F` | Links and small accent text (Copper on Ivory is only 4.2:1) |
+| Amber | `#F2A33A` | Highlights; text only on dark backgrounds |
+| Ivory | `#FBF7F0` | The page background |
+
+- Every colour is a CSS token in `main.css`. Never write a colour literal in a
+  component rule; night mode depends on it. `tests/test_colour_contrast.py`
+  checks the text pairings in both modes.
+- **Night mode** follows the visitor's device setting (`prefers-color-scheme`).
+  There is no toggle.
+- **Fonts:** Newsreader for headlines and reading text, Poppins for navigation,
+  buttons, and labels. Regular and medium weights; no black weights, no
+  all-caps labels.
+- **Logo:** use the kit's files, never retype the wordmark. The header and
+  footer are Ink in both modes and use the on-dark logo.
+- **Motion:** content never waits on a scroll animation to appear. Respect
+  `prefers-reduced-motion`.
 
 Room cards and room navigation always show the subtitle next to the name.
 Every contribution shows its format label (Researched, Personal experience,

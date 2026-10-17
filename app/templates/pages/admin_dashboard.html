@@ -1,7 +1,7 @@
 {% extends "layouts/admin.html" %}
 
 {% block admin_content %}
-<section class="admin-hero-panel" data-reveal>
+<section class="admin-hero-panel">
   <div>
     <p class="admin-kicker mb-2">Editorial overview</p>
     <h2>Keep publishing work moving from one control room.</h2>
@@ -10,23 +10,23 @@
   <a class="btn btn-primary" href="/admin/articles/new">New article</a>
 </section>
 
-<section class="admin-metric-grid" aria-label="Dashboard metrics" data-reveal>
-  <article class="admin-metric" data-reveal-child>
+<section class="admin-metric-grid" aria-label="Dashboard metrics">
+  <article class="admin-metric">
     <span>Articles</span>
     <strong>{{ stats.articles }}</strong>
     <small>{{ status_counts.published }} published / {{ status_counts.draft }} drafts</small>
   </article>
-  <article class="admin-metric" data-reveal-child>
+  <article class="admin-metric">
     <span>Categories</span>
     <strong>{{ stats.categories }}</strong>
     <small>Topic lanes available</small>
   </article>
-  <article class="admin-metric" data-reveal-child>
+  <article class="admin-metric">
     <span>Submissions</span>
     <strong>{{ stats.submissions }}</strong>
     <small>{{ submission_counts.new }} new pitches</small>
   </article>
-  <article class="admin-metric" data-reveal-child>
+  <article class="admin-metric">
     <span>Featured</span>
     <strong>{{ stats.featured }}</strong>
     <small>Homepage-ready stories</small>

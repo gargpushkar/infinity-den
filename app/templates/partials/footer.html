@@ -1,74 +1,66 @@
 <footer class="site-footer">
   <div class="container">
-    <div class="footer-panel">
-      <div class="footer-main">
-        <section class="footer-brand" aria-label="{{ app_name }} footer summary">
-          <a class="footer-logo" href="/" aria-label="{{ app_name }} home">
-            <span>ID</span>
-            <strong>{{ app_name }}</strong>
-          </a>
-          <p>A universe of ideas. A community of minds.</p>
-          {# Driven by the same nav context as the header, so these cannot
-             drift out of sync with the rooms that actually exist. #}
-          <div class="footer-topic-strip" aria-label="Rooms">
-            {% for room in nav_rooms | default([], true) %}
-              <a href="{{ room.url }}" title="{{ room.subtitle }}">{{ room.name }}</a>
-            {% endfor %}
-          </div>
-        </section>
-
-        <nav class="footer-link-grid" aria-label="Footer navigation">
-          <div>
-            <h2>Read</h2>
-            <ul class="footer-links">
-              <li><a href="/articles">Articles</a></li>
-              <li><a href="/categories">Rooms</a></li>
-              <li><a href="/search">Search</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h2>Contribute</h2>
-            <ul class="footer-links">
-              <li><a href="/write">Write for us</a></li>
-              <li><a href="/experiences">Human Library</a></li>
-              <li><a href="/questions">Question Room</a></li>
-              <li><a href="/play">Curiosity Arcade</a></li>
-              <li><a href="mailto:partnerships@infinityden.dev">Partner with us</a></li>
-              <li><a href="mailto:hello@infinityden.dev">Contact</a></li>
-            </ul>
-          </div>
+    <div class="footer-main">
+      <section class="footer-brand" aria-label="About {{ app_name }}">
+        <a class="footer-logo" href="/">
+          <img src="{{ url_for('static', path='images/brand/infinity-den-horizontal-on-dark.svg') }}" alt="{{ app_name }} home" width="124" height="38" loading="lazy">
+        </a>
+        <p>A universe of ideas. A community of minds.</p>
+        {# Driven by the same nav context as the header, so these cannot
+           drift out of sync with the rooms that actually exist. #}
+        <nav class="footer-topic-strip" aria-label="Rooms">
+          {% for room in nav_rooms | default([], true) %}
+            <a href="{{ room.url }}" title="{{ room.subtitle }}">{{ room.name }}</a>
+          {% endfor %}
         </nav>
+      </section>
 
-        <section class="footer-newsletter" aria-labelledby="footerNewsletterTitle">
-          <p class="eyebrow mb-2">Newsletter</p>
-          <h2 id="footerNewsletterTitle">Get the weekly email.</h2>
-          <form action="/api/newsletter" method="post" data-newsletter-form>
-            <label class="visually-hidden" for="footerNewsletterEmail">Email address</label>
-            <div class="footer-newsletter-field">
-              <input
-                class="form-control"
-                id="footerNewsletterEmail"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                autocomplete="email"
-                required
-              >
-              <button class="btn btn-primary" type="submit">Join</button>
-            </div>
-            <p class="footer-newsletter-note" data-newsletter-message role="status">One email a week. No clutter.</p>
-          </form>
-        </section>
-      </div>
-
-      <div class="footer-bottom">
-        <p>{{ app_name }} is an independent magazine.</p>
+      <nav class="footer-link-grid" aria-label="Footer navigation">
         <div>
-          <a href="/#newsletterSignup">Subscribe</a>
-          <a href="/admin/login">Admin</a>
+          <h2>Read</h2>
+          <ul class="footer-links">
+            <li><a href="/articles">Articles</a></li>
+            <li><a href="/categories">Rooms</a></li>
+            <li><a href="/experiences">Human Library</a></li>
+            <li><a href="/search">Search</a></li>
+          </ul>
         </div>
-      </div>
+
+        <div>
+          <h2>Take part</h2>
+          <ul class="footer-links">
+            <li><a href="/questions">Question Room</a></li>
+            <li><a href="/play">Curiosity Arcade</a></li>
+            <li><a href="/write">Write for us</a></li>
+            <li><a href="mailto:hello@infinityden.dev">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <section class="footer-newsletter" id="newsletter" aria-labelledby="footerNewsletterTitle">
+        <h2 id="footerNewsletterTitle">Get the weekly email</h2>
+        <form action="/api/newsletter" method="post" data-newsletter-form>
+          <label class="visually-hidden" for="footerNewsletterEmail">Email address</label>
+          <div class="footer-newsletter-field">
+            <input
+              class="form-control"
+              id="footerNewsletterEmail"
+              name="email"
+              type="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            >
+            <button class="btn" type="submit">Subscribe</button>
+          </div>
+          <p class="footer-newsletter-note" data-newsletter-message role="status">One email a week. No clutter.</p>
+        </form>
+      </section>
+    </div>
+
+    <div class="footer-bottom">
+      <p>{{ app_name }} is a community knowledge platform.</p>
+      <a href="/admin/login">Admin</a>
     </div>
   </div>
 </footer>
