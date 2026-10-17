@@ -7,6 +7,7 @@ from motor.motor_asyncio import AsyncIOMotorCollection, AsyncIOMotorDatabase
 from pymongo import ASCENDING, DESCENDING, ReturnDocument
 from pymongo.errors import DuplicateKeyError
 
+from app.config.constants import ARTICLE_STATUS_PUBLISHED
 from app.database.mongodb import get_database
 from app.models.article import (
     ARTICLE_COLLECTION,
@@ -20,6 +21,7 @@ from app.schemas.article import (
     ArticleRead,
     ArticleUpdate,
 )
+from app.services.tag_service import register_tags
 
 
 class ArticleServiceError(Exception):
@@ -70,7 +72,7 @@ class ArticleService:
         if created_article is None:
             raise ArticleNotFoundError("Created article could not be loaded.")
 
-        return self._to_article_read(created_article)
+        return await self._published_tags_registered(self._to_article_read(created_article))
 
     async def get_article_by_id(self, article_id: str) -> ArticleRead | None:
         object_id = self._to_object_id(article_id)
@@ -164,7 +166,14 @@ class ArticleService:
         if updated_article is None:
             raise ArticleNotFoundError("Article was not found.")
 
-        return self._to_article_read(updated_article)
+        return await self._published_tags_registered(self._to_article_read(updated_article))
+
+    async def _published_tags_registered(self, article: ArticleRead) -> ArticleRead:
+        # Only published pieces add tags, so drafts never put filters on public pages.
+        # Member pieces are published through update_article, so this covers them too.
+        if article.status == ARTICLE_STATUS_PUBLISHED and article.tags:
+            await register_tags(self.database, article.tags)
+        return article
 
     async def delete_article(self, article_id: str) -> bool:
         object_id = self._to_object_id(article_id)
