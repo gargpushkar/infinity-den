@@ -4,7 +4,7 @@
 {% set article_category = article.category|default("Article", true) %}
 {% set article_read_time = article.read_time|default("4 min read", true) %}
 {% set article_word_count = article.word_count_label|default("", true) %}
-{% set article_image = article.cover_image|default(article.image|default("/static/images/articles/editorial-default.svg", true), true) %}
+{% set article_image = article.cover_image %}
 {% set article_image_alt = article.image_alt|default(article_title, true) %}
 
 <article class="card article-card h-100 w-100 overflow-hidden position-relative">

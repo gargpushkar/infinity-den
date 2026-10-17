@@ -6,8 +6,8 @@
     {% set seo_description_text = seo_description|default(fallback_description, true) %}
     {% set seo_canonical_url = canonical_url|default(request.url, true) %}
     {% set seo_type = open_graph_type|default("website", true) %}
-    {% set seo_image_url = seo_image|default("", true) %}
-    {% set seo_image_alt_text = seo_image_alt|default(seo_title_text, true) %}
+    {% set seo_image_url = seo_image|default(url_for('static', path='images/brand/og-default.png')|string, true) %}
+    {% set seo_image_alt_text = seo_image_alt|default(seo_title_text, true) if seo_image else app_name ~ " logo with the line: A universe of ideas. A community of minds." %}
     {% set twitter_card_type = twitter_card|default("summary_large_image" if seo_image_url else "summary", true) %}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

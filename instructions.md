@@ -215,7 +215,7 @@ Fields:
 - slug
 - excerpt
 - content (markdown, rendered and sanitized server-side)
-- cover_image
+- cover_image — optional upload; without one the page uses the generated cover
 - author (display name)
 - author_id *(new)* — `users._id`; null for editorial pieces
 - category_id (room slug)
@@ -243,7 +243,7 @@ Fields:
 - subtitle *(new)* (descriptive subtitle, always displayed)
 - slug (descriptive, permanent)
 - description
-- image
+- image — optional; without one the room uses its generated cover
 - nav_order
 
 ### users
@@ -434,6 +434,11 @@ Ink at the edge to Amber at the centre, "the deeper you go, the warmer the light
 - **Fonts:** Newsreader for headlines and reading text, Poppins for navigation,
   buttons, and labels. Regular and medium weights; no black weights, no
   all-caps labels.
+- **Covers:** `app/utils/covers.py` draws one from the logo's 15° square for
+  every article and room, served at `/covers/{room}/{slug}.svg`. Each room has
+  its own pattern. An uploaded `cover_image` always wins. Bump `COVER_VERSION`
+  when the drawing changes. Social previews never use SVG; pages without a
+  photo fall back to `images/brand/og-default.png`.
 - **Logo:** use the kit's files, never retype the wordmark. The header and
   footer are Ink in both modes and use the on-dark logo.
 - **Motion:** content never waits on a scroll animation to appear. Respect

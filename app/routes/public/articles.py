@@ -10,6 +10,7 @@ from app.services.article_page_service import (
     get_article_detail_context,
     get_article_listing_context,
 )
+from app.routes.public.seo import social_image_url
 from app.services.nav_service import get_nav_context
 
 
@@ -176,7 +177,7 @@ def _article_seo_context(request: Request, article: dict) -> dict[str, str]:
     canonical_url = str(
         request.url_for("article_detail", article_slug=article["slug"])
     )
-    seo_image = _absolute_image_url(request, article.get("cover_image", ""))
+    seo_image = social_image_url(request, article.get("cover_image", ""))
 
     return {
         "seo_title": article["seo_title"],
@@ -185,7 +186,6 @@ def _article_seo_context(request: Request, article: dict) -> dict[str, str]:
         "open_graph_type": "article",
         "seo_image": seo_image,
         "seo_image_alt": article.get("image_alt", article["title"]),
-        "twitter_card": "summary_large_image" if seo_image else "summary",
     }
 
 
@@ -230,24 +230,6 @@ def _article_share_actions(
         },
     ]
 
-
-def _absolute_image_url(request: Request, image_url: str) -> str:
-    clean_image_url = str(image_url or "").strip()
-    if not clean_image_url:
-        return ""
-    if clean_image_url.startswith(("http://", "https://")):
-        return clean_image_url
-    if clean_image_url.startswith("/static/"):
-        return str(
-            request.url_for(
-                "static",
-                path=clean_image_url.removeprefix("/static/"),
-            )
-        )
-    if clean_image_url.startswith("/"):
-        return f"{str(request.base_url).rstrip('/')}{clean_image_url}"
-
-    return f"{str(request.base_url).rstrip('/')}/{clean_image_url}"
 
 
 def _absolute_site_url(request: Request, url: str) -> str:
