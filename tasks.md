@@ -16,7 +16,7 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 - [ ] Phase 3 — Community growth
 
 ## Current Focus
-- [ ] `feature/reports`
+- [ ] `chore/seo-and-hardening` (last Phase 1 branch)
 
 ---
 
@@ -114,13 +114,15 @@ order; each assumes the previous ones are merged.
 - [x] Admin queue to hide or dismiss
 
 ## Platform items for Phase 1
-- [ ] Generate `sitemap.xml`
-- [ ] Generate `robots.txt`
-- [ ] Add article schema markup
-- [ ] Add organization schema
+- [x] Generate `sitemap.xml`
+- [x] Generate `robots.txt`
+- [x] Add article schema markup
+- [x] Add organization schema
 - [x] Add a favicon
 - [x] Prevent XSS in all member-generated content
-- [ ] Validate all inputs; prevent NoSQL injection
+- [x] Validate all inputs; prevent NoSQL injection (audited; tests in `tests/test_seo_and_hardening.py`)
+- [x] Security headers (CSP, framing, nosniff, referrer) and a 1 MB request cap
+- [x] Fix the footer newsletter form; rate-limit signups; same reply for duplicates
 - [x] Add a minimal test setup (`pytest`, `tests/`)
 - [ ] One check per feature (ongoing)
 
@@ -163,6 +165,8 @@ Carried over from the foundation; pick up when needed.
 - [ ] Production settings and environment variables
 - [ ] Static asset serving
 - [ ] Production MongoDB
+- [ ] Run uvicorn with `--proxy-headers` behind the host, so the sitemap, robots.txt, and canonical links use https
+- [ ] Turn on HSTS once the site is served only over HTTPS
 - [ ] Deploy, domain, HTTPS, monitoring
 
 ## Accounts

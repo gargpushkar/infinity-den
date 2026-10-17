@@ -44,5 +44,4 @@ class NewsletterSubscriberRead(BaseModel):
 
 
 class NewsletterSubscriptionResponse(BaseModel):
-    subscriber: NewsletterSubscriberRead
     message: str

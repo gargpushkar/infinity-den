@@ -9,7 +9,7 @@ from pydantic import ValidationError
 
 from app.config.settings import settings
 from app.routes.public.form_pages import FORM_EXPIRED, TOO_MANY_ATTEMPTS, field_errors, safe_next
-from app.routes.public.seo import social_image_url
+from app.routes.public.seo import article_schema, social_image_url
 from app.schemas.comment import CommentInput
 from app.services.article_conversation_service import get_conversation_context, published_article_id
 from app.services.article_page_service import (
@@ -278,7 +278,7 @@ def _category_url(context: dict[str, Any]) -> str:
     return "/articles"
 
 
-def _article_seo_context(request: Request, article: dict) -> dict[str, str]:
+def _article_seo_context(request: Request, article: dict) -> dict[str, Any]:
     canonical_url = str(
         request.url_for("article_detail", article_slug=article["slug"])
     )
@@ -291,6 +291,7 @@ def _article_seo_context(request: Request, article: dict) -> dict[str, str]:
         "open_graph_type": "article",
         "seo_image": seo_image,
         "seo_image_alt": article.get("image_alt", article["title"]),
+        "page_schema": article_schema(request, article, canonical_url, seo_image),
     }
 
 

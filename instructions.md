@@ -545,9 +545,17 @@ Implement:
 - SEO-friendly slugs
 - meta tags
 - OpenGraph tags
-- `sitemap.xml`
-- `robots.txt`
+- `sitemap.xml` and `robots.txt` (`app/routes/public/seo.py`); add new public
+  page types to `app/services/sitemap_service.py`, and new private paths to
+  `PRIVATE_PATHS`
 - canonical URLs
+- JSON-LD: Article on article pages, Organization and WebSite on the homepage,
+  breadcrumbs where they appear
+
+The Content Security Policy (`app/middleware/security_headers.py`) allows
+scripts and styles only from this site, jsDelivr, and Google Fonts. Keep
+templates free of inline scripts and `style=""` attributes; add a host to the
+policy rather than loosening it.
 
 ---
 
