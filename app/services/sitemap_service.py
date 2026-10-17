@@ -21,7 +21,8 @@ from app.services.question_service import site_today
 
 # One sitemap file holds 50,000 URLs; split into an index before reaching it.
 URL_LIMIT = 45_000
-SECTION_PAGES = ("/", "/articles", "/categories", "/questions", "/experiences", "/play")
+SECTION_PAGES = ("/", "/articles", "/categories", "/questions", "/experiences", "/play",
+                 "/guidelines", "/editorial-policy", "/privacy", "/terms")
 
 
 async def sitemap_entries(database: AsyncIOMotorDatabase | None = None) -> list[tuple[str, str | None]]:

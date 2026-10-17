@@ -11,12 +11,15 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 ## Current Phase
 - [x] Foundation (publishing platform)
 - [x] Product vision documented (`vision.md`)
-- [ ] Phase 1 — The foundation
+- [x] Phase 1 — The foundation (all branches merged)
 - [ ] Phase 2 — Interaction
 - [ ] Phase 3 — Community growth
 
 ## Current Focus
-- [ ] `chore/seo-and-hardening` (last Phase 1 branch)
+- [ ] `feature/community-pages`
+- [ ] Password reset by email (Brevo over SMTP, free plan)
+- [ ] Self-serve account deletion
+- [ ] Then Phase 2, starting with the Debate Den
 
 ---
 
@@ -126,6 +129,14 @@ order; each assumes the previous ones are merged.
 - [x] Add a minimal test setup (`pytest`, `tests/`)
 - [ ] One check per feature (ongoing)
 
+## Launch readiness
+- [x] Community guidelines, editorial policy, privacy policy, and terms (`/guidelines`, `/editorial-policy`, `/privacy`, `/terms`), linked from the footer and member forms
+- [x] Visible corrections: editors add a dated correction note shown on the piece
+- [x] Fonts served from this site; no requests to Google
+- [ ] Add a governing-law clause to the terms once the business's country is confirmed
+- [ ] Replace `CONTACT_EMAIL` with a site address (for example on infinityden.com)
+- [ ] Rotate server logs, so they are kept for a short time as `/privacy` says
+
 ---
 
 # PHASE 2 — INTERACTION
@@ -137,7 +148,6 @@ order; each assumes the previous ones are merged.
 - [ ] Perspective Switch
 - [ ] Related-idea recommendations
 - [ ] Block members
-- [ ] Visible corrections on articles
 
 ---
 

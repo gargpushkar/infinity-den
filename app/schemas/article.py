@@ -171,6 +171,8 @@ class ArticleUpdate(BaseModel):
     sources: list[ArticleSource] | None = Field(default=None, max_length=20)
     status: ArticleStatus | None = None
     review_note: str | None = Field(default=None, max_length=1000)
+    # Shown on the published piece; changing it stamps corrected_at.
+    correction_note: str | None = Field(default=None, max_length=2000)
     seo_title: str | None = Field(default=None, max_length=70)
     seo_description: str | None = Field(default=None, max_length=160)
     published_at: datetime | None = None
@@ -201,6 +203,7 @@ class ArticleUpdate(BaseModel):
 
     @field_validator(
         "cover_image",
+        "correction_note",
         "category_id",
         "seo_title",
         "seo_description",
@@ -250,6 +253,8 @@ class ArticleRead(ArticleBase):
     created_at: datetime
     updated_at: datetime
     views: int = Field(default=0, ge=0)
+    correction_note: str | None = None
+    corrected_at: datetime | None = None
 
     @field_validator("id", "category_id", mode="before")
     @classmethod

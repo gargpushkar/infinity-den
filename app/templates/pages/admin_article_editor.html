@@ -173,6 +173,14 @@
       <p class="admin-muted small mt-1 mb-0" id="articleCoverHint" data-admin-cover-message aria-live="polite">An https link, or a JPEG, PNG, or WebP up to 5 MB. Empty uses the drawn cover.</p>
     </div>
 
+    {% if article %}
+      <div class="admin-field">
+        <label for="articleCorrection">Correction note</label>
+        <textarea class="form-control" id="articleCorrection" name="correction_note" rows="3" maxlength="2000" aria-describedby="articleCorrectionHint">{{ article.correction_note or '' }}</textarea>
+        <p class="admin-muted small mt-1 mb-0" id="articleCorrectionHint">Shown at the end of the piece with today's date when you change it. Say what was wrong and what changed.</p>
+      </div>
+    {% endif %}
+
     <div class="admin-field">
       <label for="articleSeoTitle">SEO title</label>
       <input class="form-control" id="articleSeoTitle" name="seo_title" value="{{ article.seo_title if article and article.seo_title else '' }}" maxlength="70">

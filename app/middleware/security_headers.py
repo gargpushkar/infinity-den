@@ -1,8 +1,8 @@
 """Security headers on every response, and a cap on request bodies.
 
 The templates have no inline scripts or styles, so the Content Security Policy
-can allow scripts and styles only from this site, jsDelivr (Bootstrap), and
-Google Fonts. JSON-LD blocks are data, not scripts, so CSP does not block them.
+can allow scripts and styles only from this site and jsDelivr (Bootstrap).
+Fonts are served from this site. JSON-LD blocks are data, not scripts, so CSP does not block them.
 """
 
 import re
@@ -14,8 +14,8 @@ CONTENT_SECURITY_POLICY = "; ".join(
     [
         "default-src 'self'",
         "script-src 'self' https://cdn.jsdelivr.net",
-        "style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com",
-        "font-src 'self' https://fonts.gstatic.com",
+        "style-src 'self' https://cdn.jsdelivr.net",
+        "font-src 'self'",
         "img-src 'self' data: https:",  # uploaded covers may live on other https hosts
         "connect-src 'self'",
         "object-src 'none'",

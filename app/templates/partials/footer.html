@@ -32,7 +32,17 @@
             <li><a href="/questions">Question Room</a></li>
             <li><a href="/play">Curiosity Arcade</a></li>
             <li><a href="/write">Write for us</a></li>
-            <li><a href="mailto:hello@infinityden.dev">Contact</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h2>About</h2>
+          <ul class="footer-links">
+            <li><a href="/guidelines">Community guidelines</a></li>
+            <li><a href="/editorial-policy">Editorial policy</a></li>
+            <li><a href="/privacy">Privacy</a></li>
+            <li><a href="/terms">Terms</a></li>
+            {% if contact_email %}<li><a href="mailto:{{ contact_email }}">Contact</a></li>{% endif %}
           </ul>
         </div>
       </nav>

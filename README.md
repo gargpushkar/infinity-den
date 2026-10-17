@@ -127,6 +127,7 @@ The app reads configuration from `.env` through `app/config/settings.py`.
 | `AUTH_COOKIE_SECURE` | `false` | Send cookies over HTTPS only; `true` in production |
 | `SITE_TIMEZONE` | `America/New_York` | When "today's question" changes |
 | `MEDIA_DIR` | `media` | Where uploaded cover images are stored (served at `/media/`) |
+| `CONTACT_EMAIL` | the owner's address | Shown in the footer and on the policy pages for questions and data requests |
 
 `APP_ENV=production` also turns off the API docs (`/docs`, `/redoc`, `/openapi.json`).
 

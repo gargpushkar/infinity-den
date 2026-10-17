@@ -1,0 +1,66 @@
+{% extends "layouts/policy.html" %}
+
+{% block policy %}
+<p><strong>The short version:</strong> we keep only what we need to run the site. There are no ads, no analytics or tracking tools, and we never sell or rent your information.</p>
+<p>Infinity Den runs this site. Questions about this policy, or requests about your information, go to <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>. These rights apply to everyone, wherever you live.</p>
+
+<h2>What we store</h2>
+<h3>If you join</h3>
+<ul>
+  <li><strong>Your email address</strong>, to sign you in. It's never shown on the site.</li>
+  <li><strong>Your username, display name, and bio.</strong> These are public on your profile and next to what you publish.</li>
+  <li><strong>Your password</strong>, stored only as a secure hash. We can't read it.</li>
+</ul>
+<h3>What you write</h3>
+<ul>
+  <li><strong>Published pieces, responses, and comments</strong> are public.</li>
+  <li><strong>Drafts and pieces waiting for review</strong> are visible only to you and the editors.</li>
+  <li><strong>Saved pieces</strong> are visible only to you.</li>
+  <li><strong>Reports</strong> are visible only to the editors. The person you report doesn't see who reported them.</li>
+</ul>
+<h3>Images you upload</h3>
+<p>We re-save every uploaded image and remove its hidden details, including the location where a photo was taken and the camera that took it.</p>
+<h3>The newsletter</h3>
+<p>If you subscribe, we store your email address and the date you signed up.</p>
+<h3>Technical information</h3>
+<p>Like most websites, our server records requests (IP address, browser type, the page asked for, and the time) to keep the site secure and fix problems. These logs are kept for a short time. IP addresses are also held briefly in memory to slow down repeated sign-in attempts.</p>
+
+<h2>Cookies</h2>
+<p>We use only the cookies the site needs to work. None of them are for advertising or tracking.</p>
+<ul>
+  <li><strong>member_access_token</strong>: keeps you signed in, for up to 30 days.</li>
+  <li><strong>member_csrf_token</strong>: protects forms from being submitted by other websites.</li>
+  <li><strong>theme</strong>: remembers whether you chose light or dark mode, for a year.</li>
+  <li>Editors have two more cookies that do the same jobs on the editors' side of the site.</li>
+</ul>
+
+<h2>Who else handles information</h2>
+<ul>
+  <li><strong>Our hosting provider</strong> runs the server the site lives on.</li>
+  <li><strong>MongoDB Atlas</strong> stores the site's database.</li>
+  <li><strong>jsDelivr</strong> serves the Bootstrap styles and scripts the site is built with. Like any website your browser contacts, it receives your IP address.</li>
+  <li><strong>Images linked from other websites.</strong> When a piece uses a cover image linked from another site, your browser loads it from that site.</li>
+  <li><strong>An email service</strong> will deliver password-reset emails and the newsletter once we start sending them. We'll name it here before we do.</li>
+</ul>
+<p>We share information with others only when the law requires it, or to protect people's safety.</p>
+<p>These services may store and process information in countries other than yours, including the United States and India.</p>
+
+<h2>How long we keep it</h2>
+<ul>
+  <li>Your account, for as long as you keep it.</li>
+  <li>What you publish, until you or an editor removes it, or your account is deleted.</li>
+  <li>Newsletter addresses, until you unsubscribe. Every newsletter will include a way to unsubscribe, or you can write to us.</li>
+</ul>
+
+<h2>Your rights</h2>
+<p>You can ask us to show you the information we hold about you, correct it, delete it, or send you a copy. You can change your display name and bio yourself on <a href="/account">your account page</a>. To delete your account, write to <a href="mailto:{{ contact_email }}">{{ contact_email }}</a> from the email address you signed up with, and we'll delete it within 30 days. If you're unhappy with how we've handled your information, you can also complain to the data protection authority where you live.</p>
+
+<h2>Children</h2>
+<p>Infinity Den isn't for children under 13. If we learn that someone under 13 has an account, we delete it.</p>
+
+<h2>Security</h2>
+<p>Passwords are hashed, the site is served over an encrypted connection, and only editors can see unpublished work and reports. No system is perfectly secure; if we learn of a breach that affects you, we'll tell you.</p>
+
+<h2>Changes</h2>
+<p>When this policy changes, we update this page and the date at the top. If a change matters, we'll say so on the site.</p>
+{% endblock %}

@@ -7,6 +7,7 @@ from pymongo import ASCENDING
 from pymongo.errors import PyMongoError
 
 from app.config.constants import LAUNCH_ROOMS
+from app.config.settings import settings
 from app.database.mongodb import get_database
 from app.models.category import CATEGORY_COLLECTION
 from app.services.article_page_service import room_url
@@ -43,6 +44,7 @@ async def get_nav_context(request: Request) -> dict[str, Any]:
         "nav_rooms": rooms,
         "category_links": rooms,
         "categories": [room["name"] for room in rooms],
+        "contact_email": settings.contact_email,
     }
 
 

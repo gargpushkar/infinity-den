@@ -17,7 +17,7 @@ TEXT_PAIRS = [
     ("accent", "bg-main"), ("accent", "card"), ("accent", "bg-secondary"), ("accent", "accent-tint"),
     ("on-action", "action"), ("on-action", "action-hover"),
     ("label-experience", "card"), ("label-experience", "bg-main"),
-    ("success", "success-bg"), ("danger", "danger-bg"), ("warning-fg", "warning-bg"),
+    ("success", "success-bg"), ("danger", "danger-bg"), ("warning-fg", "warning-bg"), ("text", "warning-bg"),
     ("header-muted", "header-bg"), ("amber", "header-bg"), ("ivory", "header-bg"),
 ]
 

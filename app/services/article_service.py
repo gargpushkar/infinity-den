@@ -152,9 +152,11 @@ class ArticleService:
                 raise ArticleSourcesRequiredError(SOURCES_REQUIRED_MESSAGE)
 
         old_cover = None
-        if "cover_image" in update_data:
-            current = await self.collection.find_one({"_id": object_id}, {"cover_image": 1})
-            old_cover = (current or {}).get("cover_image")
+        if {"cover_image", "correction_note"} & update_data.keys():
+            current = await self.collection.find_one({"_id": object_id}, {"cover_image": 1, "correction_note": 1}) or {}
+            old_cover = current.get("cover_image")
+            if update_data.get("correction_note", current.get("correction_note")) != current.get("correction_note"):
+                update_data["corrected_at"] = self._utc_now() if update_data["correction_note"] else None
 
         update_data["updated_at"] = self._utc_now()
 

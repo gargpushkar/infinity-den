@@ -81,7 +81,7 @@
               {{ field("body", "Your response", values, field_errors, type="textarea", hint="Short thoughts up to 500 characters; anything else up to 3,000. **bold**, _italic_ and [links](https://example.org) work.", attrs='maxlength="3000" required') }}
               {{ field("sources", "Sources", values, field_errors, type="textarea", hint="Needed for a researched answer. One per line: Title | https://link") }}
               <button class="btn btn-primary member-submit" type="submit">{% if own_response %}Update response{% else %}Post response{% endif %}</button>
-              <p class="member-field-hint">Responses appear right away. One response per question; you can edit it any time.</p>
+              <p class="member-field-hint">Responses appear right away and follow the <a href="/guidelines">community guidelines</a>. One response per question; you can edit it any time.</p>
             </form>
             {% if own_response %}
               <form class="member-signout" method="post" action="{{ question.url }}/respond/delete">
