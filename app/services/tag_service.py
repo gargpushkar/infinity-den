@@ -173,3 +173,24 @@ def get_tag_service(
     database: AsyncIOMotorDatabase | None = None,
 ) -> TagService:
     return TagService(database=database)
+
+
+def tag_slug(name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+
+
+async def register_tags(database: AsyncIOMotorDatabase, names: list[str]) -> None:
+    """Make sure every tag on a published piece exists, so it shows up as a filter.
+
+    Editors and members type tags freely; without this, a fresh database would
+    never list them on /articles or in search.
+    """
+    collection = database[TAG_COLLECTION]
+    for name in {name.strip() for name in names if name and name.strip()}:
+        slug = tag_slug(name)
+        if not slug or await collection.find_one({"slug": slug}, {"_id": 1}):
+            continue
+        try:
+            await collection.insert_one(create_tag_document(name=name, slug=slug).to_mongo())
+        except DuplicateKeyError:
+            pass  # created at the same moment by another save

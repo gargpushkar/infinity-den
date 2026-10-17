@@ -120,6 +120,60 @@ The app reads configuration from `.env` through `app/config/settings.py`.
 | `MONGODB_DB_NAME` | `infinity_den` | MongoDB database name |
 | `MONGODB_REQUIRED` | `false` | Fail startup if MongoDB is unavailable |
 | `MONGODB_SERVER_SELECTION_TIMEOUT_MS` | `2000` | MongoDB connection timeout |
+| `AUTH_SECRET_KEY` | *(empty)* | Signs sign-in tokens and form tokens; required, and different in every environment |
+| `AUTH_TOKEN_EXPIRE_MINUTES` | `60` | How long an admin session lasts |
+| `MEMBER_TOKEN_EXPIRE_DAYS` | `30` | How long a member session lasts |
+| `AUTH_COOKIE_SECURE` | `false` | Send cookies over HTTPS only; `true` in production |
+| `SITE_TIMEZONE` | `America/New_York` | When "today's question" changes |
+
+`APP_ENV=production` also turns off the API docs (`/docs`, `/redoc`, `/openapi.json`).
+
+## Production setup (fresh database)
+
+1. **Atlas.** Put the cluster in the same region as the app server (every page
+   makes several database round trips). Use a new database name such as
+   `infinity_den_prod`; not `infinity_den`, which holds the previous site's
+   data. Create a database user with `readWrite` on that database only, allow
+   only the server's IP, and turn on backups.
+2. **`.env` on the server:**
+
+   ```env
+   APP_ENV=production
+   DEBUG=false
+   HOST=127.0.0.1
+   PORT=8000
+   MONGODB_URI=<the production user's connection string>
+   MONGODB_DB_NAME=infinity_den_prod
+   MONGODB_REQUIRED=true
+   MONGODB_SERVER_SELECTION_TIMEOUT_MS=5000
+   AUTH_SECRET_KEY=<python -c "import secrets; print(secrets.token_urlsafe(48))">
+   AUTH_COOKIE_SECURE=true
+   SITE_TIMEZONE=America/New_York
+   ```
+
+   Always set `MONGODB_DB_NAME`: the code default is `infinity_den`.
+3. **Run** one uvicorn worker behind nginx with `--proxy-headers
+   --forwarded-allow-ips=127.0.0.1`, so links are `https://`. (Rate limits live
+   in memory, so several workers would each keep their own counts.)
+4. **First run.** Start the app once; it creates every index. Then, on the
+   server with the production `.env`:
+
+   ```bash
+   python scripts/create_admin.py                 # your admin account
+   python scripts/create_launch_rooms.py          # preview the six rooms
+   python scripts/create_launch_rooms.py --apply  # create them
+   ```
+
+   The rooms script only adds rooms that are missing and never changes ones
+   editors have edited. Never run `seed_dev_data.py` here; it refuses any
+   database whose name does not end in `_dev`.
+5. **Launch content, in admin.** Homepage sections hide when they are empty,
+   so before launch add: a week of questions, a handful of Fact or Fiction
+   claims, a few pieces per room (some personal experiences, some marked
+   "Editor's pick"). Tags appear as filters once a piece using them is
+   published.
+6. **After launch.** Turn on HSTS in nginx once the site will only ever be
+   served over HTTPS.
 
 ## Development Notes
 

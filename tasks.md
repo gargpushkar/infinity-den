@@ -166,7 +166,8 @@ Carried over from the foundation; pick up when needed.
 ## Deployment
 - [ ] Production settings and environment variables
 - [ ] Static asset serving
-- [ ] Production MongoDB
+- [x] Fresh production database: setup checklist in `README.md`, `scripts/create_launch_rooms.py`, tags registered on publish
+- [ ] Production MongoDB (create it following the README)
 - [ ] Run uvicorn with `--proxy-headers` behind the host, so the sitemap, robots.txt, and canonical links use https
 - [ ] Turn on HSTS once the site is served only over HTTPS
 - [x] API docs (`/docs`, `/openapi.json`) are off when `APP_ENV=production`
