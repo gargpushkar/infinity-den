@@ -16,7 +16,7 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 - [ ] Phase 3 — Community growth
 
 ## Current Focus
-- [ ] `feature/homepage-rebuild`
+- [ ] `feature/comments-bookmarks`
 
 ---
 
@@ -105,10 +105,13 @@ order; each assumes the previous ones are merged.
 - [x] Fact or Fiction answered in place on the homepage
 - [x] Verify at 375px, 768px, 1024px, 1440px, day and night
 
-## 8. `feature/comments-bookmarks`
-- [ ] Comments on articles
-- [ ] Bookmarks with a saved-items page
-- [ ] Reports on articles, responses, and comments; admin queue to hide or dismiss
+## 8a. `feature/comments-bookmarks`
+- [x] Comments on articles (flat, members delete their own)
+- [x] Bookmarks with a saved-items page (`/saved`)
+
+## 8b. `feature/reports`
+- [ ] Reports on articles, responses, and comments
+- [ ] Admin queue to hide or dismiss
 
 ## Platform items for Phase 1
 - [ ] Generate `sitemap.xml`

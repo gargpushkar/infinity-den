@@ -135,7 +135,7 @@ async def get_article_listing_context(
         return _empty_listing_context()
 
 
-async def get_article_detail_context(article_slug: str) -> dict[str, Any] | None:
+async def get_article_detail_context(article_slug: str, *, record_view: bool = True) -> dict[str, Any] | None:
     try:
         db = get_database()
         category_options = await _get_category_options(db)
@@ -147,7 +147,8 @@ async def get_article_detail_context(article_slug: str) -> dict[str, Any] | None
         if article is None or article.status != "published":
             return None
 
-        await _record_article_view(db, article.slug)
+        if record_view:
+            await _record_article_view(db, article.slug)
         article_context = _article_to_detail(article, category_lookup, tag_lookup)
         article_context["author_url"] = await _author_profile_url(db, article.author_id)
         related_articles = await _get_related_articles(
@@ -393,6 +394,7 @@ def _article_to_detail(
 
     return {
         **card,
+        "id": article.id,
         "content": article.content,
         "content_html": render_markdown(article.content),
         "sources": [source.model_dump() for source in article.sources],

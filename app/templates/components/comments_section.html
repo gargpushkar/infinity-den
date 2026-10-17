@@ -1,0 +1,43 @@
+{# Comments under a piece: flat, oldest first. Expects the context from
+   app/services/article_conversation_service.get_conversation_context. #}
+{% from "components/form_fields.html" import field, form_alert %}
+<section class="comments" id="comments" aria-labelledby="commentsTitle">
+  <h2 id="commentsTitle">Comments{% if comment_count %} <span>{{ comment_count }}</span>{% endif %}</h2>
+  {{ form_alert(comment_error, comment_notice) }}
+
+  {% if comments %}
+    <ol class="comment-list">
+      {% for comment in comments %}
+        <li class="comment{% if comment.is_hidden %} is-hidden{% endif %}" id="comment-{{ comment.id }}">
+          <p class="comment-meta">
+            <a class="comment-author" href="{{ comment.author_url }}">{{ comment.author }}</a>
+            <span>{{ comment.date_label }}</span>
+          </p>
+          {% if comment.is_hidden %}
+            <p class="member-alert member-alert-review" role="note">Editors have hidden this comment, so only you can see it.</p>
+          {% endif %}
+          {# body_html comes from app/utils/markdown.py, which escapes first. #}
+          <div class="article-content comment-body">{{ comment.body_html }}</div>
+          {% if comment.is_own %}
+            <form method="post" action="/articles/{{ article.slug }}/comments/{{ comment.id }}/delete">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button class="comment-action" type="submit">Delete</button>
+            </form>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p class="comments-empty">No comments yet. Start the conversation.</p>
+  {% endif %}
+
+  {% if signed_in %}
+    <form class="member-form comment-form" method="post" action="/articles/{{ article.slug }}/comments#comments" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      {{ field("body", "Add a comment", values, field_errors, type="textarea", hint="Up to 2,000 characters. **bold**, _italic_ and [links](https://example.org) work. Critique arguments, not people.", attrs='maxlength="2000" required') }}
+      <button class="btn btn-primary member-submit" type="submit">Post comment</button>
+    </form>
+  {% else %}
+    <p class="comments-signin"><a href="/login?next=/articles/{{ article.slug }}%23comments">Sign in</a> or <a href="/join">join</a> to add a comment.</p>
+  {% endif %}
+</section>

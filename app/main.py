@@ -31,6 +31,7 @@ from app.routes.public.home import router as home_router
 from app.routes.public.members import router as members_router
 from app.routes.public.play import router as play_router
 from app.routes.public.questions import router as questions_router
+from app.routes.public.saved import router as saved_router
 from app.routes.public.search import router as public_search_router
 from app.routes.public.write import router as write_router
 
@@ -88,6 +89,7 @@ app.include_router(home_router)
 app.include_router(members_router)
 app.include_router(play_router)
 app.include_router(questions_router)
+app.include_router(saved_router)
 app.include_router(public_search_router)
 app.include_router(write_router)
 app.include_router(admin_auth_pages_router)
