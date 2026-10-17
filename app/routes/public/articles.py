@@ -3,19 +3,40 @@ from urllib.parse import urlencode
 
 from fastapi import APIRouter, HTTPException, Path, Query, Request
 from fastapi import status as http_status
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
+from pydantic import ValidationError
 
 from app.config.settings import settings
+from app.routes.public.form_pages import FORM_EXPIRED, TOO_MANY_ATTEMPTS, field_errors, safe_next
+from app.routes.public.seo import social_image_url
+from app.schemas.comment import CommentInput
+from app.services.article_conversation_service import get_conversation_context, published_article_id
 from app.services.article_page_service import (
     get_article_detail_context,
     get_article_listing_context,
 )
-from app.routes.public.seo import social_image_url
+from app.services.bookmark_service import BookmarkService
+from app.services.comment_service import CommentService
+from app.services.member_session import (
+    form_csrf_is_valid,
+    form_csrf_token,
+    get_current_member,
+    set_form_csrf_cookie,
+)
 from app.services.nav_service import get_nav_context
+from app.utils.forms import read_form
+from app.utils.rate_limit import member_comment_limiter
 
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
+
+ARTICLE_SLUG = Path(min_length=3, max_length=180)
+COMMENT_NOTICES = {
+    "posted": "Your comment is live.",
+    "deleted": "Your comment was removed.",
+}
 
 
 @router.get("/articles")
@@ -53,36 +74,120 @@ async def article_listing(
 
 
 @router.get("/articles/{article_slug}")
-async def article_detail(
+async def article_detail(request: Request, article_slug: str = ARTICLE_SLUG, notice: str = ""):
+    return await _render_article(request, article_slug, notice=COMMENT_NOTICES.get(notice))
+
+
+@router.post("/articles/{article_slug}/comments")
+async def post_comment(request: Request, article_slug: str = ARTICLE_SLUG):
+    member = await get_current_member(request)
+    if member is None:
+        return RedirectResponse(f"/login?next=/articles/{article_slug}%23comments", status_code=303)
+
+    form = await read_form(request)
+    values = {"body": form.get("body", "")}
+    if not form_csrf_is_valid(request, form):
+        return await _render_article(request, article_slug, values=values, error=FORM_EXPIRED, status_code=400)
+    article_id = await published_article_id(article_slug)
+    if article_id is None:
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Article was not found.")
+    if not member_comment_limiter.allow(member.id):
+        return await _render_article(request, article_slug, values=values, error=TOO_MANY_ATTEMPTS, status_code=429)
+
+    try:
+        payload = CommentInput(body=values["body"])
+    except ValidationError as exc:
+        return await _render_article(
+            request, article_slug, values=values, field_errors=field_errors(exc), status_code=422
+        )
+
+    await CommentService().add(article_id, member, payload)
+    return RedirectResponse(f"/articles/{article_slug}?notice=posted#comments", status_code=303)
+
+
+@router.post("/articles/{article_slug}/comments/{comment_id}/delete")
+async def delete_comment(request: Request, article_slug: str = ARTICLE_SLUG, comment_id: str = Path(max_length=40)):
+    member = await get_current_member(request)
+    if member is None:
+        return RedirectResponse(f"/login?next=/articles/{article_slug}", status_code=303)
+
+    form = await read_form(request)
+    if not form_csrf_is_valid(request, form):
+        return await _render_article(request, article_slug, error=FORM_EXPIRED, status_code=400)
+    await CommentService().delete_own(comment_id, member)
+    return RedirectResponse(f"/articles/{article_slug}?notice=deleted#comments", status_code=303)
+
+
+@router.post("/articles/{article_slug}/bookmark")
+async def bookmark(request: Request, article_slug: str = ARTICLE_SLUG):
+    """Save or remove a piece. `next` returns the reader to /saved or the article."""
+    article_url = f"/articles/{article_slug}"
+    member = await get_current_member(request)
+    if member is None:
+        return RedirectResponse(f"/login?next={article_url}", status_code=303)
+
+    form = await read_form(request)
+    back = safe_next(form.get("next", "")) or article_url
+    if not form_csrf_is_valid(request, form):
+        return RedirectResponse(back, status_code=303)
+    article_id = await published_article_id(article_slug)
+    if article_id is None:
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Article was not found.")
+
+    service = BookmarkService()
+    if form.get("action") == "remove":
+        await service.remove(member, article_id)
+    else:
+        await service.save(member, article_id)
+    return RedirectResponse(back, status_code=303)
+
+
+async def _render_article(
     request: Request,
-    article_slug: str = Path(min_length=3, max_length=180),
+    article_slug: str,
+    *,
+    values: dict[str, str] | None = None,
+    field_errors: dict[str, str] | None = None,
+    error: str | None = None,
+    notice: str | None = None,
+    status_code: int = 200,
 ):
-    nav_context = await get_nav_context(request)
-    detail_context = await get_article_detail_context(article_slug)
+    # A form re-shown after an error is not a new read, so it does not count a view.
+    detail_context = await get_article_detail_context(article_slug, record_view=request.method == "GET")
     if detail_context is None:
         raise HTTPException(
             status_code=http_status.HTTP_404_NOT_FOUND,
             detail="Article was not found.",
         )
 
-    breadcrumbs = _article_detail_breadcrumbs(detail_context["article"])
+    article = detail_context["article"]
+    member = await get_current_member(request)
+    breadcrumbs = _article_detail_breadcrumbs(article)
+    csrf_token = form_csrf_token(request)
 
-    return templates.TemplateResponse(
+    response = templates.TemplateResponse(
         request,
         "pages/article_detail.html",
         {
-            **nav_context,
+            **await get_nav_context(request),
             "app_name": settings.app_name,
-            "page_title": detail_context["article"]["seo_title"],
-            **_article_seo_context(request, detail_context["article"]),
+            "page_title": article["seo_title"],
+            **_article_seo_context(request, article),
             **_breadcrumb_context(request, breadcrumbs),
-            "share_actions": _article_share_actions(
-                request,
-                detail_context["article"],
-            ),
+            "share_actions": _article_share_actions(request, article),
             **detail_context,
+            **await get_conversation_context(article["id"], member),
+            "signed_in": member is not None,
+            "csrf_token": csrf_token,
+            "values": values or {},
+            "field_errors": field_errors or {},
+            "comment_error": error,
+            "comment_notice": notice,
         },
+        status_code=status_code,
     )
+    set_form_csrf_cookie(response, csrf_token)
+    return response
 
 
 def _article_listing_breadcrumbs(context: dict[str, Any]) -> list[dict[str, Any]]:

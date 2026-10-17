@@ -1,0 +1,32 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="member-profile">
+  <div class="container">
+    <header class="member-profile-header">
+      <p class="eyebrow mb-2">Your library</p>
+      <h1>Saved</h1>
+      <p class="member-lede">Pieces you saved to read later. Only you can see this list.</p>
+    </header>
+
+    {% if pieces %}
+      <div class="related-articles-grid">
+        {% for article in pieces %}
+          <div class="related-articles-item saved-item">
+            {% include "components/article_card.html" %}
+            {% set is_saved = true %}{% set signed_in = true %}{% set save_next = "/saved" %}{% set save_label = "Remove from saved" %}
+            {% include "components/save_button.html" %}
+          </div>
+        {% endfor %}
+      </div>
+    {% elif is_unavailable %}
+      <p class="member-profile-empty">Your saved pieces are unavailable right now. Please try again shortly.</p>
+    {% else %}
+      <p class="member-profile-empty">Nothing saved yet. Use <strong>Save</strong> on any piece to keep it here.</p>
+      <a class="btn btn-primary" href="/articles">Browse articles</a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

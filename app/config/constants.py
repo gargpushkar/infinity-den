@@ -86,5 +86,7 @@ RESPONSE_KIND_LABELS: dict[str, str] = {
     "researched": "Researched answer",
 }
 RESPONSE_SHORT_KIND = "thought"
+
+COMMENT_MAX_LENGTH = 2000
 RESPONSE_SHORT_MAX_LENGTH = 500
 RESPONSE_MAX_LENGTH = 3000

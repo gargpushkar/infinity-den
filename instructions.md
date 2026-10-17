@@ -98,6 +98,8 @@ Creative names are display text. Everything permanent is plain and descriptive.
 | Join / sign in / sign out | `/join`, `/login`, `/logout` |
 | Your account | `/account` |
 | Write / edit your piece | `/write`, `/write/{id}` |
+| Saved pieces | `/saved` |
+| Comment on / save a piece (form posts) | `/articles/{slug}/comments`, `/articles/{slug}/bookmark` |
 
 Do not add a second URL for the same page. Nav and cards link to the canonical
 URL.
@@ -303,17 +305,21 @@ Fields:
 
 No votes or likes. Order: featured first, then newest.
 
-### comments *(new)*
+### comments
+
+Flat (no replies), oldest first, posted immediately. Members can delete their
+own comments but not edit them in Phase 1. A hidden comment stays visible to
+its author with a note.
 
 Fields:
 
 - article_id
-- user_id
-- body
+- user_id, author, author_username
+- body (markdown subset, up to 2,000 characters)
 - status — `published` | `hidden`
-- created_at
+- created_at, updated_at
 
-### bookmarks *(new)*
+### bookmarks
 
 Fields:
 

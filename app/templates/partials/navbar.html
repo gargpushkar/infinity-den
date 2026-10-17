@@ -48,6 +48,7 @@
 
       <div class="topbar-actions">
         {% if current_member %}
+          <a class="topbar-link" href="/saved">Saved</a>
           <a class="topbar-account" href="/members/{{ current_member.username }}">{{ current_member.display_name }}</a>
           <a class="topbar-link" href="/logout">Sign out</a>
         {% else %}
@@ -95,6 +96,7 @@
     <ul class="menu-list">
       {% if current_member %}
         <li><a href="/members/{{ current_member.username }}">Your profile</a></li>
+        <li><a href="/saved">Saved</a></li>
         <li><a href="/account">Your account</a></li>
         <li><a href="/logout">Sign out</a></li>
       {% else %}
