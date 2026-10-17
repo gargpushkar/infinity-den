@@ -16,7 +16,7 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 - [ ] Phase 3 — Community growth
 
 ## Current Focus
-- [ ] `feature/comments-bookmarks`
+- [ ] `feature/reports`
 
 ---
 
@@ -110,8 +110,8 @@ order; each assumes the previous ones are merged.
 - [x] Bookmarks with a saved-items page (`/saved`)
 
 ## 8b. `feature/reports`
-- [ ] Reports on articles, responses, and comments
-- [ ] Admin queue to hide or dismiss
+- [x] Reports on articles, responses, and comments
+- [x] Admin queue to hide or dismiss
 
 ## Platform items for Phase 1
 - [ ] Generate `sitemap.xml`

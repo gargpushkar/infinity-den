@@ -87,6 +87,17 @@ class FakeCollection:
                 return dict(document)
         return None
 
+    async def update_one(self, query, update, **_kwargs):
+        return await self.update_many(query, update, limit=1)
+
+    async def update_many(self, query, update, *, limit=None, **_kwargs):
+        changed = 0
+        for document in self.documents:
+            if _matches(document, query) and (limit is None or changed < limit):
+                document.update(update["$set"])
+                changed += 1
+        return type("UpdateResult", (), {"modified_count": changed, "matched_count": changed})()
+
     async def delete_one(self, query):
         for index, document in enumerate(self.documents):
             if _matches(document, query):

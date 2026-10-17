@@ -1,0 +1,80 @@
+{% extends "layouts/admin.html" %}
+
+{% block admin_content %}
+<section class="admin-section-header">
+  <div>
+    <p class="admin-kicker mb-2">Moderation</p>
+    <h2>Reports</h2>
+  </div>
+  <p class="admin-muted mb-0" data-admin-table-message role="status">Hide breaks of the community standards. Disagreement alone is not one.</p>
+</section>
+
+<section class="admin-panel mb-3">
+  <div class="admin-panel-header">
+    <div>
+      <p class="admin-kicker mb-1">Open</p>
+      <h2>{{ queue|length }} item{{ "s" if queue|length != 1 }} waiting</h2>
+    </div>
+    <p class="admin-muted mb-0">Most reported first, then oldest.</p>
+  </div>
+  {% if queue %}
+    <div class="admin-list">
+      {% for item in queue %}
+        <article class="admin-resource-row">
+          <div>
+            {% if item.target %}
+              <strong>{{ item.target.label }} by {{ item.target.author }}</strong>
+              <small>
+                {{ item.count }} report{{ "s" if item.count != 1 }} &middot; first {{ item.first_reported.strftime("%b %-d, %Y") }}
+                {% if not item.target.is_visible %} &middot; already hidden{% endif %}
+                {% if item.target.url %} &middot; <a href="{{ item.target.url }}" target="_blank" rel="noopener">Open</a>{% endif %}
+              </small>
+              <p>{{ item.target.text }}</p>
+            {% else %}
+              <strong>This {{ item.target_type }} no longer exists</strong>
+              <small>{{ item.count }} report{{ "s" if item.count != 1 }}</small>
+            {% endif %}
+            <p class="admin-report-reasons">
+              {% for reason, count in item.reasons %}<span class="admin-pill">{{ reason }}{% if count > 1 %} &times;{{ count }}{% endif %}</span>{% endfor %}
+            </p>
+            {% if item.details %}
+              <ul class="admin-report-details">
+                {% for detail in item.details %}<li>{{ detail }}</li>{% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+          <div class="admin-row-actions">
+            {% if item.target and item.target.is_visible %}
+              <button type="button" data-admin-report-action data-target-type="{{ item.target_type }}" data-target-id="{{ item.target_id }}" data-action="hide">{{ "Archive" if item.target_type == "article" else "Hide" }}</button>
+            {% endif %}
+            <button type="button" data-admin-report-action data-target-type="{{ item.target_type }}" data-target-id="{{ item.target_id }}" data-action="dismiss">Dismiss</button>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="admin-empty">Nothing to review. Members haven&rsquo;t reported anything.</p>
+  {% endif %}
+</section>
+
+<section class="admin-panel">
+  <div class="admin-panel-header">
+    <div>
+      <p class="admin-kicker mb-1">Handled</p>
+      <h2>Recent decisions</h2>
+    </div>
+  </div>
+  {% if handled %}
+    <div class="admin-list">
+      {% for row in handled %}
+        <div class="admin-list-row">
+          <span>{{ row.label }}{% if row.target %} by {{ row.target.author }}{% endif %}: {{ row.reason }}</span>
+          <small>{{ "Hidden" if row.report.status == "resolved" else "Dismissed" }} by {{ row.report.resolved_by }}{% if row.report.resolved_at %} &middot; {{ row.report.resolved_at.strftime("%b %-d, %Y") }}{% endif %}</small>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="admin-empty">No decisions yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

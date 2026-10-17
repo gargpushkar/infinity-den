@@ -5007,3 +5007,71 @@ a.save-button {
   color: var(--accent);
   font-weight: 500;
 }
+
+/* ---------------------------------------------------------------------------
+   Reports
+   --------------------------------------------------------------------------- */
+.report-target {
+  border-left: 2px solid var(--line-strong);
+  margin: 0 0 1.5rem;
+  padding: 0.1rem 0 0.1rem 1rem;
+}
+
+.report-target blockquote {
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  margin: 0 0 0.35rem;
+}
+
+.report-target figcaption {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.report-reasons {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.report-link {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.report-link:hover,
+.report-link:focus-visible {
+  color: var(--accent);
+}
+
+.comment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.admin-report-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0;
+}
+
+.admin-report-details {
+  color: var(--text-secondary);
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.admin-nav-count {
+  background: var(--amber);
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 600;
+  margin-left: auto;
+  padding: 0.1rem 0.5rem;
+}
