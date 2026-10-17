@@ -14,6 +14,7 @@ from app.middleware.security_headers import register_security_middleware
 from app.routes.admin.auth import router as admin_auth_pages_router
 from app.routes.admin.dashboard import router as admin_dashboard_router
 from app.routes.api.admin_auth import router as admin_auth_router
+from app.routes.api.admin_covers import router as admin_covers_router
 from app.routes.api.admin_dashboard import router as admin_dashboard_api_router
 from app.routes.api.admin_questions import router as admin_questions_router
 from app.routes.api.admin_quiz import router as admin_quiz_router
@@ -38,6 +39,7 @@ from app.routes.public.saved import router as saved_router
 from app.routes.public.search import router as public_search_router
 from app.routes.public.seo import router as seo_router
 from app.routes.public.write import router as write_router
+from app.services.cover_upload_service import MEDIA_URL
 
 
 configure_logging()
@@ -78,10 +80,12 @@ app = FastAPI(
 )
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount(MEDIA_URL, StaticFiles(directory=settings.media_dir, check_dir=False), name="media")
 
 register_exception_handlers(app)
 register_security_middleware(app)
 app.include_router(admin_auth_router)
+app.include_router(admin_covers_router)
 app.include_router(admin_dashboard_api_router)
 app.include_router(admin_questions_router)
 app.include_router(admin_quiz_router)

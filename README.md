@@ -126,6 +126,7 @@ The app reads configuration from `.env` through `app/config/settings.py`.
 | `MEMBER_TOKEN_EXPIRE_DAYS` | `30` | How long a member session lasts |
 | `AUTH_COOKIE_SECURE` | `false` | Send cookies over HTTPS only; `true` in production |
 | `SITE_TIMEZONE` | `America/New_York` | When "today's question" changes |
+| `MEDIA_DIR` | `media` | Where uploaded cover images are stored (served at `/media/`) |
 
 `APP_ENV=production` also turns off the API docs (`/docs`, `/redoc`, `/openapi.json`).
 
@@ -150,12 +151,18 @@ The app reads configuration from `.env` through `app/config/settings.py`.
    AUTH_SECRET_KEY=<python -c "import secrets; print(secrets.token_urlsafe(48))">
    AUTH_COOKIE_SECURE=true
    SITE_TIMEZONE=America/New_York
+   MEDIA_DIR=/var/lib/infinity-den/media
    ```
 
    Always set `MONGODB_DB_NAME`: the code default is `infinity_den`.
+   `MEDIA_DIR` holds uploaded covers: put it outside the code checkout so
+   deploys keep it, make it writable by the app user, and back it up (Atlas
+   backups don't include it).
 3. **Run** one uvicorn worker behind nginx with `--proxy-headers
    --forwarded-allow-ips=127.0.0.1`, so links are `https://`. (Rate limits live
-   in memory, so several workers would each keep their own counts.)
+   in memory, so several workers would each keep their own counts.) Cover
+   uploads are up to 5 MB and nginx refuses bodies over 1 MB by default, so
+   add `client_max_body_size 6m;` to the site's `server` block.
 4. **First run.** Start the app once; it creates every index. Then, on the
    server with the production `.env`:
 

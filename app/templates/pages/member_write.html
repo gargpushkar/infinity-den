@@ -25,7 +25,7 @@
       {% else %}
         {% if prompt %}<p class="member-prompt">Prompt: <strong>{{ prompt }}</strong></p>{% endif %}
 
-        <form class="member-form" method="post" action="{% if piece %}/write/{{ piece.id }}{% else %}/write{% endif %}" data-markdown-editor novalidate>
+        <form class="member-form" method="post" action="{% if piece %}/write/{{ piece.id }}{% else %}/write{% endif %}" enctype="multipart/form-data" data-markdown-editor novalidate>
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
           <fieldset class="member-field member-format-choice">
@@ -52,6 +52,29 @@
             </select>
             {% if field_errors.get("category_id") %}<p class="member-field-error">{{ field_errors.get("category_id") }}</p>{% endif %}
           </div>
+
+          {% set generated_cover = room_covers.get(values.get("category_id")) or (room_covers.values()|first) or "" %}
+          <fieldset class="member-field member-cover" data-cover-picker data-room-covers="{{ room_covers|tojson|forceescape }}">
+            <legend>Cover image <span class="member-optional">(optional)</span></legend>
+            <img class="member-cover-preview" src="{{ own_cover or generated_cover }}" alt="Cover preview" width="640" height="360" data-cover-preview data-own-cover="{{ own_cover }}">
+            <p class="member-field-hint" data-cover-caption>{% if own_cover %}Your cover.{% else %}Without an image, your piece gets a cover drawn for its room, like this one.{% endif %}</p>
+
+            <div class="member-field">
+              <label for="field-cover_file">Upload an image</label>
+              <input class="form-control{% if field_errors.get('cover') %} is-invalid{% endif %}" id="field-cover_file" name="cover_file" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="hint-cover_file{% if field_errors.get('cover') %} error-cover{% endif %}" data-cover-file>
+              <p class="member-field-hint" id="hint-cover_file">JPEG, PNG, or WebP, up to 5 MB. We resize it and remove the photo's location data.</p>
+              {% if field_errors.get("cover") %}<p class="member-field-error" id="error-cover">{{ field_errors.get("cover") }}</p>{% endif %}
+            </div>
+
+            {{ field("cover_url", "Or paste a link to an image", values, field_errors, type="url", hint="It must start with https://. Only use images you have the right to share.", attrs='maxlength="500" placeholder="https://" data-cover-link') }}
+
+            {% if own_cover %}
+              <label class="member-check">
+                <input type="checkbox" name="cover_remove" value="true" {% if values.get("cover_remove") %}checked{% endif %} data-cover-remove>
+                <span>Remove the cover and use the drawn one</span>
+              </label>
+            {% endif %}
+          </fieldset>
 
           <div class="member-field">
             <label for="field-content">Your piece</label>

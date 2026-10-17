@@ -36,6 +36,8 @@ class Settings:
         cast=int,
         default=30,
     )
+    # Uploaded images. Keep it outside the code checkout on servers, and back it up.
+    media_dir: str = config("MEDIA_DIR", default="media")
     auth_cookie_secure: bool = config(
         "AUTH_COOKIE_SECURE",
         cast=bool,

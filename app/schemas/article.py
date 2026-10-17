@@ -336,8 +336,9 @@ class ArticleQueryParams(BaseModel):
 
 
 class MemberPieceInput(BaseModel):
-    """What a member may set on their own piece. Status, slug, author, cover
-    image, and editorial flags are decided by the server and editors."""
+    """What a member may set on their own piece. Status, slug, author, and
+    editorial flags are decided by the server and editors; the cover comes from
+    the upload or link the write page checks (cover_upload_service)."""
 
     title: str = Field(min_length=3, max_length=160)
     excerpt: str = Field(min_length=10, max_length=320)

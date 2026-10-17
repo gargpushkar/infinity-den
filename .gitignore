@@ -46,3 +46,6 @@ htmlcov/
 
 # Source logo kit; the site serves only the copies in app/static
 Infinity-Den-logo-kit/
+
+# Uploaded images (MEDIA_DIR)
+media/
