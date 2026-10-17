@@ -3,7 +3,6 @@
     class="content-section rail-section"
     id="rail-{{ rail.key }}"
     aria-labelledby="railTitle{{ rail.key }}"
-    data-reveal
   >
     <div class="rail-heading">
       <div>
@@ -36,7 +35,7 @@
       aria-label="{{ rail.title }} articles, scrollable"
     >
       {% for article in rail.articles %}
-        <div class="rail-item" data-reveal-child>
+        <div class="rail-item">
           {% include "components/article_card.html" %}
         </div>
       {% endfor %}

@@ -8,7 +8,7 @@
   <div class="container">
     {% include "components/breadcrumbs.html" %}
 
-    <header class="article-index-header" data-reveal>
+    <header class="article-index-header">
       <div>
         <p class="eyebrow mb-3">Every story</p>
         <h1>Everything we&rsquo;ve published.</h1>
@@ -19,7 +19,7 @@
       </div>
     </header>
 
-    <section class="article-index-controls" aria-label="Article filters" data-reveal>
+    <section class="article-index-controls" aria-label="Article filters">
       <div class="article-filter-rails">
         <div class="filter-group">
           <span class="filter-label">Categories</span>
@@ -71,7 +71,7 @@
       </form>
     </section>
 
-    <div class="article-index-summary" data-reveal>
+    <div class="article-index-summary">
       {% if active_category or active_tag %}
         <p class="mb-0">
           Showing
@@ -92,9 +92,9 @@
       {% set empty_state_hints = ["MongoDB unavailable", "Public route is ready", "Seed data supported"] %}
       {% include "components/empty_state.html" %}
     {% elif articles %}
-      <section class="article-index-grid" aria-label="Articles" data-reveal>
+      <section class="article-index-grid" aria-label="Articles">
         {% for article in articles %}
-          <div class="article-index-item" data-reveal-child>
+          <div class="article-index-item">
             {% include "components/article_card.html" %}
             <div class="article-card-meta">
               <span>{{ article.author }}</span>

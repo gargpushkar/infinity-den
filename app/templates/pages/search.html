@@ -8,7 +8,7 @@
   <div class="container">
     {% include "components/breadcrumbs.html" %}
 
-    <header class="search-hero" data-reveal>
+    <header class="search-hero">
       <div class="search-hero-copy">
         <p class="eyebrow mb-3">Search</p>
         <h1>Find what you&rsquo;re after.</h1>
@@ -21,7 +21,7 @@
       </div>
     </header>
 
-    <section class="search-panel" aria-label="Search articles" data-reveal>
+    <section class="search-panel" aria-label="Search articles">
       <form class="search-form" method="get" action="/search">
         {% if active_category_slug %}
           <input type="hidden" name="category" value="{{ active_category_slug }}">
@@ -96,7 +96,7 @@
       </div>
     </section>
 
-    <div class="search-summary" data-reveal>
+    <div class="search-summary">
       {% if has_search_query and not is_query_too_short %}
         <p class="mb-0">
           Showing results for <strong>{{ search_query }}</strong>
@@ -130,9 +130,9 @@
       {% set empty_state_hints = ["Keyword search", "Category filters", "Tag filters"] %}
       {% include "components/empty_state.html" %}
     {% elif articles %}
-      <section class="search-results-grid" aria-label="Search results" data-reveal>
+      <section class="search-results-grid" aria-label="Search results">
         {% for article in articles %}
-          <div class="article-index-item" data-reveal-child>
+          <div class="article-index-item">
             {% include "components/article_card.html" %}
             <div class="article-card-meta">
               <span>{{ article.author }}</span>

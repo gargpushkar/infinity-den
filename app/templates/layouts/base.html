@@ -35,8 +35,16 @@
     {% endif %}
     {% block extra_meta %}{% endblock %}
     <title>{% block title %}{{ app_name }}{% endblock %}</title>
+    <meta name="theme-color" content="#171A2B">
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="icon" href="{{ url_for('static', path='icons/favicon.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ url_for('static', path='icons/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ url_for('static', path='icons/site.webmanifest') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Poppins:wght@400;500;600&display=swap">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', path='css/main.css') }}?v=20261016-arcade">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/main.css') }}?v=20261017-identity">
   </head>
   <body>
     {% if not use_admin_chrome|default(false) %}
@@ -52,6 +60,6 @@
     {% endif %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', path='js/main.js') }}?v=20261016-arcade"></script>
+    <script src="{{ url_for('static', path='js/main.js') }}?v=20261017-identity"></script>
   </body>
 </html>
