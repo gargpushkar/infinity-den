@@ -7,32 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  const briefingRows = Array.from(document.querySelectorAll("[data-briefing-row]"));
-
-  if (briefingRows.length > 1) {
-    let activeBriefingIndex = Math.max(
-      0,
-      briefingRows.findIndex((row) => row.classList.contains("active")),
-    );
-
-    const setActiveBriefingRow = (nextIndex) => {
-      briefingRows.forEach((row, index) => {
-        const isActive = index === nextIndex;
-        row.classList.toggle("active", isActive);
-        row.classList.toggle("is-active", isActive);
-      });
-    };
-
-    setActiveBriefingRow(activeBriefingIndex);
-
-    if (!prefersReducedMotion) {
-      window.setInterval(() => {
-        activeBriefingIndex = (activeBriefingIndex + 1) % briefingRows.length;
-        setActiveBriefingRow(activeBriefingIndex);
-      }, 2600);
-    }
-  }
-
   document.querySelectorAll("[data-newsletter-form]").forEach((form) => {
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -48,14 +22,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!form.checkValidity()) {
         form.reportValidity();
-        message.textContent = "Enter a valid email to join the briefing.";
+        message.textContent = "Enter a valid email to subscribe.";
         message.classList.add("is-error");
         return;
       }
 
       const email = emailInput?.value?.trim();
       if (!email) {
-        message.textContent = "Enter a valid email to join the briefing.";
+        message.textContent = "Enter a valid email to subscribe.";
         message.classList.add("is-error");
         return;
       }
@@ -78,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const payload = await response.json().catch(() => ({}));
 
         if (response.ok) {
-          message.textContent = "You're on the list. Watch for the next briefing.";
+          message.textContent = "You're on the list. Watch for the next email.";
           message.classList.add("is-success");
           form.reset();
           return;
@@ -1391,58 +1365,5 @@ document.addEventListener("DOMContentLoaded", () => {
         status.textContent = "Copy failed";
       }
     });
-  });
-  // Homepage article rails: arrows are an enhancement over native scrolling,
-  // so they only appear when the track actually overflows.
-  document.querySelectorAll("[data-rail-track]").forEach((track) => {
-    const section = track.closest(".rail-section");
-    const arrows = section?.querySelector("[data-rail-arrows]");
-    if (!arrows) {
-      return;
-    }
-
-    const previousButton = arrows.querySelector("[data-rail-prev]");
-    const nextButton = arrows.querySelector("[data-rail-next]");
-
-    const scrollAmount = () => {
-      const firstItem = track.querySelector(".rail-item");
-      // Fall back to most of the visible width when there is no card to measure.
-      return firstItem ? firstItem.getBoundingClientRect().width + 20 : track.clientWidth * 0.8;
-    };
-
-    // The track carries a few px of padding and scroll-snap rounds positions,
-    // so "at the start" is never exactly 0. Tolerate a little slack.
-    const EDGE_TOLERANCE = 8;
-
-    const syncArrows = () => {
-      const overflows = track.scrollWidth - track.clientWidth > EDGE_TOLERANCE;
-      arrows.hidden = !overflows;
-
-      if (!overflows) {
-        return;
-      }
-
-      const maxScroll = track.scrollWidth - track.clientWidth;
-      previousButton.disabled = track.scrollLeft <= EDGE_TOLERANCE;
-      nextButton.disabled = track.scrollLeft >= maxScroll - EDGE_TOLERANCE;
-    };
-
-    previousButton?.addEventListener("click", () => {
-      track.scrollBy({ left: -scrollAmount(), behavior: prefersReducedMotion ? "auto" : "smooth" });
-    });
-
-    nextButton?.addEventListener("click", () => {
-      track.scrollBy({ left: scrollAmount(), behavior: prefersReducedMotion ? "auto" : "smooth" });
-    });
-
-    track.addEventListener("scroll", syncArrows, { passive: true });
-
-    if (window.ResizeObserver) {
-      new ResizeObserver(syncArrows).observe(track);
-    } else {
-      window.addEventListener("resize", syncArrows);
-    }
-
-    syncArrows();
   });
 });

@@ -1,6 +1,6 @@
 """A tiny in-memory stand-in for the Motor collections the services use.
 
-Supports only what the tests need: equality, $lte, $ne, $in, $set, sort,
+Supports only what the tests need: equality, $lte, $ne, $in, $nin, $set, sort,
 limit, and optional unique keys. Not a MongoDB emulator.
 """
 
@@ -20,6 +20,8 @@ def _matches(document: dict[str, Any], query: dict[str, Any]) -> bool:
                 if operator == "$ne" and value == operand:
                     return False
                 if operator == "$in" and value not in operand:
+                    return False
+                if operator == "$nin" and value in operand:
                     return False
         elif value != condition:
             return False

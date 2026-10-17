@@ -1,0 +1,11 @@
+{# An open story: cover, room, format, title, excerpt. Expects `article` from article_to_card_context. #}
+<article class="story-card">
+  <a class="story-card-cover" href="{{ article.url }}" tabindex="-1" aria-hidden="true">
+    <img src="{{ article.cover_image }}" alt="" width="640" height="360" loading="lazy">
+  </a>
+  <p class="story-card-room"><a href="{{ article.category_url }}">{{ article.category }}</a></p>
+  {% include "components/content_labels.html" %}
+  <h3><a href="{{ article.url }}">{{ article.title }}</a></h3>
+  <p class="story-card-excerpt">{{ article.excerpt }}</p>
+  <p class="story-card-by">{{ article.author }} &middot; {{ article.read_time }}</p>
+</article>

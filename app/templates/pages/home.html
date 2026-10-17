@@ -4,82 +4,136 @@
 {% block meta_description %}A community where people discover knowledge, contribute lived experience, and explore ideas together.{% endblock %}
 
 {% block content %}
-<section class="home-canvas">
-  <div class="container">
-    <section class="home-hero" aria-labelledby="homeHeroTitle">
-      <div class="row g-4 align-items-center">
-        <div class="col-lg-7">
-          <div class="hero-copy">
-            <p class="eyebrow mb-3">Knowledge &middot; Perspectives &middot; Discovery</p>
-            <h1 id="homeHeroTitle">A universe of ideas. A community of minds.</h1>
-            <p class="hero-lede">Explore what you don&rsquo;t know. Share what you do. Question what you believe.</p>
-            <div class="d-flex flex-wrap gap-2 mt-4">
-              <a class="btn btn-primary px-4" href="/articles">Start reading</a>
-              <a class="btn btn-outline-primary px-4" href="#newsletterSignup">Get the newsletter</a>
-            </div>
-          </div>
-        </div>
+{# Section order follows vision.md -> HOMEPAGE. Colour descends like the logo:
+   Ink at the door, Copper for today's question, Amber for the Arcade, Ivory for reading. #}
+<section class="home-hero" aria-labelledby="homeHeroTitle">
+  <div class="container home-hero-inner">
+    <div>
+      <h1 id="homeHeroTitle">A universe of ideas. <span class="d-lg-block">A community of minds.</span></h1>
+      <p class="home-hero-lede">Explore what you don&rsquo;t know. Share what you do. Question what you believe.</p>
+      <div class="home-actions">
+        <a class="btn btn-amber" href="/categories">Explore ideas</a>
+        <a class="btn btn-ghost-light" href="/write">Share your story</a>
+      </div>
+    </div>
+    {% set motif_class = "hero-motif" %}
+    {% include "components/den_motif.html" %}
+  </div>
+</section>
 
-        <div class="col-lg-5">
-          <aside class="hero-briefing" aria-label="What is on the site right now">
-            <div class="briefing-topline">
-              <span>In the den</span>
-              <strong>Live</strong>
-            </div>
-            <div class="briefing-window">
-              <div class="briefing-row active" data-briefing-row>
-                <span>Stories to read</span>
-                <strong>{{ hero_metrics[0].value }} published</strong>
-              </div>
-              <div class="briefing-row" data-briefing-row>
-                {# Same source as the metric below; featured_articles is capped
-                   at the carousel size and would contradict it. #}
-                <span>Featured now</span>
-                <strong>{{ hero_metrics[2].value }} stories</strong>
-              </div>
-              <div class="briefing-row" data-briefing-row>
-                <span>Rooms</span>
-                <strong>{{ categories|length }} to explore</strong>
-              </div>
-            </div>
-            <div class="row g-3 mt-1">
-              {% for metric in hero_metrics %}
-                <div class="col-4">
-                  <div class="hero-metric">
-                    <strong>{{ metric.value }}</strong>
-                    <span>{{ metric.label }}</span>
-                  </div>
-                </div>
-              {% endfor %}
-            </div>
-          </aside>
+{% if question %}
+  <section class="home-question" aria-labelledby="homeQuestionTitle">
+    <div class="container home-question-inner">
+      <div class="home-question-main">
+        <p class="home-label">Today&rsquo;s question{% if question.room %} &middot; {{ question.room }}{% endif %}</p>
+        <h2 id="homeQuestionTitle"><a href="{{ question.url }}">{{ question.text }}</a></h2>
+      </div>
+      <div class="home-question-side">
+        {% if question.intro %}<p class="home-question-intro">{{ question.intro }}</p>{% endif %}
+        {% if question.featured %}
+          <figure class="home-featured-response">
+            <blockquote>{{ question.featured.body }}</blockquote>
+            <figcaption>Featured response &middot; {{ question.featured.author }}{% if question.featured.kind_label %}, {{ question.featured.kind_label|lower }}{% endif %}</figcaption>
+          </figure>
+        {% endif %}
+        <div class="home-actions">
+          <a class="btn btn-ivory" href="{{ question.url }}#your-response">Respond</a>
+          {% if question.response_count %}
+            <a class="btn btn-ghost-light" href="{{ question.url }}">Read {{ question.response_count }} response{{ "s" if question.response_count != 1 }}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+<div class="home-reading">
+  {% if experiences %}
+    <section class="home-section" aria-labelledby="homeLibraryTitle">
+      <div class="container">
+        <div class="home-section-head">
+          <h2 id="homeLibraryTitle">From the Human Library</h2>
+          <p>Real experiences, told by the people who lived them.</p>
+          <a class="section-link" href="/experiences">Visit the Human Library</a>
+        </div>
+        <div class="story-grid">
+          {% for article in experiences %}
+            {% include "components/story_card.html" %}
+          {% endfor %}
         </div>
       </div>
     </section>
+  {% endif %}
 
-    {% if featured_articles %}
-      {% include "partials/featured_articles_section.html" %}
-    {% endif %}
-    {% include "partials/article_rails_section.html" %}
-
-    <section class="content-section category-showcase" aria-labelledby="categoryShowcaseTitle">
-      <div class="section-heading">
-        <p class="eyebrow mb-2">Explore by room</p>
-        <h2 id="categoryShowcaseTitle">Every room is a different way in.</h2>
+  {% if arcade %}
+    <section class="home-section home-arcade" id="arcade" aria-label="Curiosity Arcade">
+      <div class="container">
+        {% set claim = arcade %}
+        {% set fof_class = "fof-home" %}
+        {% include "components/fact_or_fiction_card.html" %}
       </div>
-      <div class="category-showcase-grid">
-        {% for category_item in category_links %}
-          {% set category = category_item.name %}
-          <a class="category-showcase-item" href="{{ category_item.url }}">
-            {% include "components/category_pill.html" %}
-            <span>{{ category_item.subtitle }}</span>
+    </section>
+  {% endif %}
+
+  <section class="home-section" aria-labelledby="homeRoomsTitle">
+    <div class="container">
+      <div class="home-section-head">
+        <h2 id="homeRoomsTitle">Explore by room</h2>
+      </div>
+      <div class="room-grid">
+        {% for room in rooms %}
+          <a class="room-tile" href="{{ room.url }}">
+            <strong>{{ room.name }}</strong>
+            {% if room.subtitle %}<span>{{ room.subtitle }}</span>{% endif %}
           </a>
         {% endfor %}
       </div>
-    </section>
+    </div>
+  </section>
 
-    {% include "partials/newsletter_signup_section.html" %}
-    {% include "partials/write_for_us_section.html" %}
-  </div>
-</section>
+  {% if ideas %}
+    <section class="home-section" aria-labelledby="homeIdeasTitle">
+      <div class="container home-ideas">
+        <div class="home-section-head">
+          <h2 id="homeIdeasTitle">Ideas worth your time</h2>
+          <p>Chosen by our editors, not by clicks.</p>
+          <a class="section-link" href="/articles">All articles</a>
+        </div>
+        <div class="idea-list">
+          {% for article in ideas %}
+            <article class="idea-row">
+              <img class="idea-row-cover" src="{{ article.cover_image }}" alt="" width="640" height="360" loading="lazy">
+              <div>
+                <p class="idea-row-meta">
+                  {% if article.format_label %}<span class="content-label content-label-{{ article.article_format }}">{{ article.format_label }}{% if article.speculative_label %} &middot; {{ article.speculative_label }}{% endif %}</span>{% endif %}
+                  <span>{{ article.category }}</span>
+                </p>
+                <h3><a class="stretched-link" href="{{ article.url }}">{{ article.title }}</a></h3>
+                <p class="idea-row-excerpt">{{ article.excerpt }}</p>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  {% if community %}
+    <section class="home-section" aria-labelledby="homeCommunityTitle">
+      <div class="container">
+        <div class="home-section-head">
+          <h2 id="homeCommunityTitle">From the community</h2>
+          <p>New pieces from members, read and published by our editors.</p>
+        </div>
+        <div class="story-grid">
+          {% for article in community %}
+            {% include "components/story_card.html" %}
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  {% include "partials/write_for_us_section.html" %}
+</div>
 {% endblock %}
