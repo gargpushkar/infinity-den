@@ -3812,6 +3812,40 @@ button:focus-visible,
   width: 100%;
 }
 
+.member-cover {
+  border: 0;
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+}
+
+.member-cover legend {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.35rem;
+}
+
+.member-optional {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.member-cover-preview {
+  aspect-ratio: 16 / 9;
+  background: var(--bg-secondary);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  height: auto;
+  max-width: 28rem;
+  object-fit: cover;
+  width: 100%;
+}
+
+.member-cover .member-field {
+  margin: 0;
+}
+
 .member-radio,
 .member-check {
   align-items: center;

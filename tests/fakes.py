@@ -118,6 +118,12 @@ class FakeCollection:
                 changed += 1
         return type("UpdateResult", (), {"modified_count": changed, "matched_count": changed})()
 
+    async def find_one_and_delete(self, query, *_args, **_kwargs):
+        for index, document in enumerate(self.documents):
+            if _matches(document, query):
+                return dict(self.documents.pop(index))
+        return None
+
     async def delete_one(self, query):
         for index, document in enumerate(self.documents):
             if _matches(document, query):

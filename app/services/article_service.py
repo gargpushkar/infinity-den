@@ -21,6 +21,7 @@ from app.schemas.article import (
     ArticleRead,
     ArticleUpdate,
 )
+from app.services.cover_upload_service import discard_unused_cover
 from app.services.tag_service import register_tags
 
 
@@ -150,6 +151,11 @@ class ArticleService:
             ):
                 raise ArticleSourcesRequiredError(SOURCES_REQUIRED_MESSAGE)
 
+        old_cover = None
+        if "cover_image" in update_data:
+            current = await self.collection.find_one({"_id": object_id}, {"cover_image": 1})
+            old_cover = (current or {}).get("cover_image")
+
         update_data["updated_at"] = self._utc_now()
 
         try:
@@ -166,6 +172,8 @@ class ArticleService:
         if updated_article is None:
             raise ArticleNotFoundError("Article was not found.")
 
+        if old_cover != updated_article.get("cover_image"):
+            await discard_unused_cover(self.database, old_cover)
         return await self._published_tags_registered(self._to_article_read(updated_article))
 
     async def _published_tags_registered(self, article: ArticleRead) -> ArticleRead:
@@ -180,8 +188,11 @@ class ArticleService:
         if object_id is None:
             return False
 
-        result = await self.collection.delete_one({"_id": object_id})
-        return result.deleted_count == 1
+        deleted = await self.collection.find_one_and_delete({"_id": object_id}, {"cover_image": 1})
+        if deleted is None:
+            return False
+        await discard_unused_cover(self.database, deleted.get("cover_image"))
+        return True
 
     async def increment_article_views(self, article_id: str) -> ArticleRead:
         object_id = self._to_object_id(article_id)

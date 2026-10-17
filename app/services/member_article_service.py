@@ -81,7 +81,9 @@ class MemberArticleService:
         *,
         submit: bool,
         article_id: str | None = None,
+        cover_image: str | None = None,
     ) -> ArticleRead:
+        """cover_image is already checked by the caller: a stored upload or an https link."""
         if not await self.database[CATEGORY_COLLECTION].count_documents(
             {"slug": payload.category_id}, limit=1
         ):
@@ -100,6 +102,7 @@ class MemberArticleService:
             **payload.model_dump(),
             "status": status,
             "author": member.display_name,
+            "cover_image": cover_image,
         }
 
         if article_id is None:

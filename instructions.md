@@ -218,7 +218,7 @@ Fields:
 - slug
 - excerpt
 - content (markdown, rendered and sanitized server-side)
-- cover_image — optional upload; without one the page uses the generated cover
+- cover_image — optional: an upload (`/media/covers/…`) or an https link; without one the page uses the generated cover
 - author (display name)
 - author_id *(new)* — `users._id`; null for editorial pieces
 - category_id (room slug)
@@ -577,6 +577,7 @@ Implement:
 
 Member content is untrusted input. In addition to the above:
 
+- cover uploads go through `app/services/cover_upload_service.py`, which re-encodes them (WebP, at most 1600 px, no metadata); never store or serve an uploaded file as it arrived, and never accept SVG
 - render content with `app/utils/markdown.py`, which escapes first and only links http(s); never pass member HTML through `| safe`
 - keep `app/utils/markdown.py` and `renderMarkdownPreview` in `main.js` in step (a test compares them)
 - members can edit drafts and pieces awaiting review; published pieces are locked for them

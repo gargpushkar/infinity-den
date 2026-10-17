@@ -166,8 +166,11 @@
     </label>
 
     <div class="admin-field">
-      <label for="articleCover">Cover image URL</label>
-      <input class="form-control" id="articleCover" name="cover_image" value="{{ article.cover_image if article and article.cover_image else '' }}" maxlength="500">
+      <label for="articleCover">Cover image</label>
+      <input class="form-control" id="articleCover" name="cover_image" value="{{ article.cover_image if article and article.cover_image else '' }}" maxlength="500" placeholder="https://" aria-describedby="articleCoverHint">
+      <label class="form-label mt-2 mb-1" for="articleCoverFile">Or upload an image</label>
+      <input class="form-control" id="articleCoverFile" type="file" accept="image/jpeg,image/png,image/webp" data-admin-cover-file>
+      <p class="admin-muted small mt-1 mb-0" id="articleCoverHint" data-admin-cover-message aria-live="polite">An https link, or a JPEG, PNG, or WebP up to 5 MB. Empty uses the drawn cover.</p>
     </div>
 
     <div class="admin-field">

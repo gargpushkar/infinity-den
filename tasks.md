@@ -68,7 +68,7 @@ order; each assumes the previous ones are merged.
 
 ## 4. `feature/member-publishing`
 - [x] Render article markdown server-side (escape-first renderer in `app/utils/markdown.py`, mirrors the editor preview)
-- [x] Member editor at `/write` (title, summary, room, format, tags, sources; no cover images in Phase 1)
+- [x] Member editor at `/write` (title, summary, room, format, tags, sources, cover image)
 - [x] `pending_review` status and review queue in admin, with `review_note`
 - [x] Human Library page at `/experiences` with writing prompts
 - [x] Retire the public pitch form (old pitches stay readable in admin)
@@ -172,13 +172,14 @@ Carried over from the foundation; pick up when needed.
 - [ ] Turn on HSTS once the site is served only over HTTPS
 - [x] API docs (`/docs`, `/openapi.json`) are off when `APP_ENV=production`
 - [ ] Deploy, domain, HTTPS, monitoring
+- [ ] Set `MEDIA_DIR` outside the checkout, back it up, and set nginx `client_max_body_size 6m`
 
 ## Accounts
 - [ ] Password reset by email (needs an email-sending service)
 - [ ] Move rate-limit counters out of process memory before running several workers
 
 ## CMS
-- [ ] Member cover images (with the media library)
+- [x] Member cover images: upload (re-encoded to WebP, metadata removed) or an https link; admin editor uploads too
 - [ ] Scheduled publishing
 - [ ] Media library
 

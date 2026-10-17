@@ -763,7 +763,77 @@ document.addEventListener("DOMContentLoaded", () => {
   // Member editor: same toolbar and preview, but the form posts normally.
   document.querySelectorAll("[data-markdown-editor]").forEach(setupAdminMarkdownEditor);
 
+  // Member cover: preview the chosen file, the pasted link, the current cover,
+  // or the drawn cover for the chosen room. The file is sent with the form.
+  document.querySelectorAll("[data-cover-picker]").forEach((picker) => {
+    const preview = picker.querySelector("[data-cover-preview]");
+    const caption = picker.querySelector("[data-cover-caption]");
+    const fileInput = picker.querySelector("[data-cover-file]");
+    const linkInput = picker.querySelector("[data-cover-link]");
+    const removeInput = picker.querySelector("[data-cover-remove]");
+    const roomSelect = picker.form?.querySelector("[name='category_id']");
+    const roomCovers = JSON.parse(picker.dataset.roomCovers || "{}");
+
+    const drawnCover = () => roomCovers[roomSelect?.value] || Object.values(roomCovers)[0] || "";
+    const show = (src, text) => {
+      preview.src = src;
+      caption.textContent = text;
+    };
+    const update = () => {
+      const file = fileInput.files[0];
+      const link = linkInput.value.trim();
+      const ownCover = removeInput?.checked ? "" : preview.dataset.ownCover;
+      if (file) {
+        // A data: URL, because the page's security policy does not allow blob: images.
+        const reader = new FileReader();
+        reader.addEventListener("load", () => show(reader.result, "Your new image. It's saved when you save the piece."));
+        reader.readAsDataURL(file);
+      } else if (link.startsWith("https://")) {
+        show(link, "The image from your link.");
+      } else if (ownCover && !link && !ownCover.startsWith("https://")) {
+        show(ownCover, "Your cover.");
+      } else {
+        show(drawnCover(), "Without an image, your piece gets a cover drawn for its room, like this one.");
+      }
+    };
+
+    [fileInput, removeInput, roomSelect].forEach((input) => input?.addEventListener("change", update));
+    linkInput.addEventListener("input", update);
+  });
+
   document.querySelectorAll("[data-admin-article-editor]").forEach((form) => {
+    // Cover upload: stores the image right away and puts its address in the
+    // cover field; saving the article is what uses it.
+    form.querySelectorAll("[data-admin-cover-file]").forEach((fileInput) => {
+      const coverInput = form.querySelector("[name='cover_image']");
+      const message = form.querySelector("[data-admin-cover-message]");
+      fileInput.addEventListener("change", async () => {
+        if (!fileInput.files[0]) {
+          return;
+        }
+        const body = new FormData();
+        body.append("file", fileInput.files[0]);
+        setAdminMessage(message, "Uploading...");
+        try {
+          const response = await fetch("/api/admin/covers", {
+            method: "POST",
+            headers: { Accept: "application/json", "X-CSRF-Token": getAdminCsrfToken() },
+            body,
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(payload?.error?.message || payload?.detail || "Upload failed.");
+          }
+          coverInput.value = payload.url;
+          setAdminMessage(message, "Uploaded. Save the article to use it.", "success");
+        } catch (error) {
+          setAdminMessage(message, error.message, "error");
+        } finally {
+          fileInput.value = "";
+        }
+      });
+    });
+
     const tagEditor = setupAdminTagEditor(form);
     setupAdminCategorySelector(form);
     setupAdminMarkdownEditor(form);
