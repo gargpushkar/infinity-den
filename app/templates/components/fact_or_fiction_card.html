@@ -1,6 +1,8 @@
 {# Fact or Fiction, before and after answering. Plain links, no JavaScript.
-   Expects `claim` from app/services/play_page_service.claim_context. #}
-<article class="fof-card" aria-labelledby="fofClaim">
+   Expects `claim` from app/services/play_page_service.claim_context;
+   `fof_class` styles the homepage version. #}
+<article class="fof-card {{ fof_class|default('') }}" aria-labelledby="fofClaim">
+  {% if fof_class|default('') %}{% set motif_class = "fof-motif" %}{% include "components/den_motif.html" %}{% endif %}
   <p class="eyebrow mb-2">Curiosity Arcade &middot; Fact or fiction?</p>
   <h2 class="fof-claim" id="fofClaim">{{ claim.claim }}</h2>
 

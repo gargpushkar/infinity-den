@@ -17,7 +17,7 @@ Infinity Den is a community knowledge platform built with FastAPI and MongoDB: a
 - JSON health check endpoint at `/health`
 - Bootstrap 5 and custom static assets
 - Jinja2 base layout with reusable navbar and footer partials
-- Responsive homepage with hero content, featured articles, latest articles, category showcase, newsletter signup, write-for-us CTA, article cards, and restrained scroll/hover interactions
+- Homepage in the vision order: hero, Today's Question, the Human Library, a Fact or Fiction card answered in place, rooms, editor picks, community pieces, and an invitation to write; day and night modes
 - Graceful local development mode when MongoDB is unavailable
 
 ## Tech Stack

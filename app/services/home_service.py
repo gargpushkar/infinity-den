@@ -1,227 +1,120 @@
+"""The homepage, in the section order of vision.md -> HOMEPAGE.
+
+Each section hides itself when it has nothing to show; an empty section reads
+as broken rather than as one waiting to be filled.
+"""
+
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from pymongo import DESCENDING
 from pymongo.errors import PyMongoError
 
-from app.config.constants import (
-    ARTICLE_FORMAT_EXPERIENCE,
-    ARTICLE_FORMAT_PERSPECTIVE,
-    ARTICLE_STATUS_PUBLISHED,
-)
+from app.config.constants import ARTICLE_FORMAT_EXPERIENCE, ARTICLE_STATUS_PUBLISHED, RESPONSE_KIND_LABELS
 from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION
 from app.schemas.article import ArticleRead
 from app.services.article_page_service import article_to_card_context
 from app.services.nav_service import fallback_rooms, get_rooms
+from app.services.play_page_service import claim_context
+from app.services.question_page_service import question_url
+from app.services.question_service import QuestionService, site_today
+from app.services.quiz_service import QuizService
 
 
-FEATURED_ARTICLE_LIMIT = 3
-RAIL_ARTICLE_LIMIT = 3
-
+SECTION_LIMIT = 3
 PUBLISHED = {"status": ARTICLE_STATUS_PUBLISHED}
-
-RECENT_SORT: list[tuple[str, int]] = [
-    ("published_at", DESCENDING),
-    ("created_at", DESCENDING),
-]
-
-# Each rail is one row of three cards on the homepage.
-RAIL_DEFINITIONS: tuple[dict[str, Any], ...] = (
-    {
-        "key": "trending",
-        "title": "Trending",
-        "subtitle": "What readers are opening most right now.",
-        "filter": PUBLISHED,
-        "sort": [("views", DESCENDING), ("published_at", DESCENDING)],
-        "url": "/articles?sort=popular",
-    },
-    {
-        "key": "editors-picks",
-        "title": "Editor's Picks",
-        "subtitle": "Hand-chosen by the editorial desk.",
-        "filter": {**PUBLISHED, "is_editors_pick": True},
-        "sort": RECENT_SORT,
-        "url": "/articles",
-    },
-    {
-        "key": "latest",
-        "title": "Latest",
-        "subtitle": "Fresh off the publishing queue.",
-        "filter": PUBLISHED,
-        "sort": RECENT_SORT,
-        "url": "/articles",
-    },
-    {
-        "key": "experiences",
-        "title": "Personal experiences",
-        "subtitle": "Real experiences. Honest reflections. Different lives.",
-        "filter": {
-            **PUBLISHED,
-            "article_format": ARTICLE_FORMAT_EXPERIENCE,
-        },
-        "sort": RECENT_SORT,
-        "url": f"/articles?format={ARTICLE_FORMAT_EXPERIENCE}",
-    },
-    {
-        "key": "perspectives",
-        "title": "Perspectives",
-        "subtitle": "Arguments and interpretations worth weighing.",
-        "filter": {
-            **PUBLISHED,
-            "article_format": ARTICLE_FORMAT_PERSPECTIVE,
-        },
-        "sort": RECENT_SORT,
-        "url": f"/articles?format={ARTICLE_FORMAT_PERSPECTIVE}",
-    },
-)
+NEWEST = [("published_at", DESCENDING), ("created_at", DESCENDING)]
 
 
-async def get_homepage_context() -> dict[str, Any]:
+async def get_homepage_context(
+    *,
+    claim_slug: str | None = None,
+    answer: str = "",
+    after: str | None = None,
+    database: Any = None,
+) -> dict[str, Any]:
+    """`claim_slug` and `answer` show an answered claim in place; `after` skips the one just played."""
     try:
-        db = get_database()
-        category_options = await get_rooms(db)
-        category_lookup = {
-            category["slug"]: category["name"] for category in category_options
-        }
-        featured_articles = await _get_featured_articles(db, category_lookup)
-        rails = await _get_rails(db, category_lookup)
-        latest_articles = _rail_articles(rails, "latest")
+        db = database if database is not None else get_database()
+        rooms = await get_rooms(db) or fallback_rooms()
+        room_names = {room["slug"]: room["name"] for room in rooms}
+        shown: set[str] = set()
 
-        if not featured_articles:
-            featured_articles = latest_articles[:FEATURED_ARTICLE_LIMIT]
-
-        if not category_options and not latest_articles:
-            return _fallback_homepage_context()
-
-        article_count = await db[ARTICLE_COLLECTION].count_documents(PUBLISHED)
-        featured_count = await db[ARTICLE_COLLECTION].count_documents(
-            {**PUBLISHED, "is_featured": True}
+        experiences = await _pieces(
+            db, {**PUBLISHED, "article_format": ARTICLE_FORMAT_EXPERIENCE},
+            [("is_featured", DESCENDING), *NEWEST], room_names, shown,
         )
+        ideas = await _pieces(db, {**PUBLISHED, "is_editors_pick": True}, NEWEST, room_names, shown)
+        community = await _pieces(db, {**PUBLISHED, "author_id": {"$ne": None}}, NEWEST, room_names, shown)
 
         return {
-            "hero_metrics": _hero_metrics(
-                article_count=article_count,
-                category_count=len(category_options),
-                featured_count=featured_count,
-            ),
-            "top_articles": featured_articles,
-            "featured_articles": featured_articles,
-            "article_rails": rails,
-            "latest_articles": latest_articles,
-            "categories": [category["name"] for category in category_options],
-            "category_links": category_options,
+            "question": await _todays_question(db, room_names),
+            "experiences": experiences,
+            "arcade": await _arcade(db, claim_slug=claim_slug, answer=answer, after=after),
+            "rooms": rooms,
+            "ideas": ideas,
+            "community": community,
         }
     except (RuntimeError, PyMongoError):
-        return _fallback_homepage_context()
+        return _fallback_context()
 
 
-async def _get_rails(
+async def _pieces(
     db: Any,
-    category_lookup: dict[str, str],
-) -> list[dict[str, Any]]:
-    """Build the homepage rails, dropping any that have nothing to show.
-
-    An empty rail is worse than a missing one: it reads as broken rather than
-    as a section you have not filled yet.
-    """
-    rails: list[dict[str, Any]] = []
-
-    for definition in RAIL_DEFINITIONS:
-        articles = await _get_article_cards(
-            db,
-            definition["filter"],
-            category_lookup,
-            definition["sort"],
-            RAIL_ARTICLE_LIMIT,
-        )
-        if not articles:
-            continue
-
-        rails.append(
-            {
-                "key": definition["key"],
-                "title": definition["title"],
-                "subtitle": definition["subtitle"],
-                "url": definition["url"],
-                "articles": articles,
-            }
-        )
-
-    return rails
-
-
-def _rail_articles(rails: list[dict[str, Any]], key: str) -> list[dict[str, Any]]:
-    for rail in rails:
-        if rail["key"] == key:
-            return rail["articles"]
-
-    return []
-
-
-async def _get_featured_articles(
-    db: Any,
-    category_lookup: dict[str, str],
-) -> list[dict[str, Any]]:
-    return await _get_article_cards(
-        db,
-        {**PUBLISHED, "is_featured": True},
-        category_lookup,
-        [
-            ("published_at", DESCENDING),
-            ("updated_at", DESCENDING),
-            ("created_at", DESCENDING),
-        ],
-        FEATURED_ARTICLE_LIMIT,
-    )
-
-
-async def _get_article_cards(
-    db: Any,
-    article_filter: dict[str, Any],
-    category_lookup: dict[str, str],
+    query: dict[str, Any],
     sort: list[tuple[str, int]],
-    limit: int,
+    room_names: dict[str, str],
+    shown: set[str],
 ) -> list[dict[str, Any]]:
-    cursor = db[ARTICLE_COLLECTION].find(article_filter).sort(sort).limit(limit)
-
-    return [
-        article_to_card_context(
-            ArticleRead.model_validate(article),
-            category_lookup,
-        )
-        async for article in cursor
-    ]
+    """Up to three cards, skipping pieces an earlier section already showed."""
+    cursor = db[ARTICLE_COLLECTION].find({**query, "slug": {"$nin": list(shown)}}).sort(sort).limit(SECTION_LIMIT)
+    cards = [article_to_card_context(ArticleRead.model_validate(document), room_names) async for document in cursor]
+    shown.update(card["slug"] for card in cards)
+    return cards
 
 
-def _hero_metrics(
-    *,
-    article_count: int,
-    category_count: int,
-    featured_count: int,
-) -> list[dict[str, str]]:
-    return [
-        {"value": str(article_count), "label": "Stories published"},
-        {"value": str(category_count), "label": "Rooms"},
-        {"value": str(featured_count), "label": "Featured now"},
-    ]
-
-
-def _fallback_homepage_context() -> dict[str, Any]:
-    """Rendered when MongoDB is unreachable, so the homepage still stands up."""
-    category_links = fallback_rooms()
-
+async def _todays_question(db: Any, room_names: dict[str, str]) -> dict[str, Any] | None:
+    service = QuestionService(database=db)
+    question = await service.current_question(site_today())
+    if question is None:
+        return None
+    responses = await service.public_responses(question.id)
+    featured = next((response for response in responses if response.is_featured), None)
     return {
-        "hero_metrics": _hero_metrics(
-            article_count=0,
-            category_count=len(category_links),
-            featured_count=0,
+        "text": question.text,
+        "intro": question.intro,
+        "url": question_url(question.slug),
+        "room": room_names.get(question.category_id or ""),
+        "response_count": len(responses),
+        "featured": (
+            {"body": _plain(featured.body), "author": featured.author, "kind_label": RESPONSE_KIND_LABELS.get(featured.kind, "")}
+            if featured
+            else None
         ),
-        "top_articles": [],
-        "featured_articles": [],
-        "article_rails": [],
-        "latest_articles": [],
-        "categories": [category["name"] for category in category_links],
-        "category_links": category_links,
     }
+
+
+async def _arcade(db: Any, *, claim_slug: str | None, answer: str, after: str | None) -> dict[str, Any] | None:
+    service = QuizService(database=db)
+    item = await service.get_published(claim_slug) if claim_slug else None
+    if item is None:
+        item = await service.random_published(exclude_slug=after)
+        answer = ""  # an unknown or drafted claim never reveals anything
+    if item is None:
+        return None
+    return (await claim_context(service, item, answer=answer, on_home=True))["claim"]
+
+
+def _plain(markdown: str, limit: int = 220) -> str:
+    """A response's opening as plain text; the Jinja template escapes it."""
+    text = re.sub(r"(?m)^\s*(?:[#>]+|-)\s*", "", markdown)  # headings, quotes, list marks
+    text = " ".join(re.sub(r"\[([^\]]*)\]\([^)]*\)|[*_`]", r"\1", text).split())  # links, emphasis
+    return text if len(text) <= limit else text[: limit - 1].rsplit(" ", 1)[0] + "\u2026"
+
+
+def _fallback_context() -> dict[str, Any]:
+    """Rendered when MongoDB is unreachable, so the homepage still stands up."""
+    return {"question": None, "experiences": [], "arcade": None, "rooms": fallback_rooms(), "ideas": [], "community": []}

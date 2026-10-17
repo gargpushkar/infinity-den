@@ -16,7 +16,7 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 - [ ] Phase 3 — Community growth
 
 ## Current Focus
-- [ ] `feature/generated-covers`
+- [ ] `feature/homepage-rebuild`
 
 ---
 
@@ -100,10 +100,10 @@ order; each assumes the previous ones are merged.
 - [x] One branded preview image for social sharing
 
 ## 7c. `feature/homepage-rebuild`
-- [ ] Homepage sections in the order given in `vision.md` (Direction C)
-- [ ] Remove the static "live" stats card, carousel, and rails
-- [ ] Fact or Fiction answered in place on the homepage
-- [ ] Verify at 375px, 768px, 1024px, 1440px, day and night
+- [x] Homepage sections in the order given in `vision.md` (Direction C)
+- [x] Remove the static "live" stats card, carousel, and rails
+- [x] Fact or Fiction answered in place on the homepage
+- [x] Verify at 375px, 768px, 1024px, 1440px, day and night
 
 ## 8. `feature/comments-bookmarks`
 - [ ] Comments on articles

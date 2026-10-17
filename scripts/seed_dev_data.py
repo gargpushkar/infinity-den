@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import secrets
 import sys
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
@@ -30,12 +31,16 @@ from app.models.category import CATEGORY_COLLECTION, create_category_document
 from app.models.question import QUESTION_COLLECTION, QuestionDocument
 from app.models.quiz import QUIZ_COLLECTION
 from app.models.tag import TAG_COLLECTION
+from app.models.user import USER_COLLECTION, UserDocument
 from app.services.question_service import question_slug, site_today
 from app.services.quiz_service import quiz_slug
+from app.utils.security import hash_password
 
 
 NOW = datetime(2026, 10, 16, 8, 0, tzinfo=timezone.utc)
 AUTHOR = "Sample writer"
+# Writes one sample piece, so the homepage's "From the community" has something to show.
+SAMPLE_MEMBER = {"username": "sample-member", "display_name": "Sample member", "email": "sample-member@example.org"}
 
 ARTICLES: list[dict[str, Any]] = [
     # --- science -------------------------------------------------------------
@@ -218,6 +223,7 @@ ARTICLES: list[dict[str, Any]] = [
     {
         "title": "Is being successful the same as being happy?",
         "slug": "is-being-successful-the-same-as-being-happy",
+        "by_member": True,
         "excerpt": "We often treat them as one goal. I think they pull in different directions more often than we admit.",
         "category_id": "philosophy",
         "article_format": "perspective",
@@ -325,6 +331,15 @@ async def _preview(db: Any) -> None:
     print("\nPreview only. Rerun with --apply to write.")
 
 
+async def _sample_member(db: Any) -> str:
+    """The sample member's id. Its password is random and never shown, so nobody can sign in as it."""
+    existing = await db[USER_COLLECTION].find_one({"username": SAMPLE_MEMBER["username"]}, {"_id": 1})
+    if existing:
+        return str(existing["_id"])
+    document = UserDocument(**SAMPLE_MEMBER, password_hash=hash_password(secrets.token_urlsafe(24))).to_mongo()
+    return str((await db[USER_COLLECTION].insert_one(document)).inserted_id)
+
+
 async def _apply(db: Any) -> None:
     for room in LAUNCH_ROOMS:
         document = create_category_document(
@@ -345,6 +360,7 @@ async def _apply(db: Any) -> None:
         await db[TAG_COLLECTION].update_one({"slug": tag["slug"]}, {"$set": tag}, upsert=True)
     print(f"Upserted {len(tags)} tags.")
 
+    member_id = await _sample_member(db)
     for article in ARTICLES:
         published_at = NOW - timedelta(days=article["days_ago"])
         document = create_article_document(
@@ -352,7 +368,8 @@ async def _apply(db: Any) -> None:
             slug=article["slug"],
             excerpt=article["excerpt"],
             content="\n\n".join(article["body"]),
-            author=AUTHOR,
+            author=SAMPLE_MEMBER["display_name"] if article.get("by_member") else AUTHOR,
+            author_id=member_id if article.get("by_member") else None,
             cover_image=None,  # generated from the room and slug
             category_id=article["category_id"],
             tags=article["tags"],
