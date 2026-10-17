@@ -441,11 +441,13 @@ Ink at the edge to Amber at the centre, "the deeper you go, the warmer the light
 | Amber | `#F2A33A` | Highlights; text only on dark backgrounds |
 | Ivory | `#FBF7F0` | The page background |
 
-- Every colour is a CSS token in `main.css`. Never write a colour literal in a
-  component rule; night mode depends on it. `tests/test_colour_contrast.py`
-  checks the text pairings in both modes.
-- **Night mode** follows the visitor's device setting (`prefers-color-scheme`).
-  There is no toggle.
+- Every colour is a CSS token in `main.css`; night values live in `night.css`.
+  Never write a colour literal in a component rule; night mode depends on it.
+  `tests/test_colour_contrast.py` checks the text pairings in both modes.
+- **Night mode** follows the visitor's device setting until they use the
+  header switch, which stores `light` or `dark` in a `theme` cookie. The base
+  layout reads the cookie and sets `night.css`'s `media`, so pages never flash
+  the wrong mode.
 - **Fonts:** Newsreader for headlines and reading text, Poppins for navigation,
   buttons, and labels. Regular and medium weights; no black weights, no
   all-caps labels.
