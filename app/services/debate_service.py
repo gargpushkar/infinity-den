@@ -47,6 +47,7 @@ from app.schemas.user import MemberRead
 DEBATE_LIMIT = 200
 ARGUMENT_LIMIT = 300
 REBUTTAL_LIMIT = 2000
+PROFILE_LIMIT = 50
 
 
 class DebateNotFoundError(Exception):
@@ -194,6 +195,24 @@ class DebateService:
         ]
         return {row["_id"]: row["count"] async for row in self.arguments.aggregate(pipeline)}
 
+    # --- profiles ------------------------------------------------------------
+
+    async def member_arguments(self, user_id: str) -> list[ArgumentRead]:
+        cursor = self.arguments.find({"user_id": user_id, "status": "published"}).sort([("created_at", DESCENDING)]).limit(PROFILE_LIMIT)
+        return [ArgumentRead.model_validate(document) async for document in cursor]
+
+    async def member_public_rebuttals(self, user_id: str) -> list[RebuttalRead]:
+        cursor = self.rebuttals.find({"user_id": user_id, "status": "published"}).sort([("created_at", DESCENDING)]).limit(PROFILE_LIMIT)
+        return [RebuttalRead.model_validate(document) async for document in cursor]
+
+    async def published_debates_by_id(self, debate_ids: list[str]) -> dict[str, DebateRead]:
+        cursor = self.debates.find({"_id": {"$in": [_object_id(i) for i in debate_ids]}, "status": "published"})
+        return {str(document["_id"]): DebateRead.model_validate(document) async for document in cursor}
+
+    async def arguments_by_id(self, argument_ids: list[str]) -> dict[str, ArgumentRead]:
+        cursor = self.arguments.find({"_id": {"$in": [_object_id(i) for i in argument_ids]}, "status": "published"})
+        return {str(document["_id"]): ArgumentRead.model_validate(document) async for document in cursor}
+
     async def side_counts(self, debate_ids: list[str]) -> dict[str, dict[str, int]]:
         """Visible arguments per debate, by side."""
         counts: dict[str, dict[str, int]] = {}
@@ -321,7 +340,7 @@ class DebateService:
     async def moderate_rebuttal(self, rebuttal_id: str, payload: AdminRebuttalUpdate) -> RebuttalRead:
         document = await self.rebuttals.find_one_and_update(
             {"_id": _object_id(rebuttal_id)},
-            {"$set": {"status": payload.status, "updated_at": datetime.now(timezone.utc)}},
+            {"$set": {**payload.model_dump(exclude_unset=True), "updated_at": datetime.now(timezone.utc)}},
             return_document=ReturnDocument.AFTER,
         )
         if document is None:

@@ -128,6 +128,7 @@ class RebuttalRead(BaseModel):
     author: str
     author_username: str
     body: str
+    is_featured: bool = False
     status: ArgumentStatus = "published"
     created_at: datetime
     updated_at: datetime
@@ -140,7 +141,16 @@ class RebuttalRead(BaseModel):
 
 
 class AdminRebuttalUpdate(BaseModel):
-    status: ArgumentStatus
+    """Hide or restore a rebuttal, or mark it thoughtful."""
+
+    is_featured: bool | None = None
+    status: ArgumentStatus | None = None
+
+    @model_validator(mode="after")
+    def require_one_field(self) -> "AdminRebuttalUpdate":
+        if not self.model_fields_set:
+            raise ValueError("Set is_featured or status.")
+        return self
 
 
 class RatingInput(BaseModel):

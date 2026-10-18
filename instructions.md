@@ -357,11 +357,23 @@ Fields:
 - debate_id, argument_id
 - user_id, author, author_username
 - body (markdown subset, 20–1,000 characters; no separate sources)
+- is_featured — an editor marked it a "Thoughtful rebuttal"
 - status — `published` | `hidden`
 - created_at, updated_at
 
 Oldest first under the argument; after three, the rest fold behind "Show more".
-No featuring and no ordering by popularity.
+Never ordered by popularity.
+
+### Contributor reputation (no collection)
+
+Member profiles show **strengths**, worked out when the profile is opened
+(`app/services/member_reputation_service.py`): no score, no ranking, no
+leaderboard, and shown only on the profile, never beside names. Rated
+strengths (Well-sourced, Clear explainer, Sound reasoning) need 3 arguments in
+closed debates, each with at least 3 ratings, averaging 4.0 or higher on that
+dimension; Well-sourced can also come from 3 published researched pieces.
+Editor's pick and Thoughtful rebuttals need one featured item. Generated text
+never uses pronouns. The owner sees a guide to how strengths are earned.
 
 ### argument_ratings
 

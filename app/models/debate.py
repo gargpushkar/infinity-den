@@ -69,6 +69,7 @@ class RebuttalDocument:
     author: str
     author_username: str
     body: str
+    is_featured: bool = False  # an editor marked it a thoughtful rebuttal
     status: ArgumentStatus = "published"
     created_at: datetime = field(default_factory=utc_now)
     updated_at: datetime = field(default_factory=utc_now)

@@ -238,7 +238,7 @@ async def request_account_deletion(request: Request):
 
 @router.get("/members/{username}")
 async def member_profile(request: Request, username: str = Path(min_length=3, max_length=30)):
-    context = await get_member_profile_context(username)
+    context = await get_member_profile_context(username, viewer=await get_current_member(request))
     if context is None:
         raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Member was not found.")
 

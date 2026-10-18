@@ -3,49 +3,152 @@
 {% block title %}{{ member.display_name }} | {{ app_name }}{% endblock %}
 {% block meta_description %}{{ seo_description }}{% endblock %}
 
-{% block content %}
-<section class="member-profile">
-  <div class="container">
-    <header class="member-profile-header">
-      <p class="eyebrow mb-2">Member</p>
-      <h1>{{ member.display_name }}</h1>
-      <p class="member-profile-handle">@{{ member.username }} &middot; Joined {{ member.joined_label }}</p>
-      {% if member.bio %}<p class="member-profile-bio">{{ member.bio }}</p>{% endif %}
-      {% if current_member and current_member.username == member.username %}
-        <a class="btn btn-outline-primary" href="/account">Edit profile</a>
-      {% endif %}
-    </header>
+{% macro response_item(item) -%}
+  <a class="mp-card" href="{{ item.url }}">
+    <span class="mp-card-meta"><span class="qr-kind qr-kind-{{ item.kind }}">{{ item.kind_label }}</span> &middot; {{ item.date_label }}{% if item.is_featured %} &middot; <span class="mp-pick">Editor's pick</span>{% endif %}</span>
+    <span class="mp-card-title">{{ item.question }}</span>
+    <span class="mp-card-text">{{ item.excerpt }}</span>
+  </a>
+{%- endmacro %}
 
-    <section aria-labelledby="memberPiecesTitle">
-      <h2 class="member-profile-section-title" id="memberPiecesTitle">
-        Contributions{% if piece_count %} <span>{{ piece_count }}</span>{% endif %}
-      </h2>
-      {% if pieces %}
-        <div class="related-articles-grid">
-          {% for article in pieces %}
-            <div class="related-articles-item">
-              {% include "components/article_card.html" %}
-            </div>
-          {% endfor %}
+{% macro argument_item(item) -%}
+  <a class="mp-argument" href="{{ item.url }}">
+    <span class="mp-side mp-side-{{ item.side }}">{{ item.side_label }}</span>
+    <span>
+      <span class="mp-card-title">{{ item.claim }}</span>
+      <span class="mp-card-meta">{{ item.motion }}{% if item.is_featured %} &middot; <span class="mp-pick">Editor's pick</span>{% endif %}</span>
+    </span>
+    <span class="mp-card-meta">
+      {% if item.rating %}
+        {% for key, (label, question) in rating_dimensions.items() %}{{ label }} {{ item.rating[key] }}{{ " · " if not loop.last }}{% endfor %}<br>{{ item.rating.count }} ratings
+      {% elif item.is_open %}Ratings appear once the debate closes{% endif %}
+    </span>
+  </a>
+{%- endmacro %}
+
+{% block content %}
+<div class="mp-page">
+  <section class="mp-hero" aria-labelledby="memberName">
+    <div class="container mp-hero-inner">
+      <div class="mp-identity">
+        <span class="mp-initial mp-initial-{{ member.tone }}" aria-hidden="true"><span>{{ member.initial }}</span></span>
+        <div class="mp-identity-text">
+          <p class="mp-label">{% if is_own %}Your profile{% else %}Member{% endif %}</p>
+          <h1 id="memberName">{{ member.display_name }}</h1>
+          <p class="mp-handle">@{{ member.username }} &middot; Joined {{ member.joined_label }}</p>
         </div>
-      {% else %}
-        <p class="member-profile-empty">No published contributions yet.</p>
+        {% if is_own %}<a class="btn btn-ghost-light" href="/account">Edit profile</a>{% endif %}
+      </div>
+      {% if member.bio %}
+        <p class="mp-bio">{{ member.bio }}</p>
+      {% elif is_own %}
+        <p class="mp-hint">You haven't written a bio yet. <a href="/account">Add one</a> so readers know who you are.</p>
       {% endif %}
+
+      {% if strengths %}
+        <div class="mp-strengths-wrap">
+          <h2>Strengths</h2>
+          <p class="mp-hint">Earned from how readers rate arguments and what editors pick. Never from popularity.</p>
+          <ul class="mp-strengths" role="list">
+            {% for strength in strengths %}
+              <li class="mp-strength"><span class="mp-strength-mark" aria-hidden="true"></span><strong>{{ strength.label }}</strong><span>{{ strength.detail }}</span></li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+      {% if is_own %}
+        <div class="mp-strengths-wrap">
+          <h2>How strengths are earned</h2>
+          <p class="mp-hint">Only you see this. Strengths appear on your profile once you've earned them; there's no score and no ranking. Rated strengths count arguments in closed debates with at least 3 ratings each.</p>
+          <ul class="mp-strengths" role="list">
+            {% for label, rule in strength_guide %}
+              <li class="mp-strength mp-strength-guide"><strong>{{ label }}</strong><span>{{ rule }}</span></li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <div class="container">
+    <section class="mp-counts" aria-label="Contributions">
+      <div><strong>{{ counts.pieces }}</strong><span>{{ "piece" if counts.pieces == 1 else "pieces" }}</span></div>
+      <div><strong>{{ counts.responses }}</strong><span>Question Room {{ "response" if counts.responses == 1 else "responses" }}</span></div>
+      <div><strong>{{ counts.arguments }}</strong><span>debate {{ "argument" if counts.arguments == 1 else "arguments" }}</span></div>
+      <div><strong>{{ counts.rebuttals }}</strong><span>{{ "rebuttal" if counts.rebuttals == 1 else "rebuttals" }}</span></div>
     </section>
 
-    {% if responses %}
-      <section class="question-archive" aria-labelledby="memberResponsesTitle">
-        <h2 class="member-profile-section-title" id="memberResponsesTitle">Answers in the Question Room</h2>
-        <ul role="list">
-          {% for item in responses %}
-            <li>
-              <a href="{{ item.url }}">{{ item.question }}</a>
-              <span>{{ item.excerpt }}</span>
-            </li>
+    {% if counts.pieces and (counts.responses or counts.arguments) %}
+      <nav class="qr-filters" aria-label="Jump to">
+        <a class="qr-filter" href="#pieces">Pieces <span>{{ counts.pieces }}</span></a>
+        {% if counts.responses %}<a class="qr-filter" href="#responses">Responses <span>{{ counts.responses }}</span></a>{% endif %}
+        {% if counts.arguments %}<a class="qr-filter" href="#arguments">Debate arguments <span>{{ counts.arguments }}</span></a>{% endif %}
+      </nav>
+    {% endif %}
+
+    {% if pieces %}
+      <section class="mp-section" id="pieces" aria-labelledby="piecesTitle">
+        <h2 class="qr-title" id="piecesTitle">Pieces</h2>
+        <div class="related-articles-grid">
+          {% for article in pieces %}
+            <div class="related-articles-item">{% include "components/article_card.html" %}</div>
           {% endfor %}
-        </ul>
+        </div>
+      </section>
+    {% elif is_own %}
+      <section class="mp-section">
+        <div class="mp-invite">
+          <div>
+            <p class="mp-invite-title">No pieces yet.</p>
+            <p class="qr-lede">Share an experience, an opinion, or something you've researched. Editors read every piece before it's published.</p>
+          </div>
+          <a class="btn btn-primary" href="/write">Write your first piece</a>
+        </div>
       </section>
     {% endif %}
+
+    {% if responses_shown %}
+      <section class="mp-section" id="responses" aria-labelledby="responsesTitle">
+        <h2 class="qr-title" id="responsesTitle">Question Room responses</h2>
+        <div class="mp-grid">{% for item in responses_shown %}{{ response_item(item) }}{% endfor %}</div>
+        {% if responses_folded %}
+          <details class="qr-more">
+            <summary>Show all {{ counts.responses }} responses</summary>
+            <div class="mp-grid">{% for item in responses_folded %}{{ response_item(item) }}{% endfor %}</div>
+          </details>
+        {% endif %}
+      </section>
+    {% endif %}
+
+    {% if arguments_shown or thoughtful_rebuttals %}
+      <section class="mp-section" id="arguments" aria-labelledby="argumentsTitle">
+        <h2 class="qr-title" id="argumentsTitle">Debate arguments</h2>
+        {% if arguments_shown %}
+          <div class="mp-list">{% for item in arguments_shown %}{{ argument_item(item) }}{% endfor %}</div>
+          {% if arguments_folded %}
+            <details class="qr-more">
+              <summary>Show all {{ counts.arguments }} arguments</summary>
+              <div class="mp-list">{% for item in arguments_folded %}{{ argument_item(item) }}{% endfor %}</div>
+            </details>
+          {% endif %}
+        {% endif %}
+        {% if thoughtful_rebuttals %}
+          <h3 class="mp-subtitle">Rebuttals editors marked thoughtful</h3>
+          <div class="mp-list">
+            {% for item in thoughtful_rebuttals %}
+              <a class="mp-card" href="{{ item.url }}">
+                <span class="mp-card-meta">Replying to {{ item.argument_author }}, &ldquo;{{ item.argument_claim }}&rdquo;</span>
+                <span class="mp-card-text mp-card-text-strong">{{ item.body }}</span>
+              </a>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </section>
+    {% endif %}
+
+    {% if not (pieces or responses_shown or arguments_shown or is_own) %}
+      <section class="mp-section"><p class="qr-lede">{{ member.display_name }} hasn't published anything yet.</p></section>
+    {% endif %}
   </div>
-</section>
+</div>
 {% endblock %}
