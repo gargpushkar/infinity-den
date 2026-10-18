@@ -16,9 +16,10 @@ from app.services.admin_dashboard_service import (
     get_admin_dashboard_context,
     get_admin_submissions_context,
 )
+from app.services.account_deletion_service import DELETION_DAYS, AccountDeletionService
 from app.services.admin_auth_service import AdminAuthService
 from app.services.admin_csrf import ADMIN_CSRF_COOKIE, issue_admin_csrf_token
-from app.services.admin_permissions import require_admin_manager
+from app.services.admin_permissions import require_admin_manager, require_destructive_admin
 from app.services.admin_session import get_current_admin
 from app.services.article_service import ArticleService
 from app.services.nav_service import get_rooms
@@ -251,6 +252,26 @@ async def admin_reports_page(
     )
 
 
+@router.get("/deletions")
+async def admin_deletions_page(
+    request: Request,
+    admin: AdminRead = Depends(require_destructive_admin),
+):
+    try:
+        pending, available = await AccountDeletionService().pending(), True
+    except (RuntimeError, PyMongoError):
+        pending, available = [], False
+
+    return await _admin_template(
+        request,
+        "pages/admin_deletions.html",
+        admin=admin,
+        active_nav="deletions",
+        page_title="Account deletions",
+        context={"pending": pending, "deletion_days": DELETION_DAYS, "is_database_available": available},
+    )
+
+
 @router.get("/submissions")
 async def admin_submissions_page(
     request: Request,
@@ -296,9 +317,11 @@ async def _admin_template(
 ):
     csrf_token = issue_admin_csrf_token()
     try:
-        open_reports = await ReportService().open_count()  # the sidebar shows it on every page
+        # The sidebar shows these counts on every page.
+        open_reports = await ReportService().open_count()
+        pending_deletions = await AccountDeletionService().pending_count() if admin.role == "admin" else 0
     except (RuntimeError, PyMongoError):
-        open_reports = 0
+        open_reports = pending_deletions = 0
     response = templates.TemplateResponse(
         request,
         template_name,
@@ -313,6 +336,7 @@ async def _admin_template(
             "csrf_token": csrf_token,
             "active_nav": active_nav,
             "open_reports": open_reports,
+            "pending_deletions": pending_deletions,
             **context,
         },
     )

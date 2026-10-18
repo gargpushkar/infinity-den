@@ -51,11 +51,11 @@
 
       <section class="member-delete" aria-labelledby="deleteTitle">
         <h2 id="deleteTitle">Delete your account</h2>
-        <p>This deletes your account and everything you wrote: your pieces and drafts (with their covers and the comments on them), your responses and comments, and your saved pieces. It can't be undone. Reports you made stay with the editors, without your name.</p>
+        <p>Ask us to delete your account and everything you wrote: your pieces and drafts (with their covers and the comments on them), your responses and comments, and your saved pieces. Your account is deactivated straight away, and we delete it within 30 days. Reports you made stay with the editors, without your name.</p>
         <form class="member-form" method="post" action="/account/delete" novalidate>
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
           {{ field("delete_password", "Your password, to confirm", {}, field_errors, type="password", attrs='autocomplete="current-password" required') }}
-          <button class="btn btn-outline-danger member-submit" type="submit">Delete my account and everything I wrote</button>
+          <button class="btn btn-outline-danger member-submit" type="submit">Request deletion of my account</button>
         </form>
       </section>
     </div>

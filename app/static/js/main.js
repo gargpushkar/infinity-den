@@ -1126,6 +1126,91 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Account deletions: every deletion goes through a preview, then a confirm.
+  document.querySelectorAll("[data-admin-deletions]").forEach((root) => {
+    const message = root.querySelector("[data-admin-table-message]");
+    const emailsInput = root.querySelector("[data-deletion-emails]");
+    const review = root.querySelector("[data-deletion-review]");
+    const reviewRows = root.querySelector("[data-deletion-review-rows]");
+    const reviewTitle = root.querySelector("[data-deletion-review-title]");
+    const confirm = root.querySelector("[data-deletion-confirm]");
+    let pendingEmails = "";
+
+    const row = (item) => {
+      const article = document.createElement("article");
+      article.className = "admin-resource-row";
+      const body = document.createElement("div");
+      const name = document.createElement("strong");
+      const detail = document.createElement("small");
+      if (item.found) {
+        name.textContent = `${item.display_name} (@${item.username})`;
+        detail.textContent = `${item.email}${item.requested ? " · asked to be deleted" : " · did not ask"} · ` +
+          `${item.pieces} pieces, ${item.responses} responses, ${item.comments} comments, ${item.saved} saved`;
+      } else {
+        name.textContent = item.email;
+        detail.textContent = "No account with this address; nothing to delete.";
+      }
+      body.append(name, detail);
+      article.append(body);
+      return article;
+    };
+
+    const preview = async (emails) => {
+      if (!emails.trim()) {
+        setAdminMessage(message, "Enter or select at least one email address.", "error");
+        return;
+      }
+      try {
+        const { rows } = await adminJsonRequest("/api/admin/deletions/preview", { method: "POST", body: { emails } });
+        const found = rows.filter((item) => item.found);
+        reviewRows.replaceChildren(...rows.map(row));
+        reviewTitle.textContent = `${found.length} account${found.length === 1 ? "" : "s"} will be deleted`;
+        confirm.hidden = found.length === 0;
+        confirm.textContent = `Delete ${found.length} account${found.length === 1 ? "" : "s"} and everything they wrote`;
+        pendingEmails = found.map((item) => item.email).join("\n");
+        review.hidden = false;
+        review.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "start" });
+        setAdminMessage(message, "Check the list, then confirm.");
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
+      }
+    };
+
+    root.querySelector("[data-deletion-preview]")?.addEventListener("click", () => preview(emailsInput.value));
+    root.querySelector("[data-deletion-preview-selected]")?.addEventListener("click", () => {
+      const picked = [...root.querySelectorAll("[data-deletion-pick]:checked")].map((box) => box.value);
+      preview(picked.join("\n"));
+    });
+    root.querySelector("[data-deletion-back]")?.addEventListener("click", () => {
+      review.hidden = true;
+      pendingEmails = "";
+    });
+    confirm?.addEventListener("click", async () => {
+      confirm.disabled = true;
+      try {
+        const { results } = await adminJsonRequest("/api/admin/deletions/delete", { method: "POST", body: { emails: pendingEmails } });
+        const deleted = results.filter((item) => item.deleted).length;
+        setAdminMessage(message, `Deleted ${deleted} account${deleted === 1 ? "" : "s"}.`, "success");
+        window.setTimeout(() => window.location.reload(), 1200);
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
+        confirm.disabled = false;
+      }
+    });
+    root.querySelectorAll("[data-deletion-cancel]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+        try {
+          await adminJsonRequest(`/api/admin/deletions/${button.getAttribute("data-deletion-cancel")}/cancel`, { method: "POST" });
+          window.location.reload();
+        } catch (error) {
+          setAdminMessage(message, error.message, "error");
+          button.disabled = false;
+        }
+      });
+    });
+  });
+
   document.querySelectorAll("[data-admin-report-action]").forEach((button) => {
     button.addEventListener("click", async () => {
       const message = document.querySelector("[data-admin-table-message]");

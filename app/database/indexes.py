@@ -8,6 +8,7 @@ from app.models.category import CATEGORY_COLLECTION
 from app.models.newsletter import NEWSLETTER_SUBSCRIBER_COLLECTION
 from app.models.bookmark import BOOKMARK_COLLECTION
 from app.models.comment import COMMENT_COLLECTION
+from app.models.deletion_request import DELETION_REQUEST_COLLECTION
 from app.models.question import QUESTION_COLLECTION, RESPONSE_COLLECTION
 from app.models.report import REPORT_COLLECTION
 from app.models.quiz import QUIZ_COLLECTION
@@ -45,6 +46,8 @@ async def create_indexes() -> None:
     await db[BOOKMARK_COLLECTION].create_index([("user_id", ASCENDING), ("article_id", ASCENDING)], unique=True)
     await db[BOOKMARK_COLLECTION].create_index([("user_id", ASCENDING), ("created_at", DESCENDING)])
     await db[REPORT_COLLECTION].create_index([("status", ASCENDING), ("created_at", ASCENDING)])
+    await db[DELETION_REQUEST_COLLECTION].create_index([("status", ASCENDING), ("requested_at", ASCENDING)])
+    await db[DELETION_REQUEST_COLLECTION].create_index([("user_id", ASCENDING), ("status", ASCENDING)])
     await db[REPORT_COLLECTION].create_index([("target_type", ASCENDING), ("target_id", ASCENDING), ("status", ASCENDING)])
     await db[REPORT_COLLECTION].create_index([("reporter_id", ASCENDING), ("target_id", ASCENDING), ("status", ASCENDING)])
     await db[QUIZ_COLLECTION].create_index([("slug", ASCENDING)], unique=True)
