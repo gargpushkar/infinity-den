@@ -217,7 +217,7 @@ button:focus-visible,
 .topbar {
   align-items: center;
   display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
   justify-content: space-between;
 }
 
@@ -313,8 +313,9 @@ button:focus-visible,
   color: var(--amber);
 }
 
+/* Long names are cut short so the room links stay on one line when signed in. */
 .topbar-account {
-  max-width: 12rem;
+  max-width: 9rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3750,6 +3751,19 @@ button:focus-visible,
     position: sticky;
     top: 6rem;
   }
+}
+
+.confirm-banner {
+  background: var(--warning-bg);
+  border-bottom: 1px solid var(--warning-line);
+  color: var(--text);
+  font-size: 0.92rem;
+  padding: 0.65rem 0;
+}
+
+.confirm-banner a {
+  color: var(--warning-fg);
+  font-weight: 500;
 }
 
 .member-page {

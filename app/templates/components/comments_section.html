@@ -35,7 +35,9 @@
     <p class="comments-empty">No comments yet. Start the conversation.</p>
   {% endif %}
 
-  {% if signed_in %}
+  {% if signed_in and current_member and not current_member.email_confirmed %}
+    {% with confirm_action = "comment" %}{% include "components/confirm_email_note.html" %}{% endwith %}
+  {% elif signed_in %}
     <form class="member-form comment-form" method="post" action="/articles/{{ article.slug }}/comments#comments" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       {{ field("body", "Add a comment", values, field_errors, type="textarea", hint="Up to 2,000 characters. **bold**, _italic_ and [links](https://example.org) work. Critique arguments, not people.", attrs='maxlength="2000" required') }}

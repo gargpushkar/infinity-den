@@ -11,7 +11,7 @@ from starlette.requests import Request
 
 from app.config.settings import settings
 from app.models.user import USER_COLLECTION, UserDocument
-from app.routes.public import password_reset as routes
+from app.routes.public import form_pages as routes
 from app.services import email_service, password_reset_service, user_service
 from app.services.member_session import MEMBER_AUTH_COOKIE, create_member_token, get_current_member
 from app.services.password_reset_service import InvalidResetLinkError, PasswordResetService, create_reset_token

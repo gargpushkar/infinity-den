@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from bson import ObjectId
@@ -31,6 +31,10 @@ class InvalidCredentialsError(UserServiceError):
     pass
 
 
+# Unconfirmed sign-ups hold their username and email only this long.
+PENDING_ACCOUNT_DAYS = 7
+
+
 class UserService:
     def __init__(self, database: AsyncIOMotorDatabase | None = None) -> None:
         self.database = database if database is not None else get_database()
@@ -45,7 +49,16 @@ class UserService:
             display_name=payload.display_name,
             email=payload.email,
             password_hash=hash_password(payload.password),
+            email_confirmed=False,
+            pending_expires_at=datetime.now(timezone.utc) + timedelta(days=PENDING_ACCOUNT_DAYS),
         ).to_mongo()
+
+        # An unconfirmed sign-up reserves nothing: whoever confirms first keeps
+        # the name. This lets someone who mistyped their email start again,
+        # and stops a stranger blocking your address by signing up with it.
+        # ponytail: the replaced account's saved pieces are left behind; harmless.
+        for key in ("username", "email"):
+            await self.collection.delete_many({key: document[key], "email_confirmed": False})
 
         # The unique indexes are the source of truth; these checks only pick
         # the right message for the common case.
@@ -86,8 +99,9 @@ class UserService:
         return MemberRead.model_validate(document) if document else None
 
     async def get_member_by_username(self, username: str) -> MemberRead | None:
+        # Unconfirmed accounts have no public profile, so a spam bio never shows.
         document = await self.collection.find_one(
-            {"username": username.strip().lower(), "is_active": True}
+            {"username": username.strip().lower(), "is_active": True, "email_confirmed": {"$ne": False}}
         )
         return MemberRead.model_validate(document) if document else None
 

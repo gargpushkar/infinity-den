@@ -100,6 +100,7 @@ class MemberRead(BaseModel):
     bio: str | None = None
     is_active: bool = True
     session_version: int = 0
+    email_confirmed: bool = True  # missing on accounts from before confirmation existed
     created_at: datetime
 
     @field_validator("id", mode="before")

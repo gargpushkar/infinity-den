@@ -14,7 +14,7 @@ from app.routes.public.form_pages import (
 )
 from app.schemas.question import ResponseInput
 from app.services.member_article_service import parse_sources
-from app.services.member_session import form_csrf_is_valid, get_current_member
+from app.services.member_session import form_csrf_is_valid, get_current_member, unconfirmed_redirect
 from app.services.question_page_service import (
     get_question_room_context,
     own_response_values,
@@ -50,6 +50,8 @@ async def respond(request: Request, slug: str = SLUG):
     member = await get_current_member(request)
     if member is None:
         return RedirectResponse(f"/login?next={question_url(slug)}", status_code=303)
+    if redirect := unconfirmed_redirect(member):
+        return redirect
 
     form = await read_form(request)
     values = {"kind": form.get("kind", ""), "body": form.get("body", ""), "sources": form.get("sources", "")}

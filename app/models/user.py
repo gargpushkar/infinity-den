@@ -12,6 +12,8 @@ USER_DOCUMENT_FIELDS: Final[tuple[str, ...]] = (
     "bio",
     "is_active",
     "session_version",
+    "email_confirmed",
+    "pending_expires_at",
     "created_at",
     "updated_at",
 )
@@ -33,6 +35,11 @@ class UserDocument:
     is_active: bool = True
     # Raised by a password reset; sign-in cookies with an older number stop working.
     session_version: int = 0
+    # Sign-ups start unconfirmed (False) until the emailed link is opened.
+    # Accounts from before confirmation existed have no field and count as confirmed.
+    email_confirmed: bool = True
+    # Set while unconfirmed; a TTL index deletes the account when it passes.
+    pending_expires_at: datetime | None = None
     created_at: datetime = field(default_factory=utc_now)
     updated_at: datetime = field(default_factory=utc_now)
 

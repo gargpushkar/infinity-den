@@ -18,8 +18,10 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 ## Current Focus
 - [ ] `feature/community-pages`
 - [x] Password reset by email (`feature/password-reset`; Brevo over SMTP)
-- [ ] Set up Brevo: authenticate the domain in GoDaddy DNS, then set the SMTP settings and `SITE_URL` on the server
-- [ ] Self-serve account deletion
+- [x] Brevo: domain authenticated in GoDaddy DNS; sending from dave@infinityden.com verified (inbox, SPF/DKIM/DMARC pass)
+- [ ] On the server: SMTP settings, `MAIL_FROM`, `SITE_URL`, and the server's IP in Brevo's Authorised IPs
+- [x] Email confirmation at sign-up (`feature/email-confirmation`): unconfirmed members can read and save but not take part; unconfirmed accounts expire after 7 days
+- [ ] Self-serve account deletion: delete everything (pieces, drafts, responses, comments, saved pieces, uploaded covers), confirmed with the password; reports keep without the reporter's name; a goodbye email
 - [ ] Then Phase 2, starting with the Debate Den
 
 ---
@@ -187,7 +189,6 @@ Carried over from the foundation; pick up when needed.
 
 ## Accounts
 - [x] Password reset by email: one-hour, single-use links; a reset signs out every other device
-- [ ] Email verification at sign-up (if fake sign-ups become a problem)
 - [ ] Tighten DMARC to `p=quarantine` once emails arrive reliably
 - [ ] Move rate-limit counters out of process memory before running several workers
 

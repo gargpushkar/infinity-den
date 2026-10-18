@@ -8,6 +8,7 @@ from datetime import timedelta
 from typing import Any
 
 from fastapi import Request, Response
+from fastapi.responses import RedirectResponse
 
 from app.config.settings import settings
 from app.schemas.user import MemberRead
@@ -88,6 +89,12 @@ async def get_current_member(request: Request) -> MemberRead | None:
     if member is None or member.session_version != claims.get("sv", 0):
         return None
     return member
+
+
+def unconfirmed_redirect(member: MemberRead) -> RedirectResponse | None:
+    """Members take part (write, respond, comment, report) only once their
+    email is confirmed. Returns where to send an unconfirmed one, else None."""
+    return None if member.email_confirmed else RedirectResponse("/confirm-email", status_code=303)
 
 
 def form_csrf_token(request: Request) -> str:

@@ -54,6 +54,7 @@
   <body>
     {% if not use_admin_chrome|default(false) %}
       {% include "partials/navbar.html" %}
+      {% include "partials/confirm_email_banner.html" %}
     {% endif %}
 
     <main id="mainContent">

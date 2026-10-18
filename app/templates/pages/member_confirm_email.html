@@ -1,0 +1,26 @@
+{% extends "layouts/base.html" %}
+{% from "components/form_fields.html" import form_alert %}
+
+{% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="member-page">
+  <div class="container">
+    <div class="member-panel">
+      <p class="eyebrow mb-2">One more step</p>
+      <h1>{{ page_title }}</h1>
+
+      {{ form_alert(error, notice) }}
+
+      {% if member %}
+        <p class="member-lede">Open the link we emailed to <strong>{{ member.email }}</strong>. Until then you can read and save pieces, but not write, respond, comment, or report.</p>
+        <form class="member-form" method="post" action="/confirm-email">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="btn btn-outline-primary member-submit" type="submit">Send the link again</button>
+        </form>
+        <p class="member-field-hint">Can't find it? Check your spam folder. Wrong address? <a href="/join">Join again</a> with the right one; the same username is fine. Accounts that aren't confirmed within 7 days are deleted.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
