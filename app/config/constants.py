@@ -105,3 +105,6 @@ RESPONSE_MAX_LENGTH = 3000
 DEBATE_SIDE_LABELS: dict[str, str] = {"for": "For", "against": "Against"}
 ARGUMENT_CLAIM_MAX_LENGTH = 150
 ARGUMENT_MAX_LENGTH = 3000
+REBUTTAL_MIN_LENGTH = 20
+REBUTTAL_MAX_LENGTH = 1000
+REBUTTALS_SHOWN = 3  # the rest of a thread folds behind "Show more"

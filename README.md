@@ -88,6 +88,23 @@ python run.py
 
 The homepage will be available at [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
+### Testing with email off
+
+When `.env` has real SMTP settings, `python run.py` sends real email. To test
+sign-up, password reset, review emails, or deletion emails without sending
+anything, start the server with `SMTP_HOST` blanked for that run only:
+
+```bash
+SMTP_HOST= python run.py
+```
+
+Each email is then printed in the server's terminal instead: who it was for,
+the subject, and the full text, including any link (confirm your email, reset
+your password). Copy the link from the terminal into the browser to follow it.
+This needs `APP_ENV=development`; in production only the subject is logged.
+
+To check real delivery, run plain `python run.py` and use an inbox you own.
+
 Check application health:
 
 ```bash

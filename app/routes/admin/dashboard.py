@@ -230,9 +230,10 @@ async def admin_debate_page(
         service = DebateService(database=db)
         debate = await service.get_debate(debate_id)
         arguments = await service.all_arguments(debate_id) if debate else []
+        rebuttals = await service.all_rebuttals(debate_id) if debate else {}
         rooms = await get_rooms(db)
     except (RuntimeError, PyMongoError):
-        debate, arguments, rooms = None, [], []
+        debate, arguments, rebuttals, rooms = None, [], {}, []
     if debate is None:
         raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Debate was not found.")
 
@@ -242,7 +243,7 @@ async def admin_debate_page(
         admin=admin,
         active_nav="debates",
         page_title="Debate Den",
-        context={"debate": debate, "arguments": arguments, "rooms": rooms, "today": site_today()},
+        context={"debate": debate, "arguments": arguments, "rebuttals": rebuttals, "rooms": rooms, "today": site_today()},
     )
 
 

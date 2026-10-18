@@ -93,7 +93,7 @@ Creative names are display text. Everything permanent is plain and descriptive.
 | Question Room | `/questions` (today's or latest), `/questions/{slug}` |
 | Human Library | `/experiences` |
 | Curiosity Arcade | `/play` (random claim), `/play/{slug}`, `/play/{slug}?answer=fact\|fiction` |
-| Debate Den | `/debates` (open and past debates), `/debates/{slug}` |
+| Debate Den | `/debates` (open and past debates), `/debates/{slug}` (rebuttals link as `#rebuttal-{id}`) |
 | Member profile | `/members/{username}` |
 | Join / sign in / sign out | `/join`, `/login`, `/logout` |
 | Forgot / reset password | `/forgot-password`, `/reset-password?token=…` |
@@ -101,7 +101,7 @@ Creative names are display text. Everything permanent is plain and descriptive.
 | Your account | `/account` |
 | Write / edit your piece | `/write`, `/write/{id}` |
 | Saved pieces | `/saved` |
-| Report something | `/report?type=article\|response\|comment\|argument&id=…` |
+| Report something | `/report?type=article\|response\|comment\|argument\|rebuttal&id=…` |
 | Comment on / save a piece (form posts) | `/articles/{slug}/comments`, `/articles/{slug}/bookmark` |
 | Community guidelines, editorial policy, privacy, terms | `/guidelines`, `/editorial-policy`, `/privacy`, `/terms` |
 
@@ -329,7 +329,7 @@ Fields:
 
 ### arguments
 
-One per member per debate (unique index); members can edit it while the debate is open and delete it any time.
+One per member per debate (unique index); members can edit it while the debate is open and delete it any time. Deleting an argument deletes the rebuttals of it.
 
 Fields:
 
@@ -345,6 +345,23 @@ Fields:
 
 Posted immediately; editors can hide or feature them. Order: featured first,
 then newest. Never ordered by ratings or popularity.
+
+### rebuttals
+
+A short reply to one argument, by any confirmed member except the argument's
+author. One per member per argument (unique index); no replies to rebuttals.
+Edited while the debate is open, deleted any time.
+
+Fields:
+
+- debate_id, argument_id
+- user_id, author, author_username
+- body (markdown subset, 20–1,000 characters; no separate sources)
+- status — `published` | `hidden`
+- created_at, updated_at
+
+Oldest first under the argument; after three, the rest fold behind "Show more".
+No featuring and no ordering by popularity.
 
 ### comments
 
@@ -400,7 +417,7 @@ as `dismissed`.
 
 Fields:
 
-- target_type — `article` | `response` | `comment` | `argument`
+- target_type — `article` | `response` | `comment` | `argument` | `rebuttal`
 - target_id
 - reporter_id
 - reason — a key of `REPORT_REASONS` in `constants.py`

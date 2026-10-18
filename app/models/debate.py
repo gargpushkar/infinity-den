@@ -5,6 +5,7 @@ from typing import Any, Final, Literal
 
 DEBATE_COLLECTION: Final = "debates"
 ARGUMENT_COLLECTION: Final = "arguments"
+REBUTTAL_COLLECTION: Final = "rebuttals"
 
 DebateStatus = Literal["draft", "published"]
 ArgumentSide = Literal["for", "against"]
@@ -49,6 +50,26 @@ class ArgumentDocument:
     status: ArgumentStatus = "published"
     created_at: datetime = field(default_factory=utc_now)
     updated_at: datetime = field(default_factory=utc_now)
+    edited_at: datetime | None = None  # set when the author changes the words
+
+    def to_mongo(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(slots=True)
+class RebuttalDocument:
+    """A short reply to one argument. One per member per argument, and no replies to replies."""
+
+    debate_id: str
+    argument_id: str
+    user_id: str
+    author: str
+    author_username: str
+    body: str
+    status: ArgumentStatus = "published"
+    created_at: datetime = field(default_factory=utc_now)
+    updated_at: datetime = field(default_factory=utc_now)
+    edited_at: datetime | None = None  # set when the author changes the words
 
     def to_mongo(self) -> dict[str, Any]:
         return asdict(self)

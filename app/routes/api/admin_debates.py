@@ -3,7 +3,7 @@ from fastapi import status as http_status
 from fastapi.responses import Response
 
 from app.schemas.admin import AdminRead
-from app.schemas.debate import AdminArgumentUpdate, ArgumentRead, DebateInput, DebateRead
+from app.schemas.debate import AdminArgumentUpdate, AdminRebuttalUpdate, ArgumentRead, DebateInput, DebateRead, RebuttalRead
 from app.services.admin_csrf import verify_admin_csrf
 from app.services.admin_permissions import require_article_writer, require_destructive_admin
 from app.services.debate_service import DebateNotFoundError, DebateService
@@ -63,5 +63,20 @@ async def moderate_argument(
     """Feature an argument, or hide / restore it."""
     try:
         return await service.moderate_argument(argument_id, payload)
+    except DebateNotFoundError as exc:
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.patch("/rebuttals/{rebuttal_id}", response_model=RebuttalRead, response_model_by_alias=False)
+async def moderate_rebuttal(
+    rebuttal_id: str,
+    payload: AdminRebuttalUpdate,
+    _admin: AdminRead = Depends(require_article_writer),
+    _csrf: None = Depends(verify_admin_csrf),
+    service: DebateService = Depends(get_debate_service),
+) -> RebuttalRead:
+    """Hide or restore a rebuttal."""
+    try:
+        return await service.moderate_rebuttal(rebuttal_id, payload)
     except DebateNotFoundError as exc:
         raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
