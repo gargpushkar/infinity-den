@@ -50,6 +50,7 @@ class ArgumentDocument:
     status: ArgumentStatus = "published"
     created_at: datetime = field(default_factory=utc_now)
     updated_at: datetime = field(default_factory=utc_now)
+    edited_at: datetime | None = None  # set when the author changes the words
 
     def to_mongo(self) -> dict[str, Any]:
         return asdict(self)
@@ -68,6 +69,7 @@ class RebuttalDocument:
     status: ArgumentStatus = "published"
     created_at: datetime = field(default_factory=utc_now)
     updated_at: datetime = field(default_factory=utc_now)
+    edited_at: datetime | None = None  # set when the author changes the words
 
     def to_mongo(self) -> dict[str, Any]:
         return asdict(self)

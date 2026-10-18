@@ -228,3 +228,22 @@ def test_rebuttal_html_is_never_rendered(attack):
     rebuttal = _run(service.save_rebuttal(debate, argument.id, SAM, RebuttalInput(body="A careful reply. " + attack), TODAY))
     html = str(_rebuttal_view(rebuttal)["body_html"])
     assert "<script" not in html and "<img" not in html and 'href="javascript' not in html
+
+
+def test_only_a_real_edit_by_the_author_marks_an_argument_or_rebuttal_edited():
+    service = _service()
+    debate, argument = _debate_with_argument(service)
+    assert _argument_view(argument)["edited_label"] is None
+
+    _run(service.moderate_argument(argument.id, AdminArgumentUpdate(is_featured=True)))  # editors' actions don't count
+    _run(service.save_argument(debate, MIRA, _argue(), TODAY))  # saving the same words doesn't either
+    assert _run(service.member_argument(debate.id, MIRA)).edited_at is None
+
+    edited = _run(service.save_argument(debate, MIRA, _argue(claim="Commutes cost even more"), TODAY))
+    assert edited.edited_at is not None and _argument_view(edited)["edited_label"]
+
+    rebuttal = _run(service.save_rebuttal(debate, argument.id, SAM, REPLY, TODAY))
+    _run(service.moderate_rebuttal(rebuttal.id, AdminRebuttalUpdate(status="hidden")))
+    assert _run(service.save_rebuttal(debate, argument.id, SAM, REPLY, TODAY)).edited_at is None
+    changed = _run(service.save_rebuttal(debate, argument.id, SAM, RebuttalInput(body="A sharper version of my reply."), TODAY))
+    assert _rebuttal_view(changed)["edited_label"]

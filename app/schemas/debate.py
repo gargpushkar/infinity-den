@@ -88,6 +88,7 @@ class ArgumentRead(BaseModel):
     status: ArgumentStatus = "published"
     created_at: datetime
     updated_at: datetime
+    edited_at: datetime | None = None
 
     @field_validator("id", mode="before")
     @classmethod
@@ -128,6 +129,7 @@ class RebuttalRead(BaseModel):
     status: ArgumentStatus = "published"
     created_at: datetime
     updated_at: datetime
+    edited_at: datetime | None = None
 
     @field_validator("id", mode="before")
     @classmethod

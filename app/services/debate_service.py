@@ -11,6 +11,7 @@ A rebuttal answers one argument and can't be answered itself.
 import re
 import secrets
 from datetime import datetime, timezone
+from typing import Any
 
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -64,6 +65,24 @@ def debate_slug(motion: str) -> str:
 
 def is_open(debate: DebateRead, today: str) -> bool:
     return debate.status == "published" and debate.closes_on >= today
+
+
+async def _edit_own(collection: Any, query: dict, content: dict, member: MemberRead) -> dict | None:
+    """Apply a member's edit to their existing argument or rebuttal; None if they have none.
+
+    edited_at marks the item "edited" for readers, so it moves only when the words
+    change, never when an editor features or hides it.
+    """
+    existing = await collection.find_one(query)
+    if existing is None:
+        return None
+    now = datetime.now(timezone.utc)
+    changes = {**content, "author": member.display_name, "updated_at": now}
+    if any(existing.get(key) != value for key, value in content.items()):
+        changes["edited_at"] = now
+    return await collection.find_one_and_update(
+        {"_id": existing["_id"]}, {"$set": changes}, return_document=ReturnDocument.AFTER
+    )
 
 
 def _object_id(value: str) -> ObjectId | None:
@@ -182,28 +201,22 @@ class DebateService:
         if not is_open(debate, today):
             raise DebateClosedError("This debate is closed.")
 
-        now = datetime.now(timezone.utc)
-        fields = {
+        content = {
             "side": payload.side,
             "claim": payload.claim,
             "body": payload.body,
             "sources": [source.model_dump() for source in payload.sources],
-            "author": member.display_name,
-            "updated_at": now,
         }
-        existing = await self.arguments.find_one_and_update(
-            {"debate_id": debate.id, "user_id": member.id},
-            {"$set": fields},
-            return_document=ReturnDocument.AFTER,
-        )
+        existing = await _edit_own(self.arguments, {"debate_id": debate.id, "user_id": member.id}, content, member)
         if existing is not None:
             return ArgumentRead.model_validate(existing)
 
         document = ArgumentDocument(
             debate_id=debate.id,
             user_id=member.id,
+            author=member.display_name,
             author_username=member.username,
-            **{key: value for key, value in fields.items() if key != "updated_at"},
+            **content,
         ).to_mongo()
         try:
             result = await self.arguments.insert_one(document)
@@ -257,11 +270,8 @@ class DebateService:
         if argument["user_id"] == member.id:
             raise OwnArgumentError("You can't rebut your own argument. Edit it instead.")
 
-        now = datetime.now(timezone.utc)
-        existing = await self.rebuttals.find_one_and_update(
-            {"argument_id": argument_id, "user_id": member.id},
-            {"$set": {"body": payload.body, "author": member.display_name, "updated_at": now}},
-            return_document=ReturnDocument.AFTER,
+        existing = await _edit_own(
+            self.rebuttals, {"argument_id": argument_id, "user_id": member.id}, {"body": payload.body}, member
         )
         if existing is not None:
             return RebuttalRead.model_validate(existing)

@@ -9,7 +9,7 @@
   <div class="rebuttal" id="rebuttal-{{ item.id }}">
     <p class="rebuttal-meta">
       <a class="response-author" href="{{ item.author_url }}">{{ item.author }}</a>
-      <span class="response-date">{{ item.date_label }}</span>
+      <span class="response-date">{{ item.date_label }}{% if item.edited_label %} &middot; edited{% if item.edited_label != item.date_label %} {{ item.edited_label }}{% endif %}{% endif %}</span>
     </p>
     {% if item.is_hidden %}<p class="rebuttal-note" role="note">Editors have hidden your rebuttal, so only you can see it.</p>{% endif %}
     {# body_html comes from app/utils/markdown.py, which escapes first. #}
@@ -34,7 +34,7 @@
       {% if item.is_featured %}<span class="content-label content-label-featured">Editor's pick</span>{% endif %}
       {% if item.sources %}<span class="content-label">{{ item.sources|length }} {{ "source" if item.sources|length == 1 else "sources" }}</span>{% endif %}
       {% if item.rebuttal_count %}<span class="content-label">{{ item.rebuttal_count }} {{ "rebuttal" if item.rebuttal_count == 1 else "rebuttals" }}</span>{% endif %}
-      <span class="response-date">{{ item.date_label }}</span>
+      <span class="response-date">{{ item.date_label }}{% if item.edited_label %} &middot; edited{% if item.edited_label != item.date_label %} {{ item.edited_label }}{% endif %}{% endif %}</span>
     </header>
     <h3 class="argument-claim">{{ item.claim }}</h3>
     {# body_html comes from app/utils/markdown.py, which escapes first. #}

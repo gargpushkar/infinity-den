@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 
 from app.config.constants import DEBATE_SIDE_LABELS, REBUTTALS_SHOWN
@@ -67,6 +67,10 @@ def own_argument_values(context: dict[str, Any]) -> dict[str, Any]:
     return {"side": own["side"], "claim": own["claim"], "body": own["body"], "sources": own["sources_text"]}
 
 
+def _day_label(moment: datetime) -> str:
+    return f"{moment:%b} {moment.day}, {moment:%Y}"
+
+
 def _date_label(value: str) -> str:
     day = date.fromisoformat(value)
     return f"{day:%B} {day.day}, {day:%Y}"
@@ -113,7 +117,8 @@ def _rebuttal_view(rebuttal: RebuttalRead) -> dict[str, Any]:
         "body": rebuttal.body,
         "body_html": render_markdown(rebuttal.body),
         "is_hidden": rebuttal.status == "hidden",
-        "date_label": f"{rebuttal.created_at:%b} {rebuttal.created_at.day}, {rebuttal.created_at:%Y}",
+        "date_label": _day_label(rebuttal.created_at),
+        "edited_label": _day_label(rebuttal.edited_at) if rebuttal.edited_at else None,
     }
 
 
@@ -132,5 +137,6 @@ def _argument_view(argument: ArgumentRead) -> dict[str, Any]:
         "sources_text": sources_text(argument.sources),
         "is_featured": argument.is_featured,
         "is_hidden": argument.status == "hidden",
-        "date_label": f"{argument.created_at:%b} {argument.created_at.day}, {argument.created_at:%Y}",
+        "date_label": _day_label(argument.created_at),
+        "edited_label": _day_label(argument.edited_at) if argument.edited_at else None,
     }
