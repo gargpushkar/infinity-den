@@ -151,6 +151,8 @@ order; each assumes the previous ones are merged.
   - [x] `feature/debate-rebuttals`: one level of replies to an argument (any confirmed member but its author; one per member per argument; 20–1,000 characters); reportable and hideable; folded after three
   - [x] `feature/debate-ratings`: clarity, evidence, and reasoning, 1–5 each; confirmed members, not your own; averages after 3 ratings, shown to members who rated and to everyone once the debate closes; never used for ordering; `/privacy` updated
   - [x] `feature/debate-design`: the Debate Den redesigned from the approved mockup (dark motion hero with the before-reading stance, warm/cool sides, rating bars, a copper "your turn" band, results bars and pull quotes, `/debates` cards, homepage band); dusk-blue side colour and the debate cover
+  - [x] `feature/page-polish-and-arcade`: `/play` as the Arcade's amber stage; a friendlier 404 with places to go; the rooms list without its old filter and sort controls; the account page's deletion text lists debate data
+  - [ ] Member profiles, with contributor reputation (plan and mockup first)
   - [x] `feature/question-room-design`: copper hero with the den motif, editors' picks as quotes, kind filters, response cards, folding after 8, a dark "your turn" band, an invitation when nobody has answered, earlier questions as cards
   - [x] `feature/debate-stances`: where you stand before and after reading, with an optional "why"; results (minds changed, no winner) shown once a debate closes; homepage Debate Den section; `/privacy` update
 - [ ] More Arcade games: One-Minute Quiz, Guess the Connection, Daily Brain Spark

@@ -4,17 +4,25 @@
 {% block meta_description %}{{ seo_description }}{% endblock %}
 
 {% block content %}
-<section class="play-page">
-  <div class="container">
+{# The whole page is the Arcade's amber stage, the same card as the homepage's, larger. #}
+<section class="arcade-stage" aria-labelledby="arcadeTitle">
+  {% set motif_class = "arcade-motif" %}{% include "components/den_motif.html" %}
+  <div class="container arcade-stage-inner">
+    <h1 class="visually-hidden" id="arcadeTitle">Curiosity Arcade: Fact or Fiction</h1>
     {% if claim %}
+      {% set fof_class = "fof-home fof-stage" %}
       {% include "components/fact_or_fiction_card.html" %}
     {% else %}
-      <div class="fof-card">
+      <div class="fof-card fof-home fof-stage">
         <p class="eyebrow mb-2">Curiosity Arcade</p>
-        <h1 class="fof-claim">{% if is_unavailable %}The Arcade is unavailable right now.{% else %}New claims are on their way.{% endif %}</h1>
-        <p class="member-lede">Fact or Fiction asks you to judge a surprising claim, then explains the answer.</p>
+        <p class="fof-claim">{% if is_unavailable %}The Arcade is unavailable right now.{% else %}New claims are on their way.{% endif %}</p>
+        <p class="fof-explanation">Fact or Fiction asks you to judge a surprising claim, then explains the answer.</p>
       </div>
     {% endif %}
   </div>
+</section>
+
+<section class="container arcade-how" aria-label="How the Arcade works">
+  <p><strong>One surprising claim at a time.</strong> Decide whether it's fact or fiction, see why, then follow the link to a piece that goes deeper.</p>
 </section>
 {% endblock %}

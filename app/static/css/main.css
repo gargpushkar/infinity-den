@@ -560,31 +560,49 @@ button:focus-visible,
   padding: 4rem 0;
 }
 
-.error-panel {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+.error-inner {
   margin: 0 auto;
-  max-width: 42rem;
-  padding: clamp(1.5rem, 5vw, 3rem);
+  max-width: 40rem;
   text-align: center;
 }
 
-.error-panel h1 {
+/* The den motif, small and still: you've wandered somewhere quiet. */
+.error-inner .den-motif {
+  margin: 0 auto 2rem;
+  width: 7rem;
+}
+
+.error-inner h1 {
   font-family: var(--font-display);
-  font-size: clamp(2.4rem, 6vw, 4.25rem);
+  font-size: clamp(2.2rem, 5.5vw, 3.6rem);
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.08;
   margin-bottom: 1rem;
 }
 
-.error-panel p:not(.eyebrow) {
+.error-message {
   color: var(--text-secondary);
   font-size: 1.05rem;
   line-height: 1.7;
-  margin: 0 auto 1.5rem;
+  margin: 0 auto 1.75rem;
   max-width: 32rem;
+}
+
+.error-links {
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+  justify-content: center;
+  margin-top: 2.25rem;
+  padding-top: 1.25rem;
+}
+
+.error-links a {
+  align-items: center;
+  display: inline-flex;
+  font-weight: 500;
+  min-height: 44px;
 }
 
 .section-heading {
@@ -2407,44 +2425,6 @@ button:focus-visible,
   font-weight: 500;
 }
 
-.category-index-controls {
-  align-items: end;
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: minmax(0, 1fr) minmax(24rem, 32rem);
-  margin: 0 auto 1rem;
-  max-width: 68rem;
-}
-
-.category-filter-form {
-  align-items: end;
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: minmax(12rem, 1fr) minmax(9rem, 11rem) auto;
-}
-
-.category-filter-field {
-  min-width: 0;
-}
-
-.filter-search-input {
-  background-color: var(--card);
-  border-color: var(--line);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-weight: 500;
-  min-height: 2.85rem;
-}
-
-.filter-search-input::placeholder {
-  color: var(--text-muted);
-  font-weight: 400;
-}
-
-.category-filter-submit {
-  min-height: 2.85rem;
-}
-
 .category-index-grid {
   display: grid;
   gap: 1rem;
@@ -3172,11 +3152,6 @@ button:focus-visible,
     grid-template-columns: 1fr;
   }
 
-  .category-index-controls {
-    align-items: stretch;
-    grid-template-columns: 1fr;
-  }
-
   .article-filter-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3438,14 +3413,6 @@ button:focus-visible,
 
   .article-filter-form {
     grid-template-columns: 1fr;
-  }
-
-  .category-filter-form {
-    grid-template-columns: 1fr;
-  }
-
-  .category-filter-submit {
-    width: 100%;
   }
 
   .article-index-summary {
@@ -6235,6 +6202,7 @@ body:has(.debate-turn) .site-footer {
   align-items: center;
   display: inline-flex;
   flex: 1 1 8rem;
+  gap: 0.4rem;
   justify-content: center;
   font-size: 1.05rem;
   font-weight: 500;
@@ -6612,6 +6580,75 @@ body:has(.debate-turn) .site-footer {
 .home-arcade {
   scroll-margin-top: 5rem;
 }
+
+/* /play: the whole page is the amber stage. */
+.arcade-stage {
+  background: var(--arcade-bg);
+  color: var(--arcade-fg);
+  overflow: hidden;
+  position: relative;
+}
+
+.arcade-stage-inner {
+  padding-block: clamp(3rem, 8vw, 6rem);
+  position: relative;
+}
+
+.arcade-motif {
+  --motif-outer: var(--arcade-motif);
+  --motif-middle: var(--arcade-motif);
+  --motif-inner: var(--arcade-motif);
+  opacity: 0.5;
+  pointer-events: none;
+  position: absolute;
+  right: -4rem;
+  top: 50%;
+  translate: 0 -50%;
+  width: min(30rem, 55vw);
+}
+
+.fof-card.fof-stage {
+  background: transparent;
+  border: 0;
+  overflow: visible;
+  padding: 0;
+}
+
+.fof-stage .fof-claim {
+  font-size: clamp(2.2rem, 5.5vw, 4rem);
+  line-height: 1.12;
+  max-width: 22ch;
+}
+
+.fof-stage .fof-choices {
+  max-width: 32rem;
+}
+
+.fof-stage .fof-choice {
+  font-size: 1.15rem;
+  min-height: 3.75rem;
+}
+
+.fof-stage .fof-explanation,
+.fof-stage .fof-explanation > p:first-child {
+  font-size: 1.15rem;
+}
+
+.arcade-how {
+  color: var(--text-secondary);
+  padding-block: 2rem 3rem;
+}
+
+.arcade-how p {
+  margin: 0;
+  max-width: 44rem;
+}
+
+.arcade-how strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
 
 .room-grid {
   display: grid;
