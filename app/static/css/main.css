@@ -3856,6 +3856,21 @@ button:focus-visible,
   text-align: center;
 }
 
+.member-delete {
+  border-top: 1px solid var(--line);
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+}
+
+.member-delete h2 {
+  font-size: 1.15rem;
+}
+
+.member-delete p {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
 .member-signout {
   border-top: 1px solid var(--line);
   margin-top: 1.75rem;

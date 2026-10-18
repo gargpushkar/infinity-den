@@ -1,0 +1,16 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="member-page">
+  <div class="container">
+    <div class="member-panel">
+      <p class="eyebrow mb-2">Goodbye</p>
+      <h1>Your account is deleted.</h1>
+      <p class="member-lede">Your account and everything you wrote are gone. We've sent a short confirmation to your email. Thank you for being part of {{ app_name }}; you're welcome back any time.</p>
+      <a class="btn btn-primary" href="/">Back to {{ app_name }}</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

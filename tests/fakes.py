@@ -1,6 +1,6 @@
 """A tiny in-memory stand-in for the Motor collections the services use.
 
-Supports only what the tests need: equality, $lte, $ne, $in, $nin, $set, a counting
+Supports only what the tests need: equality, $or, $lte, $ne, $in, $nin, $set, a counting
 aggregate, sort,
 limit, and optional unique keys. Not a MongoDB emulator.
 """
@@ -13,6 +13,10 @@ from pymongo.errors import DuplicateKeyError
 
 def _matches(document: dict[str, Any], query: dict[str, Any]) -> bool:
     for key, condition in query.items():
+        if key == "$or":
+            if not any(_matches(document, option) for option in condition):
+                return False
+            continue
         value = document.get(key)
         if isinstance(condition, dict):
             for operator, operand in condition.items():

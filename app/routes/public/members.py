@@ -3,6 +3,7 @@ from fastapi import status as http_status
 from fastapi.responses import RedirectResponse
 from pydantic import ValidationError
 from pymongo.errors import PyMongoError
+from starlette.background import BackgroundTask
 
 from app.config.settings import settings
 from app.routes.public.form_pages import (
@@ -28,6 +29,7 @@ from app.services.member_session import (
     set_member_cookie,
 )
 from app.routes.public.email_confirmation import send_confirmation_later
+from app.services.account_deletion_service import AccountDeletionService, WrongPasswordError, send_goodbye
 from app.services.nav_service import get_nav_context
 from app.services.user_service import (
     EmailTakenError,
@@ -36,7 +38,7 @@ from app.services.user_service import (
     UsernameTakenError,
 )
 from app.utils.forms import read_form
-from app.utils.rate_limit import client_key, member_login_limiter, member_signup_limiter
+from app.utils.rate_limit import account_delete_limiter, client_key, member_login_limiter, member_signup_limiter
 
 
 router = APIRouter()
@@ -181,6 +183,41 @@ async def update_account(request: Request):
     updated = await UserService().update_profile(member.id, payload)
     response = RedirectResponse("/account?saved=1", status_code=303)
     set_member_cookie(response, updated)  # keep the token's claims current
+    return response
+
+
+@router.post("/account/delete")
+async def delete_account(request: Request):
+    member = await get_current_member(request)
+    if member is None:
+        return RedirectResponse("/login?next=/account", status_code=303)
+
+    form = await read_form(request)
+    page = {
+        "member": public_profile(member),
+        "email": member.email,
+        "pieces": await MemberArticleService().list_own(member),
+    }
+    values = {"display_name": member.display_name, "bio": member.bio or ""}
+
+    if not form_csrf_is_valid(request, form):
+        return await render_form_page(request, "pages/member_account.html", "Your account", values=values, error=FORM_EXPIRED, status_code=400, **page)
+    if not account_delete_limiter.allow(member.id):
+        return await render_form_page(request, "pages/member_account.html", "Your account", values=values, error=TOO_MANY_ATTEMPTS, status_code=429, **page)
+
+    try:
+        deleted = await AccountDeletionService().delete(member.id, form.get("delete_password", ""))
+    except WrongPasswordError:
+        return await render_form_page(
+            request, "pages/member_account.html", "Your account", values=values,
+            field_errors={"delete_password": "That password is incorrect."}, status_code=401, **page,
+        )
+    except (RuntimeError, PyMongoError):
+        return await render_form_page(request, "pages/member_account.html", "Your account", values=values, error=SERVICE_UNAVAILABLE, status_code=503, **page)
+
+    response = await render_form_page(request, "pages/member_account_deleted.html", "Account deleted", values={})
+    clear_member_cookie(response)
+    response.background = BackgroundTask(send_goodbye, deleted["email"], deleted["display_name"])
     return response
 
 

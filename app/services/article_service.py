@@ -22,6 +22,7 @@ from app.schemas.article import (
     ArticleUpdate,
 )
 from app.services.cover_upload_service import discard_unused_cover
+from app.services.review_email_service import notify_review_outcome
 from app.services.tag_service import register_tags
 
 
@@ -131,6 +132,7 @@ class ArticleService:
             raise ArticleNotFoundError("Article was not found.")
 
         update_data = payload.model_dump(exclude_unset=True)
+        old_status = None
 
         # A partial update (such as the admin "publish" action) can make an
         # article live without touching its sources, so check the article as
@@ -143,6 +145,7 @@ class ArticleService:
             )
             if current is None:
                 raise ArticleNotFoundError("Article was not found.")
+            old_status = current.get("status")
             merged = {**current, **update_data}
             if missing_required_sources(
                 article_format=merged.get("article_format", ""),
@@ -176,6 +179,8 @@ class ArticleService:
 
         if old_cover != updated_article.get("cover_image"):
             await discard_unused_cover(self.database, old_cover)
+        if "status" in update_data:
+            await notify_review_outcome(self.database, old_status, updated_article, update_data)
         return await self._published_tags_registered(self._to_article_read(updated_article))
 
     async def _published_tags_registered(self, article: ArticleRead) -> ArticleRead:
