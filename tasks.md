@@ -149,7 +149,7 @@ order; each assumes the previous ones are merged.
 - [ ] Debate Den with separate clarity / evidence / reasoning ratings
   - [x] `feature/debate-motions`: editors set motions with a closing date; members post one argument per debate, for or against, with optional sources; posted at once, reportable, hideable, featurable; `/debates`, `/debates/{slug}`
   - [x] `feature/debate-rebuttals`: one level of replies to an argument (any confirmed member but its author; one per member per argument; 20–1,000 characters); reportable and hideable; folded after three
-  - [ ] `feature/debate-ratings`: clarity, evidence, and reasoning, 1–5 each; confirmed members, not your own; averages shown after 3 ratings; never used for ordering
+  - [x] `feature/debate-ratings`: clarity, evidence, and reasoning, 1–5 each; confirmed members, not your own; averages after 3 ratings, shown to members who rated and to everyone once the debate closes; never used for ordering; `/privacy` updated
   - [ ] `feature/debate-stances`: where you stand before and after reading, with an optional "why"; results (minds changed, no winner) shown once a debate closes; homepage Debate Den section; `/privacy` update
 - [ ] More Arcade games: One-Minute Quiz, Guess the Connection, Daily Brain Spark
 - [ ] Contributor reputation based on meaningful participation

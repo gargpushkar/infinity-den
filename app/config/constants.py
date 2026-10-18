@@ -108,3 +108,10 @@ ARGUMENT_MAX_LENGTH = 3000
 REBUTTAL_MIN_LENGTH = 20
 REBUTTAL_MAX_LENGTH = 1000
 REBUTTALS_SHOWN = 3  # the rest of a thread folds behind "Show more"
+# What readers rate an argument on, separately from whether they agree: (label, question).
+RATING_DIMENSIONS: dict[str, tuple[str, str]] = {
+    "clarity": ("Clarity", "Is the point easy to follow?"),
+    "evidence": ("Evidence", "Is it backed by sources or facts?"),
+    "reasoning": ("Reasoning", "Does the conclusion follow?"),
+}
+RATINGS_NEEDED = 3  # averages stay hidden until this many members have rated

@@ -23,6 +23,7 @@ from app.database.mongodb import get_database
 from app.models.debate import (
     ARGUMENT_COLLECTION,
     DEBATE_COLLECTION,
+    RATING_COLLECTION,
     REBUTTAL_COLLECTION,
     ArgumentDocument,
     DebateDocument,
@@ -98,6 +99,7 @@ class DebateService:
         self.debates = self.database[DEBATE_COLLECTION]
         self.arguments = self.database[ARGUMENT_COLLECTION]
         self.rebuttals = self.database[REBUTTAL_COLLECTION]
+        self.ratings = self.database[RATING_COLLECTION]
 
     # --- editors -------------------------------------------------------------
 
@@ -136,6 +138,7 @@ class DebateService:
         if result.deleted_count:
             await self.arguments.delete_many({"debate_id": debate_id})
             await self.rebuttals.delete_many({"debate_id": debate_id})
+            await self.ratings.delete_many({"debate_id": debate_id})
         return bool(result.deleted_count)
 
     async def list_debates(self) -> list[DebateRead]:
@@ -226,11 +229,12 @@ class DebateService:
         return ArgumentRead.model_validate({**document, "_id": result.inserted_id})
 
     async def delete_argument(self, debate_id: str, member: MemberRead) -> bool:
-        """Remove the member's argument, and the rebuttals of it with it."""
+        """Remove the member's argument, with its rebuttals and ratings."""
         deleted = await self.arguments.find_one_and_delete({"debate_id": debate_id, "user_id": member.id})
         if deleted is None:
             return False
         await self.rebuttals.delete_many({"argument_id": str(deleted["_id"])})
+        await self.ratings.delete_many({"argument_id": str(deleted["_id"])})
         return True
 
     # --- rebuttals -----------------------------------------------------------

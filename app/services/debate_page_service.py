@@ -1,11 +1,12 @@
 from datetime import date, datetime
 from typing import Any
 
-from app.config.constants import DEBATE_SIDE_LABELS, REBUTTALS_SHOWN
+from app.config.constants import DEBATE_SIDE_LABELS, RATING_DIMENSIONS, RATINGS_NEEDED, REBUTTALS_SHOWN
 from app.database.mongodb import get_database
 from app.schemas.debate import ArgumentRead, DebateRead, RebuttalRead
 from app.schemas.user import MemberRead
 from app.services.article_page_service import room_url
+from app.services.debate_rating_service import DebateRatingService
 from app.services.debate_service import DebateService, is_open
 from app.services.member_article_service import sources_text
 from app.services.nav_service import get_rooms
@@ -43,9 +44,19 @@ async def get_debate_context(*, slug: str, member: MemberRead | None) -> dict[st
     own = await service.member_argument(debate.id, member) if member else None
     threads = await service.public_rebuttals(debate.id)
     own_rebuttals = await service.member_rebuttals(debate.id, member) if member else {}
+    ratings = DebateRatingService(database=db)
+    averages = await ratings.averages(debate.id)
+    own_ratings = await ratings.member_ratings(debate.id, member) if member else {}
+    debate_open = is_open(debate, today)
     rooms = {room["slug"]: room for room in await get_rooms(db)}
     room = rooms.get(debate.category_id or "")
-    views = [_with_thread(_argument_view(a), threads.get(a.id, []), own_rebuttals.get(a.id)) for a in arguments]
+    views = [
+        _with_rating(
+            _with_thread(_argument_view(a), threads.get(a.id, []), own_rebuttals.get(a.id)),
+            averages.get(a.id), own_ratings.get(a.id), debate_open=debate_open,
+        )
+        for a in arguments
+    ]
 
     return {
         "debate": _debate_view(debate, today, {debate.id: len(views)}),
@@ -56,6 +67,8 @@ async def get_debate_context(*, slug: str, member: MemberRead | None) -> dict[st
         ],
         "own_argument": _argument_view(own) if own else None,
         "side_labels": DEBATE_SIDE_LABELS,
+        "rating_dimensions": RATING_DIMENSIONS,
+        "ratings_needed": RATINGS_NEEDED,
     }
 
 
@@ -105,6 +118,19 @@ def _with_thread(view: dict[str, Any], rebuttals: list[RebuttalRead], own: Rebut
         "rebuttals_folded": thread[REBUTTALS_SHOWN:],
         "own_rebuttal": own_view,
         "own_rebuttal_folded": own_view is not None and own_view in thread[REBUTTALS_SHOWN:],
+    }
+
+
+def _with_rating(
+    view: dict[str, Any], average: dict[str, Any] | None, own: dict[str, int] | None, *, debate_open: bool
+) -> dict[str, Any]:
+    """Averages show once enough members have rated, and then only to members
+    who rated it themselves, or to everyone after the debate closes."""
+    enough = average is not None and average["count"] >= RATINGS_NEEDED
+    return {
+        **view,
+        "rating": average if enough and (own is not None or not debate_open) else None,
+        "own_rating": own,
     }
 
 

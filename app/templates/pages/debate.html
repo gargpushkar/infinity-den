@@ -28,6 +28,7 @@
 {% macro argument_card(item) -%}
   {% set is_mine = current_member and item.author_username == current_member.username %}
   {% set form_open = rebuttal and rebuttal.argument_id == item.id %}
+  {% set rating_open = rating and rating.argument_id == item.id %}
   <article class="response-card argument-card{% if item.is_featured %} is-featured{% endif %}" id="argument-{{ item.id }}">
     <header class="response-card-meta">
       <a class="response-author" href="{{ item.author_url }}">{{ item.author }}</a>
@@ -45,6 +46,14 @@
           <li><a href="{{ source.url }}" rel="noopener nofollow" target="_blank">{{ source.title }}</a></li>
         {% endfor %}
       </ol>
+    {% endif %}
+    {% if item.rating %}
+      <p class="argument-rating">
+        {% for key, (label, question) in rating_dimensions.items() %}<span>{{ label }} <strong>{{ item.rating[key] }}</strong><span class="visually-hidden"> out of 5</span></span>{% endfor %}
+        <span class="argument-rating-count">{{ item.rating.count }} ratings</span>
+      </p>
+    {% elif item.own_rating %}
+      <p class="argument-rating-note">Your rating is saved. The averages appear once {{ ratings_needed }} members have rated this argument.</p>
     {% endif %}
     {% if not is_mine %}
       <a class="report-link" href="/report?type=argument&amp;id={{ item.id }}" rel="nofollow">Report</a>
@@ -64,6 +73,29 @@
 
     {% if debate.is_open and not is_mine %}
       {% if signed_in and current_member and current_member.email_confirmed %}
+      <div class="argument-actions">
+        <details class="rate-form"{% if rating_open %} open{% endif %}>
+          <summary>{% if item.own_rating %}Your rating: {% for key, (label, question) in rating_dimensions.items() %}{{ label|lower }} {{ item.own_rating[key] }}{{ ", " if not loop.last }}{% endfor %} &middot; change{% else %}Rate this argument{% endif %}</summary>
+          <form class="member-form" method="post" action="{{ debate.url }}/arguments/{{ item.id }}/rate" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <p class="member-field-hint">Rate how well it's argued, even if you disagree with it: 1 is weak, 5 is strong. Nobody sees who gave which rating.</p>
+            {% for key, (label, question) in rating_dimensions.items() %}
+              {% set chosen = rating.scores[key] if rating_open else (item.own_rating[key]|string if item.own_rating else "") %}
+              <fieldset class="rating-scale">
+                <legend>{{ label }} <span>{{ question }}</span></legend>
+                <div class="rating-options">
+                  {% for score in range(1, 6) %}
+                    <input class="rating-input" type="radio" id="rate-{{ item.id }}-{{ key }}-{{ score }}" name="{{ key }}" value="{{ score }}"
+                      {% if chosen == score|string %}checked{% endif %}{% if rating_open and key == "clarity" and score == 1 %} autofocus{% endif %}>
+                    <label class="rating-option" for="rate-{{ item.id }}-{{ key }}-{{ score }}"><span class="visually-hidden">{{ label }} </span>{{ score }}</label>
+                  {% endfor %}
+                </div>
+              </fieldset>
+            {% endfor %}
+            {% if rating_open and rating.error %}<p class="member-field-error" role="alert">{{ rating.error }}</p>{% endif %}
+            <button class="btn btn-outline-primary" type="submit">Save rating</button>
+          </form>
+        </details>
         <details class="rebut-form"{% if form_open %} open{% endif %}>
           <summary>{{ "Edit your rebuttal" if item.own_rebuttal else "Rebut this" }}</summary>
           <form class="member-form" method="post" action="{{ debate.url }}/arguments/{{ item.id }}/rebut" novalidate>
@@ -77,8 +109,9 @@
             <button class="btn btn-outline-primary" type="submit">{{ "Update rebuttal" if item.own_rebuttal else "Post rebuttal" }}</button>
           </form>
         </details>
+      </div>
       {% elif not signed_in %}
-        <a class="rebut-link" href="/login?next={{ debate.url }}">Sign in to rebut</a>
+        <a class="rebut-link" href="/login?next={{ debate.url }}">Sign in to rate or rebut</a>
       {% endif %}
     {% endif %}
   </article>

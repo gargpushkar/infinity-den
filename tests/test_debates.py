@@ -6,10 +6,11 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from app.models.debate import ARGUMENT_COLLECTION, DEBATE_COLLECTION, REBUTTAL_COLLECTION
-from app.schemas.debate import AdminArgumentUpdate, AdminRebuttalUpdate, ArgumentInput, DebateInput, RebuttalInput
+from app.models.debate import ARGUMENT_COLLECTION, DEBATE_COLLECTION, RATING_COLLECTION, REBUTTAL_COLLECTION
+from app.schemas.debate import AdminArgumentUpdate, AdminRebuttalUpdate, ArgumentInput, DebateInput, RatingInput, RebuttalInput
 from app.schemas.user import MemberRead
-from app.services.debate_page_service import _argument_view, _rebuttal_view, _with_thread
+from app.services.debate_page_service import _argument_view, _rebuttal_view, _with_rating, _with_thread
+from app.services.debate_rating_service import DebateRatingService
 from app.services.debate_service import (
     DebateClosedError,
     DebateNotFoundError,
@@ -38,6 +39,7 @@ def _service() -> DebateService:
         DEBATE_COLLECTION: FakeCollection(),
         ARGUMENT_COLLECTION: FakeCollection(unique=("debate_id", "user_id")),
         REBUTTAL_COLLECTION: FakeCollection(unique=("argument_id", "user_id")),
+        RATING_COLLECTION: FakeCollection(unique=("argument_id", "user_id")),
     })
 
 
@@ -247,3 +249,76 @@ def test_only_a_real_edit_by_the_author_marks_an_argument_or_rebuttal_edited():
     assert _run(service.save_rebuttal(debate, argument.id, SAM, REPLY, TODAY)).edited_at is None
     changed = _run(service.save_rebuttal(debate, argument.id, SAM, RebuttalInput(body="A sharper version of my reply."), TODAY))
     assert _rebuttal_view(changed)["edited_label"]
+
+
+
+# --- ratings ------------------------------------------------------------------
+
+def _member(n: int) -> MemberRead:
+    return MemberRead(_id=f"{n:024x}", username=f"m{n}", display_name=f"M{n}", email=f"{n}@x.org", created_at=NOW)
+
+
+def _rate(clarity: int, evidence: int, reasoning: int) -> RatingInput:
+    return RatingInput(clarity=clarity, evidence=evidence, reasoning=reasoning)
+
+
+def test_all_three_scores_are_required_and_between_1_and_5():
+    with pytest.raises(ValidationError):
+        RatingInput(clarity="", evidence=3, reasoning=3)
+    with pytest.raises(ValidationError):
+        _rate(6, 3, 3)
+    with pytest.raises(ValidationError):
+        _rate(0, 3, 3)
+    assert RatingInput(clarity="4", evidence="3", reasoning="5").clarity == 4  # form values arrive as text
+
+
+def test_no_rating_your_own_argument_a_hidden_one_or_after_the_debate_closes():
+    service = _service()
+    ratings = DebateRatingService(database=service.database)
+    debate, argument = _debate_with_argument(service)
+    with pytest.raises(OwnArgumentError):
+        _run(ratings.save_rating(debate, argument.id, MIRA, _rate(5, 5, 5), TODAY))
+    closed = _run(service.update_debate(debate.id, DebateInput(motion=debate.motion, closes_on="2026-10-15", status="published")))
+    with pytest.raises(DebateClosedError):
+        _run(ratings.save_rating(closed, argument.id, SAM, _rate(4, 4, 4), TODAY))
+    _run(service.moderate_argument(argument.id, AdminArgumentUpdate(status="hidden")))
+    with pytest.raises(DebateNotFoundError):
+        _run(ratings.save_rating(debate, argument.id, SAM, _rate(4, 4, 4), TODAY))
+
+
+def test_one_rating_per_member_changing_it_replaces_it_and_averages_round_to_one_decimal():
+    service = _service()
+    ratings = DebateRatingService(database=service.database)
+    debate, argument = _debate_with_argument(service)
+    _run(ratings.save_rating(debate, argument.id, SAM, _rate(1, 1, 1), TODAY))
+    _run(ratings.save_rating(debate, argument.id, SAM, _rate(5, 4, 3), TODAY))  # changed their mind
+    _run(ratings.save_rating(debate, argument.id, LEE, _rate(4, 2, 3), TODAY))
+    _run(ratings.save_rating(debate, argument.id, _member(9), _rate(4, 2, 4), TODAY))
+    assert _run(ratings.averages(debate.id))[argument.id] == {"count": 3, "clarity": 4.3, "evidence": 2.7, "reasoning": 3.3}
+    assert _run(ratings.member_ratings(debate.id, SAM)) == {argument.id: {"clarity": 5, "evidence": 4, "reasoning": 3}}
+
+
+def test_averages_need_three_ratings_and_stay_blind_until_you_rate_or_the_debate_closes():
+    view = _argument_view(_debate_with_argument(_service())[1])
+    two = {"count": 2, "clarity": 4.0, "evidence": 4.0, "reasoning": 4.0}
+    three = {**two, "count": 3}
+    mine = {"clarity": 4, "evidence": 4, "reasoning": 4}
+    assert _with_rating(view, two, mine, debate_open=True)["rating"] is None        # not enough yet
+    assert _with_rating(view, three, None, debate_open=True)["rating"] is None      # you haven't rated it
+    assert _with_rating(view, three, mine, debate_open=True)["rating"] == three     # you have
+    assert _with_rating(view, three, None, debate_open=False)["rating"] == three    # the debate closed
+    assert _with_rating(view, two, None, debate_open=False)["rating"] is None       # still too few
+
+
+def test_deleting_an_argument_or_debate_removes_its_ratings():
+    service = _service()
+    ratings = DebateRatingService(database=service.database)
+    debate, argument = _debate_with_argument(service)
+    _run(ratings.save_rating(debate, argument.id, SAM, _rate(3, 3, 3), TODAY))
+    _run(service.delete_argument(debate.id, MIRA))
+    assert service.ratings.documents == []
+
+    debate, argument = _debate_with_argument(service)
+    _run(ratings.save_rating(debate, argument.id, SAM, _rate(3, 3, 3), TODAY))
+    _run(service.delete_debate(debate.id))
+    assert service.ratings.documents == []
