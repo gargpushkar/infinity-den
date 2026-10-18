@@ -69,6 +69,19 @@
   --label-experience: #8a5410;
   --label-perspective: var(--text);
 
+  /* Debate Den: the two sides. Warm for, cool against, equal weight. */
+  --side-for: var(--accent);
+  --side-for-strong: var(--copper);
+  --side-for-tint: #f8eae1;
+  --side-for-dash: #d9a88e;
+  --side-against: #3e5c76;
+  --side-against-strong: #3e5c76;
+  --side-against-tint: #e7edf3;
+  --side-against-dash: #9db0c3;
+  --side-undecided: #e6ddcd;
+  --band-muted: #f1d6c8;
+  --band-label: #f7cf93;  /* amber, lightened enough to read on copper */
+
   --shadow-rgb: 23, 26, 43;
   --shadow: 0 1px 2px rgba(var(--shadow-rgb), 0.05), 0 10px 30px rgba(var(--shadow-rgb), 0.07);
   --shadow-soft: 0 1px 2px rgba(var(--shadow-rgb), 0.04), 0 6px 18px rgba(var(--shadow-rgb), 0.05);
@@ -4392,150 +4405,479 @@ button:focus-visible,
 }
 
 /* ---------------------------------------------------------------------------
-   The Debate Den (reuses the Question Room's hero, cards, and form panel)
+   The Debate Den: a dark stage for the motion, two tinted sides (warm for,
+   cool against), one copper "your turn" band, and results once it closes.
    --------------------------------------------------------------------------- */
-.debate-list {
+.debate-hero {
+  background: var(--header-bg);
+  color: var(--ivory);
+}
+
+.debate-hero a:focus-visible,
+.debate-turn a:focus-visible,
+.debate-turn button:focus-visible {
+  outline-color: var(--amber);
+}
+
+.debate-hero-inner {
+  align-items: center;
   display: grid;
-  gap: 0.75rem;
-  list-style: none;
-  margin: 0;
-  max-width: 52rem;
-  padding: 0;
+  gap: 3rem;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  padding-block: clamp(2.5rem, 6vw, 4.5rem) clamp(2.75rem, 6vw, 5rem);
 }
 
-.debate-row {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  display: grid;
-  gap: 0.35rem;
-  padding: 1.1rem 1.25rem;
-  transition: border-color 160ms var(--motion-ease);
+.debate-hero-trail {
+  color: var(--header-muted);
+  font-size: 0.85rem;
+  margin: 0 0 1.25rem;
 }
 
-.debate-row:hover,
-.debate-row:focus-visible {
-  border-color: var(--line-strong);
+.debate-hero-trail a {
+  color: inherit;
+  text-decoration: underline;
 }
 
-.debate-row strong {
-  font-family: var(--font-display);
-  font-size: 1.3rem;
+.debate-kicker {
+  color: var(--amber);
+  font-family: var(--font-ui);
   font-weight: 500;
-  line-height: 1.3;
+  margin: 0 0 0.6rem;
 }
 
-.debate-row span {
-  color: var(--text-secondary);
-  font-size: 0.88rem;
+.debate-motion {
+  color: var(--ivory);
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5.2vw, 4rem);
+  font-weight: 500;
+  line-height: 1.06;
+  margin: 0;
+  max-width: 48rem;
+}
+
+.debate-hero-intro {
+  color: var(--header-muted);
+  font-size: 1.15rem;
+  line-height: 1.6;
+  margin: 1.25rem 0 0;
+  max-width: 40rem;
+}
+
+.debate-hero-meta {
+  align-items: center;
+  color: var(--header-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  gap: 0.75rem 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.debate-status {
+  align-items: center;
+  background: color-mix(in srgb, var(--ivory) 10%, transparent);
+  border-radius: 999px;
+  color: var(--ivory);
+  display: inline-flex;
+  font-weight: 500;
+  gap: 0.5rem;
+  padding: 0.35rem 0.8rem;
+}
+
+.debate-status.is-open {
+  background: color-mix(in srgb, var(--amber) 14%, transparent);
+  color: var(--amber);
+}
+
+.debate-status-dot {
+  background: var(--amber);
+  border-radius: 50%;
+  height: 0.5rem;
+  width: 0.5rem;
+}
+
+.debate-hero-stance {
+  border-top: 1px solid var(--header-line);
+  margin-top: 2.25rem;
+  padding-top: 1.75rem;
+  scroll-margin-top: 6rem;
+}
+
+.debate-hero-stance h2 {
+  color: var(--ivory);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  margin: 0 0 0.9rem;
+}
+
+.debate-hero-hint {
+  color: var(--header-muted);
+  font-size: 0.85rem;
+  margin: 0.85rem 0 0;
+}
+
+.debate-hero-hint a,
+.debate-hero-hint strong {
+  color: var(--amber);
+}
+
+.debate-cover {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius);
+  display: block;
+  height: auto;
+  object-fit: cover;
+  width: 100%;
+}
+
+.debate-outcome {
+  border-left: 1px solid var(--header-line);
+  padding-left: 2.5rem;
+}
+
+.debate-outcome-number {
+  color: var(--amber);
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 8vw, 5rem);
+  font-weight: 500;
+  line-height: 1;
+  margin: 0;
+}
+
+.debate-outcome-number span {
+  color: var(--ivory);
+  font-size: 0.38em;
+}
+
+.debate-outcome p:last-child {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  margin: 0.75rem 0 0;
+}
+
+/* Stance pills: submit buttons in the hero (one tap), radios in the band. */
+.stance-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.stance-pills fieldset {
+  border: 0;
+  display: contents;
+}
+
+.stance-radio {
+  height: 1px;
+  opacity: 0;
+  position: absolute;
+  width: 1px;
+}
+
+.stance-pill {
+  align-items: center;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--ivory) 40%, transparent);
+  border-radius: 999px;
+  color: var(--ivory);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 500;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  transition: background-color 120ms var(--motion-ease), border-color 120ms var(--motion-ease);
+}
+
+.stance-pill:hover {
+  border-color: var(--amber);
+}
+
+.stance-pill.is-on,
+.stance-radio:checked + .stance-pill {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: var(--ink);
+}
+
+.stance-pill:focus-visible,
+.stance-radio:focus-visible + .stance-pill {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* The two sides. */
+.debate-arena {
+  padding-block: clamp(2.5rem, 6vw, 4rem);
+}
+
+.debate-arena > .member-alert {
+  margin-bottom: 1.5rem;
 }
 
 .debate-sides {
+  align-items: start;
   display: grid;
-  gap: 2rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) 4rem minmax(0, 1fr);
 }
 
-.debate-side-title {
-  border-bottom: 1px solid var(--line-strong);
-  padding-bottom: 0.5rem;
+.debate-vs {
+  display: flex;
+  justify-content: center;
+  padding-top: 1.6rem;
 }
 
-.debate-side-title span,
-.debate-tab span {
+.debate-vs span {
+  align-items: center;
+  border: 2px solid var(--line-strong);
+  color: var(--text-muted);
+  display: inline-flex;
+  font-size: 0.75rem;
+  height: 2.1rem;
+  justify-content: center;
+  transform: rotate(15deg);
+  width: 2.1rem;
+}
+
+.debate-vs span span {
+  border: 0;
+  transform: rotate(-15deg);
+}
+
+.debate-side {
+  border-radius: var(--radius);
+  border-top: 4px solid var(--side-for-strong);
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.debate-side-for {
+  --side: var(--side-for);
+  --side-strong: var(--side-for-strong);
+  --side-tint: var(--side-for-tint);
+  --side-dash: var(--side-for-dash);
+  background: var(--side-for-tint);
+}
+
+.debate-side-against {
+  --side: var(--side-against);
+  --side-strong: var(--side-against-strong);
+  --side-tint: var(--side-against-tint);
+  --side-dash: var(--side-against-dash);
+  background: var(--side-against-tint);
+  border-top-color: var(--side-against-strong);
+}
+
+.debate-side-head h2 {
+  color: var(--side);
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 500;
+  line-height: 1;
+  margin: 0;
+}
+
+.debate-side-head p {
   color: var(--text-secondary);
-  font-weight: 400;
+  font-size: 0.85rem;
+  margin: 0.4rem 0 0;
+}
+
+.argument-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.35rem 1.5rem;
+  scroll-margin-top: 6rem;
+}
+
+.argument-card:target {
+  box-shadow: 0 0 0 3px var(--side-strong), var(--shadow);
+}
+
+.argument-byline {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.argument-initial {
+  align-items: center;
+  background: var(--side-tint);
+  border-radius: 6px;
+  color: var(--side);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-weight: 500;
+  height: 2.1rem;
+  justify-content: center;
+  transform: rotate(-15deg);
+  width: 2.1rem;
+}
+
+.argument-initial span {
+  transform: rotate(15deg);
+}
+
+.debate-side-against .argument-initial {
+  transform: rotate(15deg);
+}
+
+.debate-side-against .argument-initial span {
+  transform: rotate(-15deg);
+}
+
+.argument-author {
+  flex: 1;
+  font-size: 0.95rem;
+  min-width: 0;
+}
+
+.argument-author a {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.argument-author a:hover {
+  color: var(--side);
+}
+
+.argument-date {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.argument-pick {
+  background: var(--side-tint);
+  border-radius: 999px;
+  color: var(--side);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.3rem 0.65rem;
 }
 
 .argument-claim {
   font-family: var(--font-display);
-  font-size: 1.2rem;
+  font-size: 1.55rem;
   font-weight: 500;
-  line-height: 1.35;
+  line-height: 1.25;
   margin: 0 0 0.6rem;
 }
 
-/* Rebuttals: one level, under the argument they answer. */
-.rebuttal-thread {
-  border-left: 2px solid var(--line-strong);
-  display: grid;
-  gap: 0.9rem;
-  margin-top: 1rem;
-  padding-left: 1rem;
+.argument-preview,
+.argument-case .response-body p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.75;
+  margin: 0 0 0.6rem;
 }
 
-.rebuttal {
-  border-radius: var(--radius);
-  scroll-margin-top: 6rem;
-}
-
-.rebuttal:target {
-  background: var(--accent-tint);
-  box-shadow: 0 0 0 0.5rem var(--accent-tint);
-}
-
-.rebuttal-meta {
-  align-items: center;
-  display: flex;
-  font-size: 0.88rem;
-  gap: 0.5rem;
-  margin: 0 0 0.25rem;
-}
-
-.rebuttal-body p {
-  font-size: 0.95rem;
-  margin-bottom: 0.5rem;
-}
-
-.rebuttal-body > :last-child {
+.argument-case .response-body > :last-child {
   margin-bottom: 0;
 }
 
-.rebuttal-body a {
-  color: var(--accent);
-  overflow-wrap: anywhere;
-  text-decoration: underline;
+.argument-case .response-body a,
+.argument-case .response-sources a {
+  color: var(--side);
 }
 
-.rebuttal-note {
-  color: var(--warning-fg);
+.argument-case:has(.argument-full[open]) .argument-preview {
+  display: none;
+}
+
+.argument-full > summary {
+  align-items: center;
+  color: var(--side);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.9rem;
+  font-weight: 500;
+  list-style: none;
+  min-height: 44px;
+}
+
+.argument-full > summary::-webkit-details-marker {
+  display: none;
+}
+
+.argument-full .when-open,
+.argument-full[open] .when-closed {
+  display: none;
+}
+
+.argument-full[open] .when-open {
+  display: inline;
+}
+
+.argument-sources-count {
+  color: var(--text-secondary);
   font-size: 0.85rem;
-  margin: 0 0 0.25rem;
 }
 
-.rebuttal-delete {
+/* Rating averages as thin bars; <progress> needs no style attributes. */
+.argument-scores {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1.1rem;
+}
+
+.argument-score {
+  align-items: center;
+  display: grid;
+  font-size: 0.82rem;
+  gap: 0.65rem;
+  grid-template-columns: 5.5rem minmax(0, 1fr) 2rem;
+}
+
+.argument-score strong {
+  font-weight: 500;
+}
+
+.argument-score progress {
+  appearance: none;
+  background: var(--line);
+  border: 0;
+  border-radius: 3px;
+  height: 6px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.argument-score progress::-webkit-progress-bar {
+  background: var(--line);
+  border-radius: 3px;
+}
+
+.argument-score progress::-webkit-progress-value {
+  background: var(--side-strong);
+  border-radius: 3px;
+}
+
+.argument-score progress::-moz-progress-bar {
+  background: var(--side-strong);
+  border-radius: 3px;
+}
+
+.argument-scores-count,
+.argument-rating-note {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  margin: 0.75rem 0 0;
+}
+
+.argument-scores .argument-scores-count {
   margin: 0;
 }
 
-.rebuttal-delete .report-link {
-  background: none;
-  border: 0;
-  padding: 0;
-}
-
-/* <details> can't be a grid in every browser, so space the folded rebuttals directly. */
-.rebuttal-more .rebuttal {
-  margin-top: 0.9rem;
-}
-
-.rebuttal-more > summary,
-.rebut-form > summary,
-.rate-form > summary,
-.rebut-link {
-  color: var(--accent);
-  cursor: pointer;
-  display: inline-block;
-  font-family: var(--font-ui);
-  font-size: 0.9rem;
-  font-weight: 500;
-  min-height: 44px;
-  padding: 0.6rem 0;
-}
-
-/* "Rate this argument" and "Rebut this" sit side by side; an open one takes the full width. */
+/* One quiet row: rate, rebut, report (or edit and delete on your own). */
 .argument-actions {
+  align-items: center;
   border-top: 1px solid var(--line);
-  column-gap: 1.5rem;
+  column-gap: 1.4rem;
   display: flex;
   flex-wrap: wrap;
   margin-top: 1rem;
@@ -4545,11 +4887,47 @@ button:focus-visible,
   flex-basis: 100%;
 }
 
+.argument-action,
+.argument-actions > details > summary {
+  align-items: center;
+  background: none;
+  border: 0;
+  color: var(--side);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  font-weight: 500;
+  list-style: none;
+  min-height: 44px;
+  padding: 0;
+  text-decoration: none;
+}
+
+.argument-actions > details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.argument-action:hover,
+.argument-actions > details > summary:hover {
+  text-decoration: underline;
+}
+
+.argument-actions form {
+  margin: 0;
+}
+
+.argument-report {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  margin-left: auto;
+}
+
 .rebut-form .member-form,
 .rate-form .member-form {
   display: grid;
   gap: 0.5rem;
-  padding-bottom: 0.25rem;
+  padding-bottom: 0.75rem;
 }
 
 .rebut-form .btn,
@@ -4557,7 +4935,6 @@ button:focus-visible,
   justify-self: start;
 }
 
-/* Ratings: three 1-5 scales, and the averages line. */
 .rating-scale {
   border: 0;
   margin: 0;
@@ -4581,13 +4958,6 @@ button:focus-visible,
   gap: 0.4rem;
 }
 
-.rating-input {
-  height: 1px;
-  opacity: 0;
-  position: absolute;
-  width: 1px;
-}
-
 .rating-option {
   align-items: center;
   border: 1px solid var(--line-strong);
@@ -4602,83 +4972,802 @@ button:focus-visible,
 }
 
 .rating-option:hover {
-  border-color: var(--accent);
+  border-color: var(--side-strong);
 }
 
-.rating-input:checked + .rating-option {
+.stance-radio:checked + .rating-option {
   background: var(--action);
   border-color: var(--action);
   color: var(--on-action);
 }
 
-.rating-input:focus-visible + .rating-option {
+.stance-radio:focus-visible + .rating-option {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
-.argument-rating {
+/* Rebuttals: one level, in a quiet box under the argument. */
+.rebuttal-thread {
+  background: var(--bg-main);
+  border-radius: var(--radius);
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 0.5rem;
+  padding: 0.9rem 1rem;
+}
+
+.rebuttal-thread-title {
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.rebuttal {
+  border-radius: var(--radius);
+  scroll-margin-top: 6rem;
+}
+
+.rebuttal:target {
+  background: var(--side-tint);
+  box-shadow: 0 0 0 0.5rem var(--side-tint);
+}
+
+.rebuttal-meta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  gap: 0.25rem 0.5rem;
+  margin: 0 0 0.2rem;
+}
+
+.rebuttal-meta a {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.rebuttal-body p {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  margin-bottom: 0.4rem;
+}
+
+.rebuttal-body > :last-child {
+  margin-bottom: 0;
+}
+
+.rebuttal-body a {
+  color: var(--side);
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+}
+
+.rebuttal-note {
+  color: var(--warning-fg);
+  font-size: 0.85rem;
+  margin: 0 0 0.25rem;
+}
+
+.rebuttal-delete {
+  margin: 0;
+}
+
+.rebuttal-delete .report-link {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+.rebuttal-more .rebuttal {
+  margin-top: 0.9rem;
+}
+
+.rebuttal-more > summary {
+  color: var(--side);
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 500;
+  min-height: 44px;
+  padding: 0.6rem 0;
+}
+
+/* Inviting the case a side is missing. */
+.debate-invite {
+  align-items: center;
+  border: 2px dashed var(--side-dash);
+  border-radius: var(--radius);
+  color: var(--side);
+  display: flex;
+  font-weight: 500;
+  gap: 0.75rem;
+  justify-content: space-between;
+  min-height: 4rem;
+  padding: 0 1.4rem;
+  text-decoration: none;
+}
+
+.debate-invite:hover {
+  background: color-mix(in srgb, var(--card) 50%, transparent);
+  color: var(--side);
+}
+
+.debate-invite-empty {
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 9rem;
+  padding: 1.5rem;
+}
+
+.debate-invite-empty strong {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.debate-side-empty {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Mobile: the two sides become a switch. */
+.debate-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 1rem;
+}
+
+.debate-tab {
+  background: var(--bg-main);
+  border: 0;
+  border-bottom: 4px solid var(--line);
+  color: var(--side-for);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  min-height: 3.25rem;
+}
+
+.debate-tab span {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.debate-tab[data-debate-tab="against"] {
+  color: var(--side-against);
+}
+
+.debate-tab[data-debate-tab="for"][aria-pressed="true"] {
+  background: var(--side-for-tint);
+  border-bottom-color: var(--side-for-strong);
+}
+
+.debate-tab[data-debate-tab="against"][aria-pressed="true"] {
+  background: var(--side-against-tint);
+  border-bottom-color: var(--side-against-strong);
+}
+
+/* Your turn: where you stand now, and making your case. */
+.debate-turn {
+  background: var(--copper-deep);
+  color: var(--ivory);
+  scroll-margin-top: 4rem;
+}
+
+/* The band ends the page, so the footer meets it. */
+body:has(.debate-turn) .site-footer {
+  margin-top: 0;
+}
+
+.debate-turn-inner {
+  display: grid;
+  gap: 3.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-block: clamp(2.5rem, 6vw, 4.5rem);
+}
+
+.debate-turn-col {
+  min-width: 0;
+  scroll-margin-top: 6rem;
+}
+
+.debate-turn-col + .debate-turn-col {
+  border-left: 1px solid color-mix(in srgb, var(--ivory) 25%, transparent);
+  padding-left: 3.5rem;
+}
+
+.debate-turn-label {
+  color: var(--band-label);
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin: 0 0 0.6rem;
+}
+
+.debate-turn h2 {
+  color: var(--ivory);
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 4vw, 2.5rem);
+  font-weight: 500;
+  line-height: 1.1;
+  margin: 0 0 1.25rem;
+}
+
+.debate-turn-text,
+.debate-turn .debate-turn-hint {
+  color: var(--band-muted);
+  line-height: 1.65;
+}
+
+.debate-turn-text {
+  margin: 0 0 1.5rem;
+}
+
+.debate-turn-hint {
+  font-size: 0.85rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.debate-turn-hint strong {
+  color: var(--ivory);
+}
+
+.debate-turn label.debate-turn-field {
+  display: block;
+  font-weight: 500;
+  margin: 1.4rem 0 0.5rem;
+}
+
+.debate-turn textarea {
+  background: var(--ivory);
+  border: 0;
+  color: var(--ink);
+}
+
+.debate-turn .member-field-error,
+.debate-turn .debate-turn-note {
+  background: color-mix(in srgb, var(--ink) 35%, transparent);
+  border-radius: var(--radius);
+  color: var(--ivory);
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.85rem;
+}
+
+.debate-turn-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.debate-turn-claim {
+  color: var(--ivory);
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  line-height: 1.35;
+  margin: 0 0 1.5rem;
+}
+
+.debate-turn-signin {
+  grid-column: 1 / -1;
+  max-width: 44rem;
+}
+
+.debate-argue-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  color: var(--text);
+  grid-column: 1 / -1;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  scroll-margin-top: 6rem;
+}
+
+.debate-argue-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 500;
+  margin: 0 0 1rem;
+}
+
+/* Results, once a debate closes. No winner: just how far minds moved. */
+.debate-results {
+  padding-block: clamp(2.5rem, 6vw, 4rem) 0;
+}
+
+.debate-results h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 4vw, 2.5rem);
+  font-weight: 500;
+  margin: 0 0 0.4rem;
+}
+
+.debate-results-lede {
+  color: var(--text-secondary);
+  margin: 0 0 1.75rem;
+  max-width: 48rem;
+}
+
+.result-row {
+  align-items: center;
+  display: grid;
+  gap: 0.35rem 1.25rem;
+  grid-template-columns: 9rem minmax(0, 1fr);
+}
+
+.result-row + .result-row {
+  margin-top: 1.25rem;
+}
+
+.result-row > span {
+  font-weight: 500;
+}
+
+.result-bar {
+  border-radius: var(--radius);
+  display: block;
+  height: 3rem;
+  overflow: hidden;
+  width: 100%;
+}
+
+.result-for {
+  fill: var(--side-for-strong);
+}
+
+.result-undecided {
+  fill: var(--side-undecided);
+}
+
+.result-against {
+  fill: var(--side-against-strong);
+}
+
+.result-numbers {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  grid-column: 2;
+  margin: 0;
+}
+
+.result-legend {
   color: var(--text-secondary);
   display: flex;
   flex-wrap: wrap;
   font-size: 0.88rem;
-  gap: 0.25rem 1rem;
-  margin: 0.75rem 0 0.25rem;
+  gap: 0.5rem 1.5rem;
+  margin: 1.25rem 0 0 10.25rem;
 }
 
-.argument-rating strong {
+.result-legend strong {
   color: var(--text);
   font-weight: 500;
 }
 
-.argument-rating-note {
+.result-swatch {
+  border-radius: 2px;
+  display: inline-block;
+  height: 0.65rem;
+  margin-right: 0.4rem;
+  width: 0.65rem;
+}
+
+.result-swatch-for {
+  background: var(--side-for-strong);
+}
+
+.result-swatch-undecided {
+  background: var(--side-undecided);
+}
+
+.result-swatch-against {
+  background: var(--side-against-strong);
+}
+
+.debate-results-subtitle {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 500;
+  margin: 2.75rem 0 1.25rem;
+}
+
+.stance-notes {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+}
+
+.stance-note {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+  margin: 0;
+  padding: 1.6rem;
+  scroll-margin-top: 6rem;
+}
+
+.stance-note:target {
+  box-shadow: 0 0 0 3px var(--focus), var(--shadow-soft);
+}
+
+.stance-note::before {
+  color: var(--amber);
+  content: "\201C";
+  display: block;
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  height: 1.6rem;
+  line-height: 0.6;
+}
+
+.stance-note blockquote {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.stance-note blockquote p {
+  margin: 0 0 0.5rem;
+}
+
+.stance-note blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.stance-note figcaption {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  margin-top: 1rem;
+}
+
+.stance-note figcaption a {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.stance-move-for {
+  color: var(--side-for);
+  font-weight: 500;
+}
+
+.stance-move-against {
+  color: var(--side-against);
+  font-weight: 500;
+}
+
+/* /debates: how it works, open debates as cards, past ones with their results. */
+.debate-index-hero {
+  padding-bottom: clamp(2.5rem, 6vw, 4rem);
+}
+
+.debate-index-hero .debate-hero-inner {
+  display: block;
+  padding-bottom: 0;
+}
+
+.debate-steps {
+  display: grid;
+  gap: 1.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+  margin: 2.75rem 0 0;
+  padding: 0;
+}
+
+.debate-steps li {
+  border-top: 1px solid var(--header-line);
+  padding-top: 1.1rem;
+}
+
+.debate-step-number {
+  color: var(--amber);
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  line-height: 1;
+}
+
+.debate-steps strong {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin: 0.6rem 0 0.25rem;
+}
+
+.debate-steps p {
+  color: var(--header-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.debate-index {
+  padding-block: clamp(2.5rem, 6vw, 4rem);
+}
+
+.debate-index h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 4vw, 2.5rem);
+  font-weight: 500;
+  margin: 0 0 1.5rem;
+}
+
+.debate-index h2 + .debate-index-lede {
+  color: var(--text-secondary);
+  margin: -1rem 0 1.25rem;
+}
+
+.debate-cards {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr));
+}
+
+.debate-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  display: flex;
+  overflow: hidden;
+  text-decoration: none;
+  transition: transform 160ms var(--motion-ease), box-shadow 160ms var(--motion-ease);
+}
+
+.debate-card:hover {
+  color: var(--text);
+  transform: translateY(-2px);
+}
+
+.debate-card-cover {
+  background: var(--header-bg);
+  flex: 0 0 12.5rem;
+}
+
+.debate-card-cover img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.debate-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 1.5rem 1.6rem;
+}
+
+.debate-card-room {
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.debate-card-motion {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.debate-card-foot {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.debate-card-foot span {
   color: var(--text-secondary);
   font-size: 0.85rem;
-  margin: 0.75rem 0 0.25rem;
 }
 
-/* The form belongs to both sides, so it sits centred beneath them. */
-.debate-argue {
-  margin: 2.5rem auto 0;
-  max-width: 44rem;
-  position: static;
+.debate-split {
+  border-radius: 3px;
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  width: 100%;
 }
 
-.debate-tabs {
+.debate-past-list {
   border-bottom: 1px solid var(--line);
-  display: flex;
-  gap: 0.25rem;
-  margin-bottom: 1.25rem;
 }
 
-.debate-tab {
-  background: none;
-  border: 0;
-  border-bottom: 2px solid transparent;
+.debate-past-row {
+  align-items: center;
+  border-top: 1px solid var(--line);
   color: var(--text);
-  flex: 1;
-  font-family: var(--font-ui);
-  font-weight: 500;
-  min-height: 44px;
-  padding: 0.5rem 1rem;
+  display: grid;
+  gap: 0.5rem 1.75rem;
+  grid-template-columns: minmax(0, 1fr) 16rem 11rem;
+  padding: 1.1rem 0;
+  text-decoration: none;
 }
 
-.debate-tab[aria-pressed="true"] {
-  border-bottom-color: var(--action);
+.debate-past-row:hover {
   color: var(--accent);
 }
 
+.debate-past-motion {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.debate-past-row .result-bar {
+  height: 0.65rem;
+}
+
+.debate-past-row > span:last-child {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+/* Homepage: the featured debate, warm against cool. */
+.home-debate {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  display: block;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.home-debate:hover {
+  color: var(--text);
+}
+
+.home-debate-top {
+  align-items: center;
+  background: var(--header-bg);
+  color: var(--ivory);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 2.5rem;
+  padding: clamp(1.5rem, 4vw, 2.25rem) clamp(1.25rem, 4vw, 2.5rem);
+}
+
+.home-debate-motion {
+  flex: 999 1 30rem;
+  min-width: 0;
+}
+
+.home-debate-motion strong {
+  color: var(--ivory);
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  font-weight: 500;
+  line-height: 1.12;
+}
+
+.home-debate-motion .debate-kicker {
+  display: block;
+}
+
+.home-debate-motion > span:last-child {
+  color: var(--header-muted);
+  display: block;
+  font-size: 0.9rem;
+  margin-top: 0.75rem;
+}
+
+.home-debate-sides {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.home-debate-side {
+  background: var(--side-tint);
+  display: block;
+  padding: 1.75rem clamp(1.25rem, 4vw, 2.5rem) 2rem;
+}
+
+.home-debate-side > span:first-child {
+  color: var(--side);
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.home-debate-side > span:first-child small {
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 400;
+}
+
+.home-debate-claim {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1.4;
+  margin-top: 0.75rem;
+}
+
+.home-debate-side > span:last-child {
+  color: var(--text-secondary);
+  display: block;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
 @media (max-width: 991.98px) {
-  .debate-sides {
+  .debate-hero-inner,
+  .debate-turn-inner {
     grid-template-columns: 1fr;
   }
 
-  /* With the switch working, show one side at a time. Without JavaScript both stay stacked. */
-  .debate-tabs:not([hidden]) + .debate-sides .debate-side:not(.is-active) {
+  .debate-hero-side {
+    max-width: 22rem;
+  }
+
+  .debate-outcome {
+    border-left: 0;
+    border-top: 1px solid var(--header-line);
+    padding: 1.5rem 0 0;
+  }
+
+  .debate-turn-col + .debate-turn-col {
+    border-left: 0;
+    border-top: 1px solid color-mix(in srgb, var(--ivory) 25%, transparent);
+    padding: 2.5rem 0 0;
+  }
+
+  .debate-sides {
+    grid-template-columns: 1fr;
+    row-gap: 1.25rem;
+  }
+
+  .debate-vs {
     display: none;
   }
 
-  .debate-tabs:not([hidden]) + .debate-sides .debate-side-title {
+  /* With the switch working, show one side at a time. Without JavaScript both stay stacked. */
+  .debate-tabs:not([hidden]) + .debate-sides .debate-side:not(.is-active),
+  .debate-tabs:not([hidden]) + .debate-sides .debate-side-head {
     display: none;
+  }
+
+  .debate-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .debate-past-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .debate-hero-side:has(.debate-cover) {
+    display: none;
+  }
+
+  .result-row {
+    grid-template-columns: 1fr;
+  }
+
+  .result-numbers {
+    grid-column: 1;
+  }
+
+  .result-legend {
+    margin-left: 0;
+  }
+
+  .debate-card {
+    flex-direction: column;
+  }
+
+  .debate-card-cover {
+    flex-basis: 9rem;
+  }
+
+  .home-debate-sides {
+    grid-template-columns: 1fr;
   }
 }
 

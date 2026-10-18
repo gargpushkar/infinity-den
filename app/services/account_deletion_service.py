@@ -7,8 +7,8 @@ the request waits in the deletion_requests collection. Editors delete from
 
 Deleting removes the account, the member's pieces (with their uploaded covers
 and the comments and saves other people left on them), responses, debate
-arguments (with the rebuttals and ratings of them), rebuttals, ratings, comments,
-and saved pieces. Reports the member filed stay, without the reporter; open
+arguments (with the rebuttals and ratings of them), rebuttals, ratings, debate
+stances, comments, and saved pieces. Reports the member filed stay, without the reporter; open
 reports about the removed content are closed. The account goes last, so a
 failure part-way leaves it in place to try again.
 """
@@ -28,7 +28,7 @@ from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION
 from app.models.bookmark import BOOKMARK_COLLECTION
 from app.models.comment import COMMENT_COLLECTION
-from app.models.debate import ARGUMENT_COLLECTION, RATING_COLLECTION, REBUTTAL_COLLECTION
+from app.models.debate import ARGUMENT_COLLECTION, RATING_COLLECTION, REBUTTAL_COLLECTION, STANCE_COLLECTION
 from app.models.deletion_request import DELETION_REQUEST_COLLECTION, DeletionRequestDocument
 from app.models.question import RESPONSE_COLLECTION
 from app.models.report import REPORT_COLLECTION
@@ -148,6 +148,7 @@ class AccountDeletionService:
                 "arguments": await self.database[ARGUMENT_COLLECTION].count_documents({"user_id": member_id}),
                 "rebuttals": await self.database[REBUTTAL_COLLECTION].count_documents({"user_id": member_id}),
                 "ratings": await self.database[RATING_COLLECTION].count_documents({"user_id": member_id}),
+                "stances": await self.database[STANCE_COLLECTION].count_documents({"user_id": member_id}),
                 "comments": await self.database[COMMENT_COLLECTION].count_documents({"user_id": member_id}),
                 "saved": await self.database[BOOKMARK_COLLECTION].count_documents({"user_id": member_id}),
             })
@@ -187,10 +188,11 @@ class AccountDeletionService:
         argument_ids = [str(a["_id"]) async for a in db[ARGUMENT_COLLECTION].find({"user_id": member_id}, {"_id": 1})]
         rebuttal_query = {"$or": [{"user_id": member_id}, {"argument_id": {"$in": argument_ids}}]}
         rebuttal_ids = [str(r["_id"]) async for r in db[REBUTTAL_COLLECTION].find(rebuttal_query, {"_id": 1})]
+        stance_ids = [str(s["_id"]) async for s in db[STANCE_COLLECTION].find({"user_id": member_id}, {"_id": 1})]
 
         now = datetime.now(timezone.utc)
         await db[REPORT_COLLECTION].update_many(
-            {"target_id": {"$in": piece_ids + comment_ids + response_ids + argument_ids + rebuttal_ids}, "status": "open"},
+            {"target_id": {"$in": piece_ids + comment_ids + response_ids + argument_ids + rebuttal_ids + stance_ids}, "status": "open"},
             {"$set": {"status": "resolved", "resolved_at": now, "resolved_by": "account deleted", "updated_at": now}},
         )
         await db[REPORT_COLLECTION].update_many({"reporter_id": member_id}, {"$set": {"reporter_id": DELETED_REPORTER}})
@@ -199,6 +201,7 @@ class AccountDeletionService:
         await db[RESPONSE_COLLECTION].delete_many({"user_id": member_id})
         await db[ARGUMENT_COLLECTION].delete_many({"user_id": member_id})
         await db[REBUTTAL_COLLECTION].delete_many(rebuttal_query)
+        await db[STANCE_COLLECTION].delete_many({"user_id": member_id})
         await db[RATING_COLLECTION].delete_many({"$or": [{"user_id": member_id}, {"argument_id": {"$in": argument_ids}}]})
         await db[BOOKMARK_COLLECTION].delete_many({"$or": [{"user_id": member_id}, {"article_id": {"$in": piece_ids}}]})
         await db[ARTICLE_COLLECTION].delete_many({"author_id": member_id})
@@ -213,7 +216,7 @@ async def send_request_received(email: str, display_name: str) -> None:
         f"Hi {display_name},\n\n"
         f"We've received your request to delete your {settings.app_name} account. "
         "Your account is now deactivated, and it will be deleted, with everything you wrote "
-        f"(pieces, drafts, responses, debate arguments, rebuttals, and ratings, comments, and saved pieces), within {DELETION_DAYS} days.\n\n"
+        f"(pieces, drafts, responses, debate arguments, rebuttals, ratings, and stances, comments, and saved pieces), within {DELETION_DAYS} days.\n\n"
         f"If you didn't ask for this, or you've changed your mind, write to {settings.contact_email}.\n\n"
         f"{settings.app_name}\n"
     ))

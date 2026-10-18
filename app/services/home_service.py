@@ -7,7 +7,6 @@ as broken rather than as one waiting to be filled.
 from __future__ import annotations
 
 import asyncio
-import re
 from typing import Any
 
 from pymongo import DESCENDING
@@ -18,6 +17,11 @@ from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION
 from app.schemas.article import ArticleRead
 from app.services.article_page_service import article_to_card_context
+from app.utils.markdown import plain_text
+from app.config.constants import DEBATE_SIDE_LABELS
+from app.services.debate_page_service import debate_url, split_motion, time_left
+from app.services.debate_stance_service import DebateStanceService
+from app.services.debate_service import DebateService, is_open
 from app.services.nav_service import fallback_rooms, get_rooms
 from app.services.play_page_service import claim_context
 from app.services.question_page_service import question_url
@@ -54,14 +58,16 @@ async def get_homepage_context(
             community = await _pieces(db, {**PUBLISHED, "author_id": {"$ne": None}}, NEWEST, room_names, shown)
             return experiences, ideas, community
 
-        # The question, the Arcade, and the reading sections don't depend on each other.
-        question, arcade, (experiences, ideas, community) = await asyncio.gather(
+        # The question, the debate, the Arcade, and the reading sections don't depend on each other.
+        question, debate, arcade, (experiences, ideas, community) = await asyncio.gather(
             _todays_question(db, room_names),
+            _featured_debate(db),
             _arcade(db, claim_slug=claim_slug, answer=answer, after=after),
             reading_sections(),
         )
         return {
             "question": question,
+            "debate": debate,
             "experiences": experiences,
             "arcade": arcade,
             "rooms": rooms,
@@ -100,10 +106,46 @@ async def _todays_question(db: Any, room_names: dict[str, str]) -> dict[str, Any
         "room": room_names.get(question.category_id or ""),
         "response_count": len(responses),
         "featured": (
-            {"body": _plain(featured.body), "author": featured.author, "kind_label": RESPONSE_KIND_LABELS.get(featured.kind, "")}
+            {"body": plain_text(featured.body), "author": featured.author, "kind_label": RESPONSE_KIND_LABELS.get(featured.kind, "")}
             if featured
             else None
         ),
+    }
+
+
+async def _featured_debate(db: Any) -> dict[str, Any] | None:
+    """The open debate closing soonest; with none open, the one that closed last."""
+    service = DebateService(database=db)
+    today = site_today()
+    debates = await service.published_debates()  # latest closing date first
+    open_debates = [d for d in debates if is_open(d, today)]
+    debate = open_debates[-1] if open_debates else next(iter(debates), None)
+    if debate is None:
+        return None
+    arguments = await service.public_arguments(debate.id)  # editor's picks first, then newest
+    stances = await DebateStanceService(database=db).stance_counts([debate.id])
+    kicker, rest = split_motion(debate.motion)
+    sides = []
+    for side, label in DEBATE_SIDE_LABELS.items():
+        mine = [a for a in arguments if a.side == side]
+        top = mine[0] if mine else None
+        sides.append({
+            "value": side,
+            "label": label,
+            "count": len(mine),
+            "claim": top.claim if top else None,
+            "author": top.author if top else None,
+            "is_featured": bool(top and top.is_featured),
+        })
+    return {
+        "motion_kicker": kicker,
+        "motion_rest": rest,
+        "url": debate_url(debate.slug),
+        "is_open": bool(open_debates),
+        "time_left": time_left(debate.closes_on, today),
+        "argument_count": len(arguments),
+        "stance_count": stances.get(debate.id, 0),
+        "sides": sides,
     }
 
 
@@ -118,13 +160,6 @@ async def _arcade(db: Any, *, claim_slug: str | None, answer: str, after: str | 
     return (await claim_context(service, item, answer=answer, on_home=True))["claim"]
 
 
-def _plain(markdown: str, limit: int = 220) -> str:
-    """A response's opening as plain text; the Jinja template escapes it."""
-    text = re.sub(r"(?m)^\s*(?:[#>]+|-)\s*", "", markdown)  # headings, quotes, list marks
-    text = " ".join(re.sub(r"\[([^\]]*)\]\([^)]*\)|[*_`]", r"\1", text).split())  # links, emphasis
-    return text if len(text) <= limit else text[: limit - 1].rsplit(" ", 1)[0] + "\u2026"
-
-
 def _fallback_context() -> dict[str, Any]:
     """Rendered when MongoDB is unreachable, so the homepage still stands up."""
-    return {"question": None, "experiences": [], "arcade": None, "rooms": fallback_rooms(), "ideas": [], "community": []}
+    return {"question": None, "debate": None, "experiences": [], "arcade": None, "rooms": fallback_rooms(), "ideas": [], "community": []}

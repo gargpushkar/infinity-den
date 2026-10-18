@@ -1209,7 +1209,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (item.found) {
         name.textContent = `${item.display_name} (@${item.username})`;
         detail.textContent = `${item.email}${item.requested ? " · asked to be deleted" : " · did not ask"} · ` +
-          `${item.pieces} pieces, ${item.responses} responses, ${item.arguments} arguments, ${item.rebuttals} rebuttals, ${item.ratings} ratings, ${item.comments} comments, ${item.saved} saved`;
+          `${item.pieces} pieces, ${item.responses} responses, ${item.arguments} arguments, ${item.rebuttals} rebuttals, ${item.ratings} ratings, ${item.stances} stances, ${item.comments} comments, ${item.saved} saved`;
       } else {
         name.textContent = item.email;
         detail.textContent = "No account with this address; nothing to delete.";

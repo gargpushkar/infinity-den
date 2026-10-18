@@ -17,6 +17,9 @@ IVORY = "#fbf7f0"
 DEEP_COPPER = "#8e3b1e"
 SLATE = "#3a3f5c"
 NIGHT_SURFACE = "#1f2337"
+# The Debate Den's cool side, against the logo's warm one.
+DUSK = "#6f8ca8"
+DUSK_LIGHT = "#9db7ce"
 
 WIDTH, HEIGHT = 640, 360
 STEP = math.pi / 12  # 15 degrees
@@ -148,6 +151,21 @@ def _personal_stories(r: random.Random) -> tuple[str, str]:
     return AMBER, art
 
 
+def _debate(r: random.Random) -> tuple[str, str]:
+    """Two dens facing each other across a gap: warm for, cool against."""
+    cy, size = HEIGHT * (0.46 + r.random() * 0.08), HEIGHT * (0.95 + r.random() * 0.2)
+    gap, angle = WIDTH * (0.17 + r.random() * 0.04), r.random() * STEP * 6
+
+    def warm(layer: int, points: str, layers: int) -> str:
+        return _outline(points, AMBER if layer % 2 else COPPER, 2.2, 0.95)
+
+    def cool(layer: int, points: str, layers: int) -> str:
+        return _outline(points, DUSK_LIGHT if layer % 2 else DUSK, 2.2, 0.95)
+
+    art = _nest(WIDTH / 2 - gap, cy, size, 9, angle, 1, warm) + _nest(WIDTH / 2 + gap, cy, size, 9, -angle, -1, cool)
+    return INK, art
+
+
 PATTERNS: dict[str, Callable[[random.Random], tuple[str, str]]] = {
     "science": _science,
     "psychology": _psychology,
@@ -155,6 +173,7 @@ PATTERNS: dict[str, Callable[[random.Random], tuple[str, str]]] = {
     "technology": _technology,
     "philosophy": _philosophy,
     "personal-stories": _personal_stories,
+    "debate": _debate,  # not a room: every debate's cover, at /covers/debate/{slug}.svg
 }
 # Rooms without their own pattern yet share the single inward spiral.
 DEFAULT_PATTERN = "psychology"

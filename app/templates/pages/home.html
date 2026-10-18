@@ -48,6 +48,42 @@
 {% endif %}
 
 <div class="home-reading">
+  {% if debate %}
+    <section class="home-section" aria-labelledby="homeDebateTitle">
+      <div class="container">
+        <div class="home-section-head">
+          <h2 id="homeDebateTitle">From the Debate Den</h2>
+          <p>Judge the argument, not the side.</p>
+          <a class="section-link" href="/debates">All debates</a>
+        </div>
+        <a class="home-debate" href="{{ debate.url }}">
+          <span class="home-debate-top">
+            <span class="home-debate-motion">
+              {% if debate.motion_kicker %}<span class="debate-kicker">{{ debate.motion_kicker }}</span>{% endif %}
+              <strong>{{ debate.motion_rest }}</strong>
+              <span>{% if debate.is_open %}{{ debate.time_left }}{% else %}Closed{% endif %} &middot; {{ debate.stance_count }} {% if debate.is_open %}{{ "has" if debate.stance_count == 1 else "have" }} taken{% else %}took{% endif %} a stand</span>
+            </span>
+            <span class="btn btn-amber">{% if debate.is_open %}Join the debate{% else %}See how minds moved{% endif %}</span>
+          </span>
+          <span class="home-debate-sides">
+            {% for side in debate.sides %}
+              <span class="home-debate-side debate-side-{{ side.value }}">
+                <span>{{ side.label }} <small>{{ side.count }} {{ "argument" if side.count == 1 else "arguments" }}</small></span>
+                {% if side.claim %}
+                  <span class="home-debate-claim">&ldquo;{{ side.claim }}&rdquo;</span>
+                  <span>{{ side.author }}{% if side.is_featured %} &middot; Editor's pick{% endif %}</span>
+                {% else %}
+                  <span class="home-debate-claim">Nobody has made the case {{ side.label|lower }} yet.</span>
+                  <span>Yours could be the first.</span>
+                {% endif %}
+              </span>
+            {% endfor %}
+          </span>
+        </a>
+      </div>
+    </section>
+  {% endif %}
+
   {% if experiences %}
     <section class="home-section" aria-labelledby="homeLibraryTitle">
       <div class="container">

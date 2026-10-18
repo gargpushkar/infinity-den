@@ -5,7 +5,7 @@ from typing import Any, Final, Literal
 
 REPORT_COLLECTION: Final = "reports"
 
-ReportTarget = Literal["article", "response", "comment", "argument", "rebuttal"]
+ReportTarget = Literal["article", "response", "comment", "argument", "rebuttal", "stance"]
 ReportStatus = Literal["open", "resolved", "dismissed"]
 
 

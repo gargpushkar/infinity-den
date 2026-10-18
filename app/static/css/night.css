@@ -35,6 +35,16 @@
 
   --label-experience: #f5c27a;
 
+  --side-for: #f4a582;
+  --side-for-strong: #e07a52;
+  --side-for-tint: #2b2026;
+  --side-for-dash: #6b3a2a;
+  --side-against: #9db7ce;
+  --side-against-strong: #7f9fbd;
+  --side-against-tint: #1c2537;
+  --side-against-dash: #3d5068;
+  --side-undecided: #4a4f6a;
+
   --arcade-bg: #1f2337;
   --arcade-fg: #fbf7f0;
   --arcade-muted: #a9a6a0;

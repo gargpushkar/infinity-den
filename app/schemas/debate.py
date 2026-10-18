@@ -9,8 +9,10 @@ from app.config.constants import (
     DEBATE_SIDE_LABELS,
     REBUTTAL_MAX_LENGTH,
     REBUTTAL_MIN_LENGTH,
+    STANCE_LABELS,
+    STANCE_NOTE_MAX_LENGTH,
 )
-from app.models.debate import ArgumentSide, ArgumentStatus, DebateStatus
+from app.models.debate import ArgumentSide, ArgumentStatus, DebateStatus, Stance
 from app.schemas.article import ArticleSource
 
 
@@ -154,3 +156,37 @@ class RatingInput(BaseModel):
         if value in ("", None):
             raise ValueError("Choose a score from 1 to 5.")
         return value
+
+
+def _known_stance(value: Any) -> Any:
+    if value not in STANCE_LABELS:
+        raise ValueError("Choose For, Against, or Undecided.")
+    return value
+
+
+class StanceBeforeInput(BaseModel):
+    stance: Stance
+
+    @field_validator("stance", mode="before")
+    @classmethod
+    def known(cls, value: Any) -> Any:
+        return _known_stance(value)
+
+
+class StanceAfterInput(BaseModel):
+    stance: Stance
+    note: str | None = Field(default=None, max_length=STANCE_NOTE_MAX_LENGTH)
+
+    @field_validator("stance", mode="before")
+    @classmethod
+    def known(cls, value: Any) -> Any:
+        return _known_stance(value)
+
+    @field_validator("note", mode="before")
+    @classmethod
+    def strip_note(cls, value: Any) -> Any:
+        return (value.strip() or None) if isinstance(value, str) else value
+
+
+class AdminStanceUpdate(BaseModel):
+    status: ArgumentStatus

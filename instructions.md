@@ -101,7 +101,7 @@ Creative names are display text. Everything permanent is plain and descriptive.
 | Your account | `/account` |
 | Write / edit your piece | `/write`, `/write/{id}` |
 | Saved pieces | `/saved` |
-| Report something | `/report?type=article\|response\|comment\|argument\|rebuttal&id=…` |
+| Report something | `/report?type=article\|response\|comment\|argument\|rebuttal\|stance&id=…` |
 | Comment on / save a piece (form posts) | `/articles/{slug}/comments`, `/articles/{slug}/bookmark` |
 | Community guidelines, editorial policy, privacy, terms | `/guidelines`, `/editorial-policy`, `/privacy`, `/terms` |
 
@@ -382,6 +382,25 @@ members who rated that argument themselves, or to everyone once the debate
 closes. Ratings never change the order of arguments, and nobody, editors
 included, sees who gave which rating.
 
+### debate_stances
+
+Where a member stood before and after reading, and why
+(`app/services/debate_stance_service.py`). One per member per debate (unique
+index); confirmed members only, while the debate is open.
+
+Fields:
+
+- debate_id, user_id, author, author_username
+- before, after — `for` | `against` | `undecided` (`STANCE_LABELS`); "before" locks once "after" is given
+- note — optional, up to 500 characters
+- status — the note's visibility, `published` | `hidden`; a hidden note's stance still counts
+- created_at, updated_at
+
+Results (before and after counts, and how many moved towards For or Against
+on the line Against → Undecided → For) are public once the debate closes, with
+the notes: changed minds first. Editors see them live. A stance is shown with
+a name only when its member wrote a note. There is no winner.
+
 ### comments
 
 Flat (no replies), oldest first, posted immediately. Members can delete their
@@ -436,7 +455,7 @@ as `dismissed`.
 
 Fields:
 
-- target_type — `article` | `response` | `comment` | `argument` | `rebuttal`
+- target_type — `article` | `response` | `comment` | `argument` | `rebuttal` | `stance` (a debate note)
 - target_id
 - reporter_id
 - reason — a key of `REPORT_REASONS` in `constants.py`
@@ -517,6 +536,10 @@ Ink at the edge to Amber at the centre, "the deeper you go, the warmer the light
 | Amber | `#F2A33A` | Highlights; text only on dark backgrounds |
 | Ivory | `#FBF7F0` | The page background |
 
+The Debate Den adds one cool colour so its two sides face each other with equal
+weight: **For** uses Copper (`--side-for-*`), **Against** a dusk blue
+(`--side-against-*`, `#3E5C76` on light). Use them only for the sides.
+
 - Every colour is a CSS token in `main.css`; night values live in `night.css`.
   Never write a colour literal in a component rule; night mode depends on it.
   `tests/test_colour_contrast.py` checks the text pairings in both modes.
@@ -529,7 +552,8 @@ Ink at the edge to Amber at the centre, "the deeper you go, the warmer the light
   all-caps labels.
 - **Covers:** `app/utils/covers.py` draws one from the logo's 15° square for
   every article and room, served at `/covers/{room}/{slug}.svg`. Each room has
-  its own pattern. An uploaded `cover_image` always wins. Bump `COVER_VERSION`
+  its own pattern; debates share one (`/covers/debate/{slug}.svg`), two dens
+  facing each other, warm for and cool against. An uploaded `cover_image` always wins. Bump `COVER_VERSION`
   when the drawing changes. Social previews never use SVG; pages without a
   photo fall back to `images/brand/og-default.png`.
 - **Logo:** use the kit's files, never retype the wordmark. The header and

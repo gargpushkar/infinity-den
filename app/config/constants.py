@@ -115,3 +115,7 @@ RATING_DIMENSIONS: dict[str, tuple[str, str]] = {
     "reasoning": ("Reasoning", "Does the conclusion follow?"),
 }
 RATINGS_NEEDED = 3  # averages stay hidden until this many members have rated
+# Where a reader stands on a motion, on one line from Against to For.
+STANCE_LABELS: dict[str, str] = {"for": "For", "against": "Against", "undecided": "Undecided"}
+STANCE_SCALE: dict[str, int] = {"against": -1, "undecided": 0, "for": 1}
+STANCE_NOTE_MAX_LENGTH = 500

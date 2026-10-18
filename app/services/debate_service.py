@@ -19,12 +19,14 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from pymongo import DESCENDING, ReturnDocument
 from pymongo.errors import DuplicateKeyError
 
+from app.config.constants import DEBATE_SIDE_LABELS
 from app.database.mongodb import get_database
 from app.models.debate import (
     ARGUMENT_COLLECTION,
     DEBATE_COLLECTION,
     RATING_COLLECTION,
     REBUTTAL_COLLECTION,
+    STANCE_COLLECTION,
     ArgumentDocument,
     DebateDocument,
     RebuttalDocument,
@@ -100,6 +102,7 @@ class DebateService:
         self.arguments = self.database[ARGUMENT_COLLECTION]
         self.rebuttals = self.database[REBUTTAL_COLLECTION]
         self.ratings = self.database[RATING_COLLECTION]
+        self.stances = self.database[STANCE_COLLECTION]
 
     # --- editors -------------------------------------------------------------
 
@@ -139,6 +142,7 @@ class DebateService:
             await self.arguments.delete_many({"debate_id": debate_id})
             await self.rebuttals.delete_many({"debate_id": debate_id})
             await self.ratings.delete_many({"debate_id": debate_id})
+            await self.stances.delete_many({"debate_id": debate_id})
         return bool(result.deleted_count)
 
     async def list_debates(self) -> list[DebateRead]:
@@ -189,6 +193,21 @@ class DebateService:
             {"$group": {"_id": "$debate_id", "count": {"$sum": 1}}},
         ]
         return {row["_id"]: row["count"] async for row in self.arguments.aggregate(pipeline)}
+
+    async def side_counts(self, debate_ids: list[str]) -> dict[str, dict[str, int]]:
+        """Visible arguments per debate, by side."""
+        counts: dict[str, dict[str, int]] = {}
+        cursor = self.arguments.find({"debate_id": {"$in": debate_ids}, "status": "published"}, {"debate_id": 1, "side": 1})
+        async for argument in cursor:
+            counts.setdefault(argument["debate_id"], dict.fromkeys(DEBATE_SIDE_LABELS, 0))[argument["side"]] += 1
+        return counts
+
+    async def rebuttal_counts(self, debate_ids: list[str]) -> dict[str, int]:
+        pipeline = [
+            {"$match": {"debate_id": {"$in": debate_ids}, "status": "published"}},
+            {"$group": {"_id": "$debate_id", "count": {"$sum": 1}}},
+        ]
+        return {row["_id"]: row["count"] async for row in self.rebuttals.aggregate(pipeline)}
 
     # --- members -------------------------------------------------------------
 
