@@ -80,8 +80,15 @@ class DebateRatingService:
 
     async def averages(self, debate_id: str) -> dict[str, dict[str, Any]]:
         """Per argument: the count and each dimension's average, to one decimal."""
+        return await self._averages({"debate_id": debate_id})
+
+    async def averages_for(self, argument_ids: list[str]) -> dict[str, dict[str, Any]]:
+        """The same, for particular arguments (a member's, on their profile)."""
+        return await self._averages({"argument_id": {"$in": argument_ids}})
+
+    async def _averages(self, query: dict[str, Any]) -> dict[str, dict[str, Any]]:
         totals: dict[str, dict[str, int]] = {}
-        async for document in self.ratings.find({"debate_id": debate_id}).limit(RATING_LIMIT):
+        async for document in self.ratings.find(query).limit(RATING_LIMIT):
             total = totals.setdefault(document["argument_id"], {"count": 0, **{key: 0 for key in RATING_DIMENSIONS}})
             total["count"] += 1
             for key in RATING_DIMENSIONS:

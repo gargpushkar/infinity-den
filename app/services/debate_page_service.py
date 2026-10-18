@@ -247,6 +247,7 @@ def _rebuttal_view(rebuttal: RebuttalRead) -> dict[str, Any]:
         "body": rebuttal.body,
         "body_html": render_markdown(rebuttal.body),
         "is_hidden": rebuttal.status == "hidden",
+        "is_featured": rebuttal.is_featured,
         "date_label": _day_label(rebuttal.created_at),
         "edited_label": _day_label(rebuttal.edited_at) if rebuttal.edited_at else None,
     }

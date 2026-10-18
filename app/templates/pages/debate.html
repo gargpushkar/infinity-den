@@ -24,6 +24,7 @@
     <p class="rebuttal-meta">
       <a href="{{ item.author_url }}">{{ item.author }}</a>
       <span class="argument-date">{{ dated(item) }}{% if is_mine %} &middot; you{% endif %}</span>
+      {% if item.is_featured %}<span class="argument-pick">Thoughtful rebuttal</span>{% endif %}
     </p>
     {% if item.is_hidden %}<p class="rebuttal-note" role="note">Editors have hidden your rebuttal, so only you can see it.</p>{% endif %}
     {# body_html comes from app/utils/markdown.py, which escapes first. #}
