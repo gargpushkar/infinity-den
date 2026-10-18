@@ -23,6 +23,7 @@ from app.services.member_session import (
     form_csrf_is_valid,
     form_csrf_token,
     get_current_member,
+    unconfirmed_redirect,
     set_form_csrf_cookie,
 )
 from app.services.nav_service import get_nav_context
@@ -84,6 +85,8 @@ async def post_comment(request: Request, article_slug: str = ARTICLE_SLUG):
     member = await get_current_member(request)
     if member is None:
         return RedirectResponse(f"/login?next=/articles/{article_slug}%23comments", status_code=303)
+    if redirect := unconfirmed_redirect(member):
+        return redirect
 
     form = await read_form(request)
     values = {"body": form.get("body", "")}

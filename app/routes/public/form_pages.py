@@ -69,6 +69,15 @@ def field_errors(exc: ValidationError) -> dict[str, str]:
     return errors
 
 
+def site_url(request: Request) -> str:
+    """Where emailed links point. Production uses SITE_URL only: the Host
+    header comes from the visitor, so trusting it would let someone send a
+    real link that points at their own site."""
+    if settings.site_url:
+        return settings.site_url.rstrip("/")
+    return "" if settings.app_env == "production" else str(request.base_url).rstrip("/")
+
+
 def safe_next(value: str) -> str:
     """Only same-site paths, so ?next= cannot send people to another site."""
     value = (value or "").strip()

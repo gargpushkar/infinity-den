@@ -10,7 +10,7 @@
       <p class="eyebrow mb-2">Welcome back</p>
       <h1>Sign in</h1>
 
-      {{ form_alert(error) }}
+      {{ form_alert(error, notice) }}
 
       <form class="member-form" method="post" action="/login" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">

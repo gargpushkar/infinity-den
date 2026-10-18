@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from app.config.constants import REPORT_REASONS
 from app.routes.public.form_pages import FORM_EXPIRED, TOO_MANY_ATTEMPTS, field_errors, render_form_page
 from app.schemas.report import ReportInput
-from app.services.member_session import form_csrf_is_valid, get_current_member
+from app.services.member_session import form_csrf_is_valid, get_current_member, unconfirmed_redirect
 from app.services.report_service import OwnContentError, ReportService, ReportTargetNotFoundError
 from app.utils.forms import read_form
 from app.utils.rate_limit import member_report_limiter
@@ -28,6 +28,8 @@ async def report_page(
     member = await get_current_member(request)
     if member is None:
         return RedirectResponse(f"/login?{urlencode({'next': f'/report?type={type}&id={id}'})}", status_code=303)
+    if redirect := unconfirmed_redirect(member):
+        return redirect
     return await _page(request, member, {"target_type": type, "target_id": id, "reason": "", "detail": ""})
 
 
@@ -36,6 +38,8 @@ async def submit_report(request: Request):
     member = await get_current_member(request)
     if member is None:
         return RedirectResponse("/login", status_code=303)
+    if redirect := unconfirmed_redirect(member):
+        return redirect
 
     form = await read_form(request)
     values = {key: form.get(key, "") for key in ("target_type", "target_id", "reason", "detail")}

@@ -97,6 +97,7 @@ Creative names are display text. Everything permanent is plain and descriptive.
 | Member profile | `/members/{username}` |
 | Join / sign in / sign out | `/join`, `/login`, `/logout` |
 | Forgot / reset password | `/forgot-password`, `/reset-password?token=…` |
+| Confirm your email | `/confirm-email` (status and resend), `/confirm-email?token=…` |
 | Your account | `/account` |
 | Write / edit your piece | `/write`, `/write/{id}` |
 | Saved pieces | `/saved` |
@@ -274,6 +275,8 @@ Fields:
 - bio
 - is_active
 - session_version — raised by a password reset; sign-in cookies carry it, and older ones stop working
+- email_confirmed — `false` from sign-up until the emailed link is opened (accounts without the field count as confirmed); unconfirmed members can sign in, read, and save, but not write, respond, comment, or report (`unconfirmed_redirect` in `member_session.py`), and have no public profile
+- pending_expires_at — set while unconfirmed; a TTL index deletes the account after 7 days. A new sign-up replaces an unconfirmed account with the same username or email
 - created_at
 - updated_at
 

@@ -38,7 +38,7 @@ from app.services.cover_upload_service import (
     discard_unused_cover,
     save_cover_upload,
 )
-from app.services.member_session import form_csrf_is_valid, get_current_member
+from app.services.member_session import form_csrf_is_valid, get_current_member, unconfirmed_redirect
 from app.services.nav_service import get_rooms
 from app.utils.covers import cover_url
 from app.utils.forms import read_upload_form
@@ -61,6 +61,8 @@ async def new_piece(request: Request, format: str = "", prompt: int | None = Non
     member = await get_current_member(request)
     if member is None:
         return _login_redirect(request)
+    if redirect := unconfirmed_redirect(member):
+        return redirect
 
     prompt_text = HUMAN_LIBRARY_PROMPTS[prompt] if prompt is not None and 0 <= prompt < len(HUMAN_LIBRARY_PROMPTS) else ""
     values = {
@@ -80,6 +82,8 @@ async def edit_piece(request: Request, article_id: str, saved: str = ""):
     member = await get_current_member(request)
     if member is None:
         return _login_redirect(request)
+    if redirect := unconfirmed_redirect(member):
+        return redirect
 
     try:
         piece = await MemberArticleService().get_own(member, article_id)
@@ -98,6 +102,8 @@ async def _save(request: Request, *, article_id: str | None):
     member = await get_current_member(request)
     if member is None:
         return _login_redirect(request)
+    if redirect := unconfirmed_redirect(member):
+        return redirect
 
     form, upload = await read_upload_form(request, "cover_file", MAX_UPLOAD_BYTES)
     values: dict[str, Any] = {name: form.get(name, "") for name in TEXT_FIELDS}

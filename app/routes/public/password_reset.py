@@ -6,13 +6,13 @@ from pydantic import ValidationError
 from pymongo.errors import PyMongoError
 from starlette.background import BackgroundTask
 
-from app.config.settings import settings
 from app.routes.public.form_pages import (
     FORM_EXPIRED,
     SERVICE_UNAVAILABLE,
     TOO_MANY_ATTEMPTS,
     field_errors,
     render_form_page,
+    site_url,
 )
 from app.schemas.user import PasswordResetInput, PasswordResetRequest
 from app.services.member_session import form_csrf_is_valid, set_member_cookie
@@ -31,15 +31,6 @@ LINK_SENT = (
     "It works for an hour. Check your spam folder if it doesn't arrive in a few minutes."
 )
 LINK_INVALID = "This link has expired or has already been used. Ask for a new one below."
-
-
-def site_url(request: Request) -> str:
-    """Where emailed links point. Production uses SITE_URL only: the Host
-    header comes from the visitor, so trusting it would let someone send a
-    real reset link that points at their own site."""
-    if settings.site_url:
-        return settings.site_url.rstrip("/")
-    return "" if settings.app_env == "production" else str(request.base_url).rstrip("/")
 
 
 @router.get("/forgot-password")

@@ -20,6 +20,7 @@ from app.config.settings import settings
 from app.database.mongodb import get_database
 from app.models.user import USER_COLLECTION
 from app.schemas.user import MemberRead
+from app.services.email_confirmation_service import CONFIRMED
 from app.services.email_service import EmailError, send_email
 from app.utils.security import SecurityError, TokenValidationError, create_access_token, decode_access_token, hash_password
 
@@ -98,6 +99,7 @@ class PasswordResetService:
                 "password_hash": hash_password(new_password),
                 "session_version": member.get("session_version", 0) + 1,
                 "updated_at": datetime.now(timezone.utc),
+                **CONFIRMED,  # opening the emailed link proves the address
             }},
             return_document=ReturnDocument.AFTER,
         )

@@ -39,7 +39,8 @@ async def get_nav_context(request: Request) -> dict[str, Any]:
 
     return {
         "current_member": (
-            {"username": member.username, "display_name": member.display_name} if member else None
+            {"username": member.username, "display_name": member.display_name, "email_confirmed": member.email_confirmed}
+            if member else None
         ),
         "nav_rooms": rooms,
         "category_links": rooms,

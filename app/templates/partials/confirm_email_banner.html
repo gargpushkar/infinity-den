@@ -1,0 +1,7 @@
+{% if current_member and not current_member.email_confirmed and request.url.path != "/confirm-email" %}
+  <div class="confirm-banner" role="status">
+    <div class="container">
+      Confirm your email to start writing, responding, and commenting. <a href="/confirm-email">Send the link again</a>
+    </div>
+  </div>
+{% endif %}

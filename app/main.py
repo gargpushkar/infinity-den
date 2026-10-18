@@ -34,6 +34,7 @@ from app.routes.public.home import router as home_router
 from app.routes.public.members import router as members_router
 from app.routes.public.pages import router as policy_pages_router
 from app.routes.public.password_reset import router as password_reset_router
+from app.routes.public.email_confirmation import router as email_confirmation_router
 from app.routes.public.play import router as play_router
 from app.routes.public.questions import router as questions_router
 from app.routes.public.reports import router as reports_router
@@ -107,6 +108,7 @@ app.include_router(home_router)
 app.include_router(members_router)
 app.include_router(policy_pages_router)
 app.include_router(password_reset_router)
+app.include_router(email_confirmation_router)
 app.include_router(play_router)
 app.include_router(questions_router)
 app.include_router(reports_router)

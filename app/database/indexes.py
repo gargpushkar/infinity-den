@@ -25,6 +25,8 @@ async def create_indexes() -> None:
     await db[TAG_COLLECTION].create_index([("slug", ASCENDING)], unique=True)
     await db[USER_COLLECTION].create_index([("username", ASCENDING)], unique=True)
     await db[USER_COLLECTION].create_index([("email", ASCENDING)], unique=True)
+    # MongoDB deletes unconfirmed sign-ups once pending_expires_at passes.
+    await db[USER_COLLECTION].create_index([("pending_expires_at", ASCENDING)], expireAfterSeconds=0)
     # One question per day; one response per member per question.
     await db[QUESTION_COLLECTION].create_index([("publish_date", ASCENDING)], unique=True)
     await db[QUESTION_COLLECTION].create_index([("slug", ASCENDING)], unique=True)
