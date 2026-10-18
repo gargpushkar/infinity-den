@@ -593,6 +593,7 @@ Member content is untrusted input. In addition to the above:
 - rate-limit member writes (posts, responses, comments, reports) and login
 - never expose member emails or password hashes in public pages or API responses
 - every member-generated item can be reported by members and hidden by editors
+- members can delete their account from `/account` (`account_deletion_service.py`); a new collection holding member data must be cleaned up there too
 - the policy pages (`app/routes/public/pages.py`) describe what the site really does: when a change affects what is stored, which cookies are set, or which outside services see visitors' requests, update `/privacy` and its date in the same branch
 - member pieces (articles, experiences, perspectives) publish only after editorial review in Phase 1
 - responses and comments post immediately; editors can hide them, and members can report them

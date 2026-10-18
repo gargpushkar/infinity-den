@@ -46,6 +46,7 @@ reset_request_limiter = RateLimiter(limit=5, window_seconds=60 * 60)
 reset_email_limiter = RateLimiter(limit=3, window_seconds=60 * 60)
 reset_password_limiter = RateLimiter(limit=10, window_seconds=15 * 60)
 confirm_resend_limiter = RateLimiter(limit=3, window_seconds=60 * 60)  # per member
+account_delete_limiter = RateLimiter(limit=5, window_seconds=15 * 60)  # per member: password guesses
 # Keyed by member id rather than IP: these protect editors' review time.
 member_submit_limiter = RateLimiter(limit=5, window_seconds=60 * 60)
 member_save_limiter = RateLimiter(limit=30, window_seconds=60 * 60)

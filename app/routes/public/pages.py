@@ -30,13 +30,13 @@ POLICY_PAGES = {
     "/privacy": {
         "title": "Privacy policy",
         "template": "pages/policy_privacy.html",
-        "updated": "October 17, 2026",
+        "updated": "October 18, 2026",
         "description": "What Infinity Den stores about you, why, who else sees it, and your rights.",
     },
     "/terms": {
         "title": "Terms of use",
         "template": "pages/policy_terms.html",
-        "updated": "October 17, 2026",
+        "updated": "October 18, 2026",
         "description": "The terms for reading, joining, and writing on Infinity Den.",
     },
 }
