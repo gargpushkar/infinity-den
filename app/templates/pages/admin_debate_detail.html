@@ -31,6 +31,15 @@
               <strong>{{ argument.claim }}</strong>
               <small>{{ argument.side }} &middot; {{ argument.author }} (@{{ argument.author_username }}) &middot; {{ argument.sources|length }} sources &middot; {{ argument.status }}{% if argument.is_featured %}, featured{% endif %}</small>
               <p>{{ argument.body|truncate(400) }}</p>
+              {% for rebuttal in rebuttals.get(argument.id, []) %}
+                <div class="admin-rebuttal">
+                  <small>Rebuttal by {{ rebuttal.author }} (@{{ rebuttal.author_username }}) &middot; {{ rebuttal.status }}</small>
+                  <p>{{ rebuttal.body|truncate(300) }}</p>
+                  <div class="admin-row-actions mt-2">
+                    <button type="button" data-admin-moderate-url="/api/admin/rebuttals/{{ rebuttal.id }}" data-field="status" data-value="{{ 'published' if rebuttal.status == 'hidden' else 'hidden' }}">{{ "Restore" if rebuttal.status == "hidden" else "Hide" }} rebuttal</button>
+                  </div>
+                </div>
+              {% endfor %}
             </div>
             <div class="admin-row-actions">
               <button type="button" data-admin-moderate-url="/api/admin/arguments/{{ argument.id }}" data-field="is_featured" data-value="{{ 'false' if argument.is_featured else 'true' }}">{{ "Unfeature" if argument.is_featured else "Feature" }}</button>

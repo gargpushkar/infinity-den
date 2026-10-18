@@ -1,8 +1,11 @@
-"""The Debate Den: motions set by editors, and members' arguments for and against.
+"""The Debate Den: motions set by editors, members' arguments for and against,
+and rebuttals of those arguments.
 
-Arguments publish immediately (editors can hide or feature them). A debate is
-open through its closing date, then stays readable as an archive. Arguments
-are never ordered by popularity: featured first, then newest.
+Arguments and rebuttals publish immediately (editors can hide them, and
+feature arguments). A debate is open through its closing date, then stays
+readable as an archive. Nothing is ordered by popularity: arguments are
+featured first, then newest; rebuttals read oldest first, like a conversation.
+A rebuttal answers one argument and can't be answered itself.
 """
 
 import re
@@ -16,13 +19,30 @@ from pymongo import DESCENDING, ReturnDocument
 from pymongo.errors import DuplicateKeyError
 
 from app.database.mongodb import get_database
-from app.models.debate import ARGUMENT_COLLECTION, DEBATE_COLLECTION, ArgumentDocument, DebateDocument
-from app.schemas.debate import AdminArgumentUpdate, ArgumentInput, ArgumentRead, DebateInput, DebateRead
+from app.models.debate import (
+    ARGUMENT_COLLECTION,
+    DEBATE_COLLECTION,
+    REBUTTAL_COLLECTION,
+    ArgumentDocument,
+    DebateDocument,
+    RebuttalDocument,
+)
+from app.schemas.debate import (
+    AdminArgumentUpdate,
+    AdminRebuttalUpdate,
+    ArgumentInput,
+    ArgumentRead,
+    DebateInput,
+    DebateRead,
+    RebuttalInput,
+    RebuttalRead,
+)
 from app.schemas.user import MemberRead
 
 
 DEBATE_LIMIT = 200
 ARGUMENT_LIMIT = 300
+REBUTTAL_LIMIT = 2000
 
 
 class DebateNotFoundError(Exception):
@@ -30,6 +50,10 @@ class DebateNotFoundError(Exception):
 
 
 class DebateClosedError(Exception):
+    pass
+
+
+class OwnArgumentError(Exception):
     pass
 
 
@@ -54,6 +78,7 @@ class DebateService:
         self.database = database if database is not None else get_database()
         self.debates = self.database[DEBATE_COLLECTION]
         self.arguments = self.database[ARGUMENT_COLLECTION]
+        self.rebuttals = self.database[REBUTTAL_COLLECTION]
 
     # --- editors -------------------------------------------------------------
 
@@ -91,6 +116,7 @@ class DebateService:
         result = await self.debates.delete_one({"_id": _object_id(debate_id)})
         if result.deleted_count:
             await self.arguments.delete_many({"debate_id": debate_id})
+            await self.rebuttals.delete_many({"debate_id": debate_id})
         return bool(result.deleted_count)
 
     async def list_debates(self) -> list[DebateRead]:
@@ -187,5 +213,84 @@ class DebateService:
         return ArgumentRead.model_validate({**document, "_id": result.inserted_id})
 
     async def delete_argument(self, debate_id: str, member: MemberRead) -> bool:
-        result = await self.arguments.delete_one({"debate_id": debate_id, "user_id": member.id})
+        """Remove the member's argument, and the rebuttals of it with it."""
+        deleted = await self.arguments.find_one_and_delete({"debate_id": debate_id, "user_id": member.id})
+        if deleted is None:
+            return False
+        await self.rebuttals.delete_many({"argument_id": str(deleted["_id"])})
+        return True
+
+    # --- rebuttals -----------------------------------------------------------
+
+    async def public_rebuttals(self, debate_id: str) -> dict[str, list[RebuttalRead]]:
+        """Visible rebuttals by argument id, oldest first."""
+        return await self._threads({"debate_id": debate_id, "status": "published"})
+
+    async def member_rebuttals(self, debate_id: str, member: MemberRead) -> dict[str, RebuttalRead]:
+        """The member's own rebuttals in this debate (hidden ones too), by argument id."""
+        cursor = self.rebuttals.find({"debate_id": debate_id, "user_id": member.id})
+        return {document["argument_id"]: RebuttalRead.model_validate(document) async for document in cursor}
+
+    async def all_rebuttals(self, debate_id: str) -> dict[str, list[RebuttalRead]]:
+        """Every rebuttal in the debate, hidden ones too, for editors."""
+        return await self._threads({"debate_id": debate_id})
+
+    async def _threads(self, query: dict) -> dict[str, list[RebuttalRead]]:
+        cursor = self.rebuttals.find(query).sort([("created_at", 1)]).limit(REBUTTAL_LIMIT)
+        threads: dict[str, list[RebuttalRead]] = {}
+        async for document in cursor:
+            rebuttal = RebuttalRead.model_validate(document)
+            threads.setdefault(rebuttal.argument_id, []).append(rebuttal)
+        return threads
+
+    async def save_rebuttal(
+        self, debate: DebateRead, argument_id: str, member: MemberRead, payload: RebuttalInput, today: str
+    ) -> RebuttalRead:
+        """Create or replace the member's one rebuttal of this argument. Hidden stays hidden."""
+        if not is_open(debate, today):
+            raise DebateClosedError("This debate is closed.")
+        argument = await self.arguments.find_one(
+            {"_id": _object_id(argument_id), "debate_id": debate.id, "status": "published"}
+        )
+        if argument is None:
+            raise DebateNotFoundError("That argument is no longer here.")
+        if argument["user_id"] == member.id:
+            raise OwnArgumentError("You can't rebut your own argument. Edit it instead.")
+
+        now = datetime.now(timezone.utc)
+        existing = await self.rebuttals.find_one_and_update(
+            {"argument_id": argument_id, "user_id": member.id},
+            {"$set": {"body": payload.body, "author": member.display_name, "updated_at": now}},
+            return_document=ReturnDocument.AFTER,
+        )
+        if existing is not None:
+            return RebuttalRead.model_validate(existing)
+
+        document = RebuttalDocument(
+            debate_id=debate.id,
+            argument_id=argument_id,
+            user_id=member.id,
+            author=member.display_name,
+            author_username=member.username,
+            body=payload.body,
+        ).to_mongo()
+        try:
+            result = await self.rebuttals.insert_one(document)
+        except DuplicateKeyError:
+            # Two submissions raced; the unique index kept one. Edit that one.
+            return await self.save_rebuttal(debate, argument_id, member, payload, today)
+        return RebuttalRead.model_validate({**document, "_id": result.inserted_id})
+
+    async def delete_rebuttal(self, argument_id: str, member: MemberRead) -> bool:
+        result = await self.rebuttals.delete_one({"argument_id": argument_id, "user_id": member.id})
         return bool(result.deleted_count)
+
+    async def moderate_rebuttal(self, rebuttal_id: str, payload: AdminRebuttalUpdate) -> RebuttalRead:
+        document = await self.rebuttals.find_one_and_update(
+            {"_id": _object_id(rebuttal_id)},
+            {"$set": {"status": payload.status, "updated_at": datetime.now(timezone.utc)}},
+            return_document=ReturnDocument.AFTER,
+        )
+        if document is None:
+            raise DebateNotFoundError("Rebuttal was not found.")
+        return RebuttalRead.model_validate(document)

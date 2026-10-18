@@ -1146,7 +1146,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Debate Den: on small screens the two sides become a switch (CSS hides the
-  // inactive side only once this runs). Open on the side a linked argument is on.
+  // inactive side only once this runs). Open on the side of a linked argument or
+  // rebuttal, or of a rebuttal form that came back with an error.
   document.querySelectorAll("[data-debate-tabs]").forEach((tabs) => {
     const sides = tabs.nextElementSibling.querySelectorAll("[data-debate-side]");
     const show = (value) => {
@@ -1159,10 +1160,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const tab = event.target.closest("[data-debate-tab]");
       if (tab) show(tab.dataset.debateTab);
     });
-    const linked = window.location.hash.startsWith("#argument-")
-      ? document.getElementById(window.location.hash.slice(1))?.closest("[data-debate-side]")
-      : null;
+    const target =
+      (window.location.hash && document.getElementById(window.location.hash.slice(1))) ||
+      document.querySelector("[data-debate-sides] [autofocus]");
+    target?.closest("details")?.setAttribute("open", "");
+    const linked = target?.closest("[data-debate-side]");
     show(linked ? linked.dataset.debateSide : sides[0]?.dataset.debateSide);
+    target?.scrollIntoView({ block: "center" });
     tabs.hidden = false;
   });
 
@@ -1205,7 +1209,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (item.found) {
         name.textContent = `${item.display_name} (@${item.username})`;
         detail.textContent = `${item.email}${item.requested ? " · asked to be deleted" : " · did not ask"} · ` +
-          `${item.pieces} pieces, ${item.responses} responses, ${item.arguments} arguments, ${item.comments} comments, ${item.saved} saved`;
+          `${item.pieces} pieces, ${item.responses} responses, ${item.arguments} arguments, ${item.rebuttals} rebuttals, ${item.comments} comments, ${item.saved} saved`;
       } else {
         name.textContent = item.email;
         detail.textContent = "No account with this address; nothing to delete.";

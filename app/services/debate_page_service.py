@@ -1,9 +1,9 @@
 from datetime import date
 from typing import Any
 
-from app.config.constants import DEBATE_SIDE_LABELS
+from app.config.constants import DEBATE_SIDE_LABELS, REBUTTALS_SHOWN
 from app.database.mongodb import get_database
-from app.schemas.debate import ArgumentRead, DebateRead
+from app.schemas.debate import ArgumentRead, DebateRead, RebuttalRead
 from app.schemas.user import MemberRead
 from app.services.article_page_service import room_url
 from app.services.debate_service import DebateService, is_open
@@ -41,9 +41,11 @@ async def get_debate_context(*, slug: str, member: MemberRead | None) -> dict[st
     today = site_today()
     arguments = await service.public_arguments(debate.id)
     own = await service.member_argument(debate.id, member) if member else None
+    threads = await service.public_rebuttals(debate.id)
+    own_rebuttals = await service.member_rebuttals(debate.id, member) if member else {}
     rooms = {room["slug"]: room for room in await get_rooms(db)}
     room = rooms.get(debate.category_id or "")
-    views = [_argument_view(a) for a in arguments]
+    views = [_with_thread(_argument_view(a), threads.get(a.id, []), own_rebuttals.get(a.id)) for a in arguments]
 
     return {
         "debate": _debate_view(debate, today, {debate.id: len(views)}),
@@ -80,6 +82,38 @@ def _debate_view(debate: DebateRead, today: str, counts: dict[str, int]) -> dict
         "is_open": is_open(debate, today),
         "closes_label": _date_label(debate.closes_on),
         "argument_count": counts.get(debate.id, 0),
+    }
+
+
+def _with_thread(view: dict[str, Any], rebuttals: list[RebuttalRead], own: RebuttalRead | None) -> dict[str, Any]:
+    """Attach an argument's rebuttals: the first few shown, the rest folded.
+
+    The member's own rebuttal is always in the thread, even when editors hid it.
+    """
+    thread = [_rebuttal_view(r) for r in rebuttals]
+    if own is not None and own.status == "hidden":
+        thread.append(_rebuttal_view(own))
+    own_view = next((r for r in thread if own is not None and r["id"] == own.id), None)
+    return {
+        **view,
+        "rebuttal_count": len(rebuttals),
+        "rebuttals_shown": thread[:REBUTTALS_SHOWN],
+        "rebuttals_folded": thread[REBUTTALS_SHOWN:],
+        "own_rebuttal": own_view,
+        "own_rebuttal_folded": own_view is not None and own_view in thread[REBUTTALS_SHOWN:],
+    }
+
+
+def _rebuttal_view(rebuttal: RebuttalRead) -> dict[str, Any]:
+    return {
+        "id": rebuttal.id,
+        "author": rebuttal.author,
+        "author_url": f"/members/{rebuttal.author_username}",
+        "author_username": rebuttal.author_username,
+        "body": rebuttal.body,
+        "body_html": render_markdown(rebuttal.body),
+        "is_hidden": rebuttal.status == "hidden",
+        "date_label": f"{rebuttal.created_at:%b} {rebuttal.created_at.day}, {rebuttal.created_at:%Y}",
     }
 
 

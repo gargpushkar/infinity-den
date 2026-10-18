@@ -1524,6 +1524,12 @@ button:focus-visible,
   margin: 0.45rem 0 0;
 }
 
+.admin-rebuttal {
+  border-left: 2px solid var(--line-strong);
+  margin-top: 0.75rem;
+  padding-left: 0.75rem;
+}
+
 .admin-table-wrap {
   overflow-x: auto;
 }
@@ -4447,6 +4453,97 @@ button:focus-visible,
   font-weight: 500;
   line-height: 1.35;
   margin: 0 0 0.6rem;
+}
+
+/* Rebuttals: one level, under the argument they answer. */
+.rebuttal-thread {
+  border-left: 2px solid var(--line-strong);
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1rem;
+  padding-left: 1rem;
+}
+
+.rebuttal {
+  border-radius: var(--radius);
+  scroll-margin-top: 6rem;
+}
+
+.rebuttal:target {
+  background: var(--accent-tint);
+  box-shadow: 0 0 0 0.5rem var(--accent-tint);
+}
+
+.rebuttal-meta {
+  align-items: center;
+  display: flex;
+  font-size: 0.88rem;
+  gap: 0.5rem;
+  margin: 0 0 0.25rem;
+}
+
+.rebuttal-body p {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.rebuttal-body > :last-child {
+  margin-bottom: 0;
+}
+
+.rebuttal-body a {
+  color: var(--accent);
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+}
+
+.rebuttal-note {
+  color: var(--warning-fg);
+  font-size: 0.85rem;
+  margin: 0 0 0.25rem;
+}
+
+.rebuttal-delete {
+  margin: 0;
+}
+
+.rebuttal-delete .report-link {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+/* <details> can't be a grid in every browser, so space the folded rebuttals directly. */
+.rebuttal-more .rebuttal {
+  margin-top: 0.9rem;
+}
+
+.rebuttal-more > summary,
+.rebut-form > summary,
+.rebut-link {
+  color: var(--accent);
+  cursor: pointer;
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-height: 44px;
+  padding: 0.6rem 0;
+}
+
+.rebut-form {
+  border-top: 1px solid var(--line);
+  margin-top: 1rem;
+}
+
+.rebut-form .member-form {
+  display: grid;
+  gap: 0.5rem;
+  padding-bottom: 0.25rem;
+}
+
+.rebut-form .btn {
+  justify-self: start;
 }
 
 /* The form belongs to both sides, so it sits centred beneath them. */

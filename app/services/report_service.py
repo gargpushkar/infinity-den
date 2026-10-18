@@ -1,4 +1,4 @@
-"""Reports: members flag articles, responses, comments, and arguments; editors hide or dismiss.
+"""Reports: members flag articles, responses, comments, arguments, and rebuttals; editors hide or dismiss.
 
 Nothing changes publicly until an editor acts. Hiding a response or comment
 sets it to "hidden"; hiding an article archives it, so it leaves the site but
@@ -18,7 +18,7 @@ from app.config.constants import ARTICLE_STATUS_PUBLISHED, REPORT_REASONS
 from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION
 from app.models.comment import COMMENT_COLLECTION
-from app.models.debate import ARGUMENT_COLLECTION, DEBATE_COLLECTION
+from app.models.debate import ARGUMENT_COLLECTION, DEBATE_COLLECTION, REBUTTAL_COLLECTION
 from app.models.question import QUESTION_COLLECTION, RESPONSE_COLLECTION
 from app.models.report import REPORT_COLLECTION, ReportDocument
 from app.schemas.admin import AdminRead
@@ -30,19 +30,21 @@ from app.schemas.user import MemberRead
 # community. Move grouping to an aggregation if open reports reach thousands.
 QUEUE_LIMIT = 500
 HANDLED_LIMIT = 20
-TARGET_LABELS = {"article": "Piece", "response": "Response", "comment": "Comment", "argument": "Argument"}
-HIDDEN_STATUS = {"article": "archived", "response": "hidden", "comment": "hidden", "argument": "hidden"}
+TARGET_LABELS = {"article": "Piece", "response": "Response", "comment": "Comment", "argument": "Argument", "rebuttal": "Rebuttal"}
+HIDDEN_STATUS = {"article": "archived", "response": "hidden", "comment": "hidden", "argument": "hidden", "rebuttal": "hidden"}
 COLLECTIONS = {
     "article": ARTICLE_COLLECTION,
     "response": RESPONSE_COLLECTION,
     "comment": COMMENT_COLLECTION,
     "argument": ARGUMENT_COLLECTION,
+    "rebuttal": REBUTTAL_COLLECTION,
 }
-# Where a response, comment, or argument lives: (parent id field, parent collection, URL base).
+# Where a response, comment, argument, or rebuttal lives: (parent id field, parent collection, URL base).
 PARENTS = {
     "response": ("question_id", QUESTION_COLLECTION, "/questions"),
     "comment": ("article_id", ARTICLE_COLLECTION, "/articles"),
     "argument": ("debate_id", DEBATE_COLLECTION, "/debates"),
+    "rebuttal": ("debate_id", DEBATE_COLLECTION, "/debates"),
 }
 
 
