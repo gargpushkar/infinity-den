@@ -252,6 +252,13 @@ button:focus-visible,
   padding: 0.55rem 0.8rem;
 }
 
+/* Between 1200px and the wide container, the destinations fit beside a long display name only with tighter links. */
+@media (max-width: 1399.98px) {
+  .topic-nav-link {
+    padding-inline: 0.6rem;
+  }
+}
+
 .topic-nav-link:hover,
 .topic-nav-link:focus-visible,
 .topic-nav-item.show .topic-nav-link {
@@ -4376,6 +4383,122 @@ button:focus-visible,
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.86;
+}
+
+/* ---------------------------------------------------------------------------
+   The Debate Den (reuses the Question Room's hero, cards, and form panel)
+   --------------------------------------------------------------------------- */
+.debate-list {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  max-width: 52rem;
+  padding: 0;
+}
+
+.debate-row {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  display: grid;
+  gap: 0.35rem;
+  padding: 1.1rem 1.25rem;
+  transition: border-color 160ms var(--motion-ease);
+}
+
+.debate-row:hover,
+.debate-row:focus-visible {
+  border-color: var(--line-strong);
+}
+
+.debate-row strong {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.debate-row span {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+.debate-sides {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.debate-side-title {
+  border-bottom: 1px solid var(--line-strong);
+  padding-bottom: 0.5rem;
+}
+
+.debate-side-title span,
+.debate-tab span {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.argument-claim {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 500;
+  line-height: 1.35;
+  margin: 0 0 0.6rem;
+}
+
+/* The form belongs to both sides, so it sits centred beneath them. */
+.debate-argue {
+  margin: 2.5rem auto 0;
+  max-width: 44rem;
+  position: static;
+}
+
+.debate-tabs {
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.debate-tab {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--text);
+  flex: 1;
+  font-family: var(--font-ui);
+  font-weight: 500;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+}
+
+.debate-tab[aria-pressed="true"] {
+  border-bottom-color: var(--action);
+  color: var(--accent);
+}
+
+@media (max-width: 991.98px) {
+  .debate-sides {
+    grid-template-columns: 1fr;
+  }
+
+  /* With the switch working, show one side at a time. Without JavaScript both stay stacked. */
+  .debate-tabs:not([hidden]) + .debate-sides .debate-side:not(.is-active) {
+    display: none;
+  }
+
+  .debate-tabs:not([hidden]) + .debate-sides .debate-side-title {
+    display: none;
+  }
+}
+
+@media (min-width: 992px) {
+  .debate-tabs {
+    display: none;
+  }
 }
 
 /* ---------------------------------------------------------------------------

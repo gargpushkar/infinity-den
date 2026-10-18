@@ -1,0 +1,110 @@
+{% extends "layouts/base.html" %}
+{% from "components/form_fields.html" import field, form_alert %}
+
+{% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
+{% block meta_description %}{{ seo_description }}{% endblock %}
+
+{% macro argument_card(item) -%}
+  <article class="response-card argument-card{% if item.is_featured %} is-featured{% endif %}" id="argument-{{ item.id }}">
+    <header class="response-card-meta">
+      <a class="response-author" href="{{ item.author_url }}">{{ item.author }}</a>
+      {% if item.is_featured %}<span class="content-label content-label-featured">Editor's pick</span>{% endif %}
+      {% if item.sources %}<span class="content-label">{{ item.sources|length }} {{ "source" if item.sources|length == 1 else "sources" }}</span>{% endif %}
+      <span class="response-date">{{ item.date_label }}</span>
+    </header>
+    <h3 class="argument-claim">{{ item.claim }}</h3>
+    {# body_html comes from app/utils/markdown.py, which escapes first. #}
+    <div class="article-content response-body">{{ item.body_html }}</div>
+    {% if item.sources %}
+      <ol class="response-sources" aria-label="Sources">
+        {% for source in item.sources %}
+          <li><a href="{{ source.url }}" rel="noopener nofollow" target="_blank">{{ source.title }}</a></li>
+        {% endfor %}
+      </ol>
+    {% endif %}
+    {% if not (current_member and item.author_username == current_member.username) %}
+      <a class="report-link" href="/report?type=argument&amp;id={{ item.id }}" rel="nofollow">Report</a>
+    {% endif %}
+  </article>
+{%- endmacro %}
+
+{% block content %}
+<section class="question-room debate-page">
+  <div class="container">
+    <header class="question-hero">
+      <p class="eyebrow mb-2">
+        <a href="/debates">The Debate Den</a>{% if room %} &middot; <a href="{{ room.url }}">{{ room.name }}</a>{% endif %}
+      </p>
+      <h1>{{ debate.motion }}</h1>
+      {% if debate.intro %}<p class="question-intro">{{ debate.intro }}</p>{% endif %}
+      <p class="question-count">
+        {% if debate.is_open %}Open until {{ debate.closes_label }}{% else %}Closed on {{ debate.closes_label }}{% endif %}
+        &middot; {{ debate.argument_count }} {{ "argument" if debate.argument_count == 1 else "arguments" }}
+      </p>
+    </header>
+
+    <div class="debate-tabs" role="group" aria-label="Show arguments" data-debate-tabs hidden>
+      {% for side in sides %}
+        <button class="debate-tab" type="button" aria-controls="side-{{ side.value }}" aria-pressed="false" data-debate-tab="{{ side.value }}">
+          {{ side.label }} <span>({{ side.arguments|length }})</span>
+        </button>
+      {% endfor %}
+    </div>
+
+    <div class="debate-sides" data-debate-sides>
+      {% for side in sides %}
+        <section class="debate-side" id="side-{{ side.value }}" aria-labelledby="sideTitle-{{ side.value }}" data-debate-side="{{ side.value }}">
+          <h2 class="question-section-title debate-side-title" id="sideTitle-{{ side.value }}">{{ side.label }} <span>{{ side.arguments|length }}</span></h2>
+          {% for item in side.arguments %}{{ argument_card(item) }}{% else %}
+            <p class="member-profile-empty">No arguments on this side yet.{% if debate.is_open %} Yours could be the first.{% endif %}</p>
+          {% endfor %}
+        </section>
+      {% endfor %}
+    </div>
+
+    <section class="question-respond debate-argue" id="your-argument" aria-labelledby="argueTitle">
+      <h2 class="question-section-title" id="argueTitle">{% if own_argument %}Your argument{% else %}Make your case{% endif %}</h2>
+      {{ form_alert(error, notice) }}
+      {% if own_argument and own_argument.is_hidden %}
+        <div class="member-alert member-alert-review" role="note">Editors have hidden your argument, so only you can see it.</div>
+      {% endif %}
+
+      {% if not debate.is_open %}
+        <p class="member-lede">This debate is closed. The arguments stay here to read.</p>
+      {% elif signed_in and current_member and not current_member.email_confirmed %}
+        {% with confirm_action = "argue" %}{% include "components/confirm_email_note.html" %}{% endwith %}
+      {% elif signed_in %}
+        <form class="member-form" method="post" action="{{ debate.url }}/argue" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <fieldset class="member-field member-format-choice">
+            <legend>Which side are you arguing?</legend>
+            {% for value, label in side_labels.items() %}
+              <label class="member-radio">
+                <input type="radio" name="side" value="{{ value }}" {% if values.get("side") == value %}checked{% endif %} required>
+                <span>{{ label }}</span>
+              </label>
+            {% endfor %}
+            {% if field_errors.get("side") %}<p class="member-field-error">{{ field_errors.get("side") }}</p>{% endif %}
+          </fieldset>
+          {{ field("claim", "Your point, in one line", values, field_errors, hint="Up to 150 characters, for example “Long commutes cost cities more than offices save.”", attrs='maxlength="150" required') }}
+          {{ field("body", "Your case", values, field_errors, type="textarea", hint="50 to 3,000 characters. **bold**, _italic_ and [links](https://example.org) work.", attrs='maxlength="3000" required') }}
+          {{ field("sources", "Evidence", values, field_errors, type="textarea", hint="Optional, but strong arguments show their sources. One per line: Title | https://link") }}
+          <button class="btn btn-primary member-submit" type="submit">{% if own_argument %}Update argument{% else %}Post argument{% endif %}</button>
+          <p class="member-field-hint">Arguments appear right away and follow the <a href="/guidelines">community guidelines</a>: critique ideas, not people. One argument per debate; you can edit it until the debate closes, and delete it any time.</p>
+        </form>
+      {% else %}
+        <p class="member-lede">Sign in to argue for or against this motion.</p>
+        <a class="btn btn-primary" href="/login?next={{ debate.url }}">Sign in to argue</a>
+        <p class="member-switch">New here? <a href="/join">Create an account</a></p>
+      {% endif %}
+      {# Members can always take their own argument down, even after the debate closes. #}
+      {% if own_argument %}
+        <form class="member-signout" method="post" action="{{ debate.url }}/argue/delete">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="btn btn-outline-primary" type="submit">Delete my argument</button>
+        </form>
+      {% endif %}
+    </section>
+  </div>
+</section>
+{% endblock %}

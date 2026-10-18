@@ -9,6 +9,7 @@ from pydantic import ValidationError
 
 from app.models.article import ARTICLE_COLLECTION
 from app.models.comment import COMMENT_COLLECTION
+from app.models.debate import ARGUMENT_COLLECTION, DEBATE_COLLECTION
 from app.models.question import QUESTION_COLLECTION, RESPONSE_COLLECTION
 from app.models.report import REPORT_COLLECTION
 from app.schemas.admin import AdminRead
@@ -24,7 +25,7 @@ SAM = MemberRead(_id="fedcba9876543210fedcba98", username="sam", display_name="S
 LEE = MemberRead(_id="0000000000000000000000ee", username="lee", display_name="Lee", email="l@x.org", created_at=NOW)
 EDITOR = AdminRead(_id="0000000000000000000000ad", username="editor", role="editor", created_at=NOW)
 
-ARTICLE, QUESTION, RESPONSE, COMMENT, DRAFT = (ObjectId() for _ in range(5))
+ARTICLE, QUESTION, RESPONSE, COMMENT, DRAFT, DEBATE, ARGUMENT = (ObjectId() for _ in range(7))
 
 
 def _run(coroutine):
@@ -40,6 +41,8 @@ def _service() -> ReportService:
         QUESTION_COLLECTION: FakeCollection([{"_id": QUESTION, "slug": "q-wisdom"}]),
         RESPONSE_COLLECTION: FakeCollection([{"_id": RESPONSE, "question_id": str(QUESTION), "user_id": SAM.id, "author": "Sam", "body": "An answer.", "status": "published"}]),
         COMMENT_COLLECTION: FakeCollection([{"_id": COMMENT, "article_id": str(ARTICLE), "user_id": SAM.id, "author": "Sam", "body": "Buy pills.", "status": "published"}]),
+        DEBATE_COLLECTION: FakeCollection([{"_id": DEBATE, "slug": "remote-work-1a2b"}]),
+        ARGUMENT_COLLECTION: FakeCollection([{"_id": ARGUMENT, "debate_id": str(DEBATE), "user_id": SAM.id, "author": "Sam", "claim": "Commutes cost more", "body": "Because.", "status": "published"}]),
         REPORT_COLLECTION: FakeCollection(),
     })
 
@@ -63,6 +66,8 @@ def test_targets_link_to_where_they_appear():
     assert _run(service.target("comment", str(COMMENT)))["url"] == f"/articles/theseus#comment-{COMMENT}"
     assert _run(service.target("response", str(RESPONSE)))["url"] == f"/questions/q-wisdom#response-{RESPONSE}"
     assert _run(service.target("article", str(ARTICLE)))["url"] == "/articles/theseus"
+    argument = _run(service.target("argument", str(ARGUMENT)))
+    assert argument["url"] == f"/debates/remote-work-1a2b#argument-{ARGUMENT}" and argument["text"].startswith("Commutes cost more")
 
 
 def test_members_cannot_report_their_own_work_or_unpublished_items():

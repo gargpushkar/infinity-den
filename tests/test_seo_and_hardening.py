@@ -10,6 +10,7 @@ from starlette.requests import Request
 from app.main import app
 from app.models.article import ARTICLE_COLLECTION
 from app.models.category import CATEGORY_COLLECTION
+from app.models.debate import DEBATE_COLLECTION
 from app.models.question import QUESTION_COLLECTION
 from app.models.quiz import QUIZ_COLLECTION
 from app.routes.public.seo import article_schema, robots_txt
@@ -47,11 +48,15 @@ def test_sitemap_lists_only_what_search_engines_should_see():
         ]),
         QUIZ_COLLECTION: FakeCollection([{"slug": "claim-ab12", "status": "published", "updated_at": NOW},
                                          {"slug": "hidden-cd34", "status": "draft", "updated_at": NOW}]),
+        DEBATE_COLLECTION: FakeCollection([{"slug": "remote-work-ab12", "status": "published", "updated_at": NOW},
+                                           {"slug": "unset-cd34", "status": "draft", "updated_at": NOW}]),
     }
     paths = dict(asyncio.run(sitemap_entries(database)))
-    assert {"/", "/categories/science", "/articles/live", "/questions/2026-01-01-past", "/play/claim-ab12"} <= paths.keys()
+    assert {"/", "/categories/science", "/articles/live", "/questions/2026-01-01-past", "/play/claim-ab12",
+            "/debates", "/debates/remote-work-ab12"} <= paths.keys()
     assert paths["/articles/live"] == "2026-10-16"
-    assert not {"/articles/draft", "/questions/2999-01-01-future", "/questions/2026-01-02-draft", "/play/hidden-cd34"} & paths.keys()
+    assert not {"/articles/draft", "/questions/2999-01-01-future", "/questions/2026-01-02-draft", "/play/hidden-cd34",
+                "/debates/unset-cd34"} & paths.keys()
 
 
 def test_robots_keeps_private_pages_out_and_points_to_the_sitemap():

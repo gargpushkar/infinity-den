@@ -1,4 +1,4 @@
-"""Reports: members flag articles, responses, and comments; editors hide or dismiss.
+"""Reports: members flag articles, responses, comments, and arguments; editors hide or dismiss.
 
 Nothing changes publicly until an editor acts. Hiding a response or comment
 sets it to "hidden"; hiding an article archives it, so it leaves the site but
@@ -18,6 +18,7 @@ from app.config.constants import ARTICLE_STATUS_PUBLISHED, REPORT_REASONS
 from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION
 from app.models.comment import COMMENT_COLLECTION
+from app.models.debate import ARGUMENT_COLLECTION, DEBATE_COLLECTION
 from app.models.question import QUESTION_COLLECTION, RESPONSE_COLLECTION
 from app.models.report import REPORT_COLLECTION, ReportDocument
 from app.schemas.admin import AdminRead
@@ -29,9 +30,20 @@ from app.schemas.user import MemberRead
 # community. Move grouping to an aggregation if open reports reach thousands.
 QUEUE_LIMIT = 500
 HANDLED_LIMIT = 20
-TARGET_LABELS = {"article": "Piece", "response": "Response", "comment": "Comment"}
-HIDDEN_STATUS = {"article": "archived", "response": "hidden", "comment": "hidden"}
-COLLECTIONS = {"article": ARTICLE_COLLECTION, "response": RESPONSE_COLLECTION, "comment": COMMENT_COLLECTION}
+TARGET_LABELS = {"article": "Piece", "response": "Response", "comment": "Comment", "argument": "Argument"}
+HIDDEN_STATUS = {"article": "archived", "response": "hidden", "comment": "hidden", "argument": "hidden"}
+COLLECTIONS = {
+    "article": ARTICLE_COLLECTION,
+    "response": RESPONSE_COLLECTION,
+    "comment": COMMENT_COLLECTION,
+    "argument": ARGUMENT_COLLECTION,
+}
+# Where a response, comment, or argument lives: (parent id field, parent collection, URL base).
+PARENTS = {
+    "response": ("question_id", QUESTION_COLLECTION, "/questions"),
+    "comment": ("article_id", ARTICLE_COLLECTION, "/articles"),
+    "argument": ("debate_id", DEBATE_COLLECTION, "/debates"),
+}
 
 
 class ReportError(Exception):
@@ -73,12 +85,11 @@ class ReportService:
             text, author, owner_id = document.get("title", ""), document.get("author", ""), document.get("author_id")
             url, is_visible = f"/articles/{document.get('slug')}", document.get("status") == ARTICLE_STATUS_PUBLISHED
         else:
-            parent_type, parent_key = ("question", "question_id") if target_type == "response" else ("article", "article_id")
-            parent_collection = QUESTION_COLLECTION if parent_type == "question" else ARTICLE_COLLECTION
+            parent_key, parent_collection, base = PARENTS[target_type]
             parent = await self.database[parent_collection].find_one({"_id": _object_id(document.get(parent_key))}, {"slug": 1})
-            base = "/questions" if parent_type == "question" else "/articles"
             url = f"{base}/{parent['slug']}#{target_type}-{target_id}" if parent else ""
-            text, author, owner_id = document.get("body", ""), document.get("author", ""), document.get("user_id")
+            text = f"{document['claim']}: {document.get('body', '')}" if target_type == "argument" else document.get("body", "")
+            author, owner_id = document.get("author", ""), document.get("user_id")
             is_visible = document.get("status") == "published"
 
         return {

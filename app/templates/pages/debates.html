@@ -1,0 +1,52 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
+{% block meta_description %}{{ seo_description }}{% endblock %}
+
+{% block content %}
+<section class="question-room">
+  <div class="container">
+    <header class="question-hero">
+      <p class="eyebrow mb-2">The Debate Den</p>
+      <h1>Judge the argument, not the side.</h1>
+      <p class="question-intro">Each debate is one motion. Members make the strongest case for or against it, with their evidence. Read both sides, then decide where you stand.</p>
+    </header>
+
+    {% if is_unavailable %}
+      <p class="member-profile-empty">The Debate Den is unavailable right now. Please try again shortly.</p>
+    {% else %}
+      <section class="debate-list-section" aria-labelledby="openTitle">
+        <h2 class="question-section-title" id="openTitle">Open debates</h2>
+        {% if open_debates %}
+          <ul class="debate-list" role="list">
+            {% for item in open_debates %}
+              <li>
+                <a class="debate-row" href="{{ item.url }}">
+                  <strong>{{ item.motion }}</strong>
+                  <span>Open until {{ item.closes_label }} &middot; {{ item.argument_count }} {{ "argument" if item.argument_count == 1 else "arguments" }}</span>
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="member-profile-empty">No debate is open right now. A new motion is on its way.</p>
+        {% endif %}
+      </section>
+
+      {% if closed_debates %}
+        <section class="question-archive" aria-labelledby="closedTitle">
+          <h2 class="question-section-title" id="closedTitle">Past debates</h2>
+          <ul role="list">
+            {% for item in closed_debates %}
+              <li>
+                <a href="{{ item.url }}">{{ item.motion }}</a>
+                <span>Closed on {{ item.closes_label }} &middot; {{ item.argument_count }} {{ "argument" if item.argument_count == 1 else "arguments" }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

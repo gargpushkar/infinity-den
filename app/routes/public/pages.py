@@ -18,7 +18,7 @@ POLICY_PAGES = {
     "/guidelines": {
         "title": "Community guidelines",
         "template": "pages/policy_guidelines.html",
-        "updated": "October 17, 2026",
+        "updated": "October 18, 2026",
         "description": "How we talk to each other on Infinity Den: critique arguments, not people.",
     },
     "/editorial-policy": {

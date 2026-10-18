@@ -16,7 +16,7 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 - [ ] Phase 3 — Community growth
 
 ## Current Focus
-- [ ] `feature/community-pages`
+- [x] `feature/community-pages`
 - [x] Password reset by email (`feature/password-reset`; Brevo over SMTP)
 - [x] Brevo: domain authenticated in GoDaddy DNS; sending from dave@infinityden.com verified (inbox, SPF/DKIM/DMARC pass)
 - [ ] On the server: SMTP settings, `MAIL_FROM`, `SITE_URL`, and the server's IP in Brevo's Authorised IPs
@@ -24,7 +24,7 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 - [x] Account deletion: members request it (account deactivated at once, deleted within 30 days); editors delete from `/admin/deletions` or `scripts/delete_members.py`, one or many emails at a time (`feature/deletion-requests`)
 - [x] Emails to writers when an editor publishes their piece or sends it back with a note
 - [ ] Newsletter: confirmed subscriptions, one-click unsubscribe, sending from admin (or reword the footer until then)
-- [ ] Then Phase 2, starting with the Debate Den
+- [ ] Phase 2: the Debate Den, in four branches (below)
 
 ---
 
@@ -147,6 +147,10 @@ order; each assumes the previous ones are merged.
 # PHASE 2 — INTERACTION
 
 - [ ] Debate Den with separate clarity / evidence / reasoning ratings
+  - [x] `feature/debate-motions`: editors set motions with a closing date; members post one argument per debate, for or against, with optional sources; posted at once, reportable, hideable, featurable; `/debates`, `/debates/{slug}`
+  - [ ] `feature/debate-rebuttals`: one level of replies to an argument from the other side (one per member per argument, about 1,000 characters)
+  - [ ] `feature/debate-ratings`: clarity, evidence, and reasoning, 1–5 each; confirmed members, not your own; averages shown after 3 ratings; never used for ordering
+  - [ ] `feature/debate-stances`: where you stand before and after reading, with an optional "why"; results (minds changed, no winner) shown once a debate closes; homepage Debate Den section; `/privacy` update
 - [ ] More Arcade games: One-Minute Quiz, Guess the Connection, Daily Brain Spark
 - [ ] Contributor reputation based on meaningful participation
 - [ ] Follow rooms and writers

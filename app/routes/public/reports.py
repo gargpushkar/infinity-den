@@ -16,7 +16,7 @@ from app.utils.rate_limit import member_report_limiter
 router = APIRouter()
 
 TEMPLATE = "pages/report.html"
-TARGET_TYPES = ("article", "response", "comment")
+TARGET_TYPES = ("article", "response", "comment", "argument")
 
 
 @router.get("/report")

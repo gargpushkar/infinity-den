@@ -1,0 +1,126 @@
+from typing import Any
+
+from fastapi import APIRouter, HTTPException, Path, Request
+from fastapi import status as http_status
+from fastapi.responses import RedirectResponse
+from pydantic import ValidationError
+from pymongo.errors import PyMongoError
+
+from app.routes.public.form_pages import FORM_EXPIRED, TOO_MANY_ATTEMPTS, field_errors, render_form_page
+from app.schemas.debate import ArgumentInput
+from app.services.debate_page_service import (
+    debate_url,
+    get_debate_context,
+    get_debates_context,
+    own_argument_values,
+)
+from app.services.debate_service import DebateClosedError, DebateService
+from app.services.member_article_service import parse_sources
+from app.services.member_session import form_csrf_is_valid, get_current_member, unconfirmed_redirect
+from app.services.question_service import site_today
+from app.utils.forms import read_form
+from app.utils.rate_limit import member_argument_limiter
+
+
+router = APIRouter()
+
+SLUG = Path(min_length=3, max_length=120)
+NOTICES = {
+    "saved": "Your argument is live.",
+    "deleted": "Your argument was removed.",
+}
+
+
+@router.get("/debates")
+async def debates_page(request: Request):
+    try:
+        context = await get_debates_context()
+    except (RuntimeError, PyMongoError):
+        context = {"open_debates": [], "closed_debates": [], "is_unavailable": True}
+    return await render_form_page(
+        request,
+        "pages/debates.html",
+        "The Debate Den",
+        values={},
+        robots="index, follow",
+        seo_description="Motions argued for and against, with evidence. Judge the argument, not the side.",
+        **context,
+    )
+
+
+@router.get("/debates/{slug}")
+async def debate_page(request: Request, slug: str = SLUG, notice: str = ""):
+    return await _page(request, slug=slug, notice=NOTICES.get(notice))
+
+
+@router.post("/debates/{slug}/argue")
+async def argue(request: Request, slug: str = SLUG):
+    member = await get_current_member(request)
+    if member is None:
+        return RedirectResponse(f"/login?next={debate_url(slug)}", status_code=303)
+    if redirect := unconfirmed_redirect(member):
+        return redirect
+
+    form = await read_form(request)
+    values = {key: form.get(key, "") for key in ("side", "claim", "body", "sources")}
+
+    if not form_csrf_is_valid(request, form):
+        return await _page(request, slug=slug, values=values, error=FORM_EXPIRED, status_code=400)
+    debate = await DebateService().get_published_debate(slug)
+    if debate is None:
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Debate was not found.")
+    if not member_argument_limiter.allow(member.id):
+        return await _page(request, slug=slug, values=values, error=TOO_MANY_ATTEMPTS, status_code=429)
+
+    try:
+        payload = ArgumentInput(
+            side=values["side"], claim=values["claim"], body=values["body"], sources=parse_sources(values["sources"])
+        )
+    except ValidationError as exc:
+        return await _page(request, slug=slug, values=values, field_errors=field_errors(exc), status_code=422)
+
+    try:
+        await DebateService().save_argument(debate, member, payload, site_today())
+    except DebateClosedError as exc:
+        return await _page(request, slug=slug, values=values, error=str(exc), status_code=409)
+    return RedirectResponse(f"{debate_url(slug)}?notice=saved#your-argument", status_code=303)
+
+
+@router.post("/debates/{slug}/argue/delete")
+async def delete_argument(request: Request, slug: str = SLUG):
+    member = await get_current_member(request)
+    if member is None:
+        return RedirectResponse(f"/login?next={debate_url(slug)}", status_code=303)
+
+    form = await read_form(request)
+    if not form_csrf_is_valid(request, form):
+        return await _page(request, slug=slug, error=FORM_EXPIRED, status_code=400)
+
+    debate = await DebateService().get_published_debate(slug)
+    if debate is not None:
+        await DebateService().delete_argument(debate.id, member)
+    return RedirectResponse(f"{debate_url(slug)}?notice=deleted", status_code=303)
+
+
+async def _page(request: Request, *, slug: str, values: dict[str, Any] | None = None, status_code: int = 200, **extra: Any):
+    try:
+        member = await get_current_member(request)
+        context = await get_debate_context(slug=slug, member=member)
+    except (RuntimeError, PyMongoError):
+        raise HTTPException(status_code=http_status.HTTP_503_SERVICE_UNAVAILABLE, detail="The Debate Den is unavailable right now.")
+    if context is None:
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Debate was not found.")
+
+    debate = context["debate"]
+    return await render_form_page(
+        request,
+        "pages/debate.html",
+        debate["motion"],
+        values=values if values is not None else own_argument_values(context),
+        status_code=status_code,
+        signed_in=member is not None,
+        robots="index, follow",
+        seo_description=debate["intro"] or f"Arguments for and against: {debate['motion']}",
+        **context,
+        **extra,
+    )

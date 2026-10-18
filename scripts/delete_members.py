@@ -55,7 +55,7 @@ async def main() -> int:
                 continue
             asked = "asked to be deleted" if row["requested"] else "did not ask"
             print(f"  {row['email']}: {row['display_name']} (@{row['username']}), {asked}; "
-                  f"{row['pieces']} pieces, {row['responses']} responses, {row['comments']} comments, {row['saved']} saved")
+                  f"{row['pieces']} pieces, {row['responses']} responses, {row['arguments']} arguments, {row['comments']} comments, {row['saved']} saved")
         found = [row["email"] for row in rows if row["found"]]
         if not args.apply:
             print(f"\nPreview only. Rerun with --apply to delete {len(found)} account(s).")
