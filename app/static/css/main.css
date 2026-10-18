@@ -4449,8 +4449,9 @@ button:focus-visible,
   margin: 0 0 0.6rem;
 }
 
+/* The form belongs to both sides, so it sits centred beneath them. */
 .debate-argue {
-  margin-top: 2.5rem;
+  margin: 2.5rem auto 0;
   max-width: 44rem;
   position: static;
 }
