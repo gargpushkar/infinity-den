@@ -2,7 +2,7 @@
    Expects `claim` from app/services/play_page_service.claim_context;
    `fof_class` styles the homepage version. #}
 <article class="fof-card {{ fof_class|default('') }}" aria-labelledby="fofClaim">
-  {% if fof_class|default('') %}{% set motif_class = "fof-motif" %}{% include "components/den_motif.html" %}{% endif %}
+  {% if fof_class|default('') == "fof-home" %}{% set motif_class = "fof-motif" %}{% include "components/den_motif.html" %}{% endif %}
   <p class="eyebrow mb-2">Curiosity Arcade &middot; Fact or fiction?</p>
   <h2 class="fof-claim" id="fofClaim">{{ claim.claim }}</h2>
 
@@ -22,7 +22,7 @@
       <a class="fof-article" href="{{ claim.article.url }}">Go deeper: {{ claim.article.title }} <span aria-hidden="true">&rarr;</span></a>
     {% endif %}
     <div class="fof-choices">
-      <a class="btn btn-primary" href="{{ claim.next_url }}">Try another</a>
+      <a class="btn btn-primary fof-choice" href="{{ claim.next_url }}">Next claim <span aria-hidden="true">&rarr;</span></a>
     </div>
   {% endif %}
 </article>

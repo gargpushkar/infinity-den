@@ -16,6 +16,13 @@ logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="app/templates")
 
 DEFAULT_ERROR_MESSAGE = "Something went wrong. Please try again shortly."
+# What the error page says; a specific message from the route (such as
+# "Debate was not found.") replaces the generic line.
+FRIENDLY_ERRORS: dict[int, tuple[str, str]] = {
+    403: ("That page isn't open to you.", "You may need to sign in with a different account."),
+    404: ("We couldn't find that page.", "The link may be old, or the page may have moved."),
+    500: ("Something went wrong on our side.", DEFAULT_ERROR_MESSAGE),
+}
 VALIDATION_ERROR_MESSAGE = "The request data could not be validated."
 
 
@@ -88,6 +95,7 @@ async def _error_response(
             payload["error"]["details"] = errors
         return JSONResponse(payload, status_code=status_code, headers=headers)
 
+    title, message = error_copy(status_code, message)
     return templates.TemplateResponse(
         request,
         "pages/error.html",
@@ -96,12 +104,20 @@ async def _error_response(
             "app_name": settings.app_name,
             "page_title": _status_phrase(status_code),
             "status_code": status_code,
-            "error_title": _status_phrase(status_code),
+            "error_title": title,
             "error_message": message,
         },
         status_code=status_code,
         headers=headers,
     )
+
+
+def error_copy(status_code: int, message: str) -> tuple[str, str]:
+    """The error page's heading and line: a route's own message wins over the generic one."""
+    title, generic = FRIENDLY_ERRORS.get(status_code, (_status_phrase(status_code), message))
+    if message in (_status_phrase(status_code), DEFAULT_ERROR_MESSAGE):
+        message = generic
+    return title, message
 
 
 async def _safe_nav_context(request: Request) -> dict[str, Any]:

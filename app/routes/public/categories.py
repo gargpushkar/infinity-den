@@ -18,20 +18,9 @@ templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/categories")
-async def category_listing(
-    request: Request,
-    page: int = Query(default=1, ge=1),
-    search: str | None = Query(default=None, max_length=120),
-    article_state: str = Query(default="all", max_length=20),
-    sort: str = Query(default="name_asc", max_length=40),
-):
+async def category_listing(request: Request):
     nav_context = await get_nav_context(request)
-    listing_context = await get_category_listing_context(
-        page=page,
-        search=search,
-        article_state=article_state,
-        sort=sort,
-    )
+    listing_context = await get_category_listing_context()
 
     return templates.TemplateResponse(
         request,
