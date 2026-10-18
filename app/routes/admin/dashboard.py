@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -22,6 +23,7 @@ from app.services.admin_csrf import ADMIN_CSRF_COOKIE, issue_admin_csrf_token
 from app.services.admin_permissions import require_admin_manager, require_destructive_admin
 from app.services.admin_session import get_current_admin
 from app.services.article_service import ArticleService
+from app.services.debate_service import DebateService, is_open
 from app.services.nav_service import get_rooms
 from app.services.question_service import QuestionService, site_today
 from app.services.quiz_service import QuizService
@@ -184,6 +186,63 @@ async def admin_question_page(
         active_nav="questions",
         page_title="Question Room",
         context={"question": question, "responses": responses, "rooms": rooms, "today": site_today()},
+    )
+
+
+@router.get("/debates")
+async def admin_debates_page(
+    request: Request,
+    admin: AdminRead = Depends(get_current_admin),
+):
+    try:
+        db = get_database()
+        debates = await DebateService(database=db).list_debates()
+        counts = await DebateService(database=db).argument_counts([d.id for d in debates])
+        rooms = await get_rooms(db)
+    except (RuntimeError, PyMongoError):
+        debates, counts, rooms = [], {}, []
+
+    today = site_today()
+    return await _admin_template(
+        request,
+        "pages/admin_debates.html",
+        admin=admin,
+        active_nav="debates",
+        page_title="Debate Den",
+        context={
+            "debates": [{"debate": d, "is_open": is_open(d, today)} for d in debates],
+            "argument_counts": counts,
+            "rooms": rooms,
+            "today": today,
+            "default_closes_on": (date.fromisoformat(today) + timedelta(days=14)).isoformat(),
+        },
+    )
+
+
+@router.get("/debates/{debate_id}")
+async def admin_debate_page(
+    request: Request,
+    debate_id: str,
+    admin: AdminRead = Depends(get_current_admin),
+):
+    try:
+        db = get_database()
+        service = DebateService(database=db)
+        debate = await service.get_debate(debate_id)
+        arguments = await service.all_arguments(debate_id) if debate else []
+        rooms = await get_rooms(db)
+    except (RuntimeError, PyMongoError):
+        debate, arguments, rooms = None, [], []
+    if debate is None:
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Debate was not found.")
+
+    return await _admin_template(
+        request,
+        "pages/admin_debate_detail.html",
+        admin=admin,
+        active_nav="debates",
+        page_title="Debate Den",
+        context={"debate": debate, "arguments": arguments, "rooms": rooms, "today": site_today()},
     )
 
 

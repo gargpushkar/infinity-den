@@ -93,7 +93,7 @@ Creative names are display text. Everything permanent is plain and descriptive.
 | Question Room | `/questions` (today's or latest), `/questions/{slug}` |
 | Human Library | `/experiences` |
 | Curiosity Arcade | `/play` (random claim), `/play/{slug}`, `/play/{slug}?answer=fact\|fiction` |
-| Debate Den (Phase 2) | `/debates` |
+| Debate Den | `/debates` (open and past debates), `/debates/{slug}` |
 | Member profile | `/members/{username}` |
 | Join / sign in / sign out | `/join`, `/login`, `/logout` |
 | Forgot / reset password | `/forgot-password`, `/reset-password?token=…` |
@@ -101,7 +101,7 @@ Creative names are display text. Everything permanent is plain and descriptive.
 | Your account | `/account` |
 | Write / edit your piece | `/write`, `/write/{id}` |
 | Saved pieces | `/saved` |
-| Report something | `/report?type=article\|response\|comment&id=…` |
+| Report something | `/report?type=article\|response\|comment\|argument&id=…` |
 | Comment on / save a piece (form posts) | `/articles/{slug}/comments`, `/articles/{slug}/bookmark` |
 | Community guidelines, editorial policy, privacy, terms | `/guidelines`, `/editorial-policy`, `/privacy`, `/terms` |
 
@@ -313,6 +313,39 @@ Fields:
 
 No votes or likes. Order: featured first, then newest.
 
+### debates
+
+Debate Den motions, set by editors.
+
+Fields:
+
+- motion — one statement to argue for or against
+- slug (motion words plus a short random tail, fixed at creation)
+- intro
+- category_id
+- closes_on — `"YYYY-MM-DD"` in `SITE_TIMEZONE`; arguments are accepted through this day, then the debate is read-only and stays readable
+- status — `draft` | `published`
+- created_at, updated_at
+
+### arguments
+
+One per member per debate (unique index); members can edit it while the debate is open and delete it any time.
+
+Fields:
+
+- debate_id
+- user_id, author, author_username
+- side — `for` | `against`
+- claim — the point in one line (up to 150 characters)
+- body (markdown subset, 50–3,000 characters)
+- sources — optional `{title, url}` list
+- is_featured (set by editors, on either side)
+- status — `published` | `hidden`
+- created_at, updated_at
+
+Posted immediately; editors can hide or feature them. Order: featured first,
+then newest. Never ordered by ratings or popularity.
+
 ### comments
 
 Flat (no replies), oldest first, posted immediately. Members can delete their
@@ -367,7 +400,7 @@ as `dismissed`.
 
 Fields:
 
-- target_type — `article` | `response` | `comment`
+- target_type — `article` | `response` | `comment` | `argument`
 - target_id
 - reporter_id
 - reason — a key of `REPORT_REASONS` in `constants.py`

@@ -91,10 +91,11 @@ class FakeCollection:
                 rows = [{**d, field: value} for d in rows for value in d.get(field) or []]
             elif operator == "$group":
                 key = spec["_id"].lstrip("$")
+                name = next(k for k in spec if k != "_id")
                 counts: dict = {}
                 for d in rows:
                     counts[d.get(key)] = counts.get(d.get(key), 0) + 1
-                rows = [{"_id": k, "total": v} for k, v in counts.items()]
+                rows = [{"_id": k, name: v} for k, v in counts.items()]
         return FakeCursor(rows)
 
     async def insert_one(self, document):

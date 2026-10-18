@@ -1068,6 +1068,44 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  document.querySelectorAll("[data-admin-debate-form]").forEach((form) => {
+    const message = form.querySelector("[data-admin-form-message]");
+    const debateId = form.getAttribute("data-debate-id");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const formData = new FormData(form);
+      const submitButton = form.querySelector("[type='submit']");
+      submitButton.disabled = true;
+      setAdminMessage(message, "Saving debate...");
+      try {
+        const debate = await adminJsonRequest(
+          debateId ? `/api/admin/debates/${debateId}` : "/api/admin/debates",
+          {
+            method: debateId ? "PATCH" : "POST",
+            body: {
+              motion: String(formData.get("motion") || "").trim(),
+              intro: String(formData.get("intro") || "").trim() || null,
+              category_id: String(formData.get("category_id") || "") || null,
+              closes_on: String(formData.get("closes_on") || ""),
+              status: String(formData.get("status") || "draft"),
+            },
+          },
+        );
+        setAdminMessage(message, "Debate saved.", "success");
+        window.setTimeout(() => window.location.assign(`/admin/debates/${debate.id}`), 450);
+      } catch (error) {
+        setAdminMessage(message, error.message, "error");
+        submitButton.disabled = false;
+      }
+    });
+  });
+
   document.querySelectorAll("[data-admin-quiz-form]").forEach((form) => {
     const message = form.querySelector("[data-admin-form-message]");
     const itemId = form.getAttribute("data-item-id");
@@ -1107,14 +1145,36 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  document.querySelectorAll("[data-admin-response-action]").forEach((button) => {
+  // Debate Den: on small screens the two sides become a switch (CSS hides the
+  // inactive side only once this runs). Open on the side a linked argument is on.
+  document.querySelectorAll("[data-debate-tabs]").forEach((tabs) => {
+    const sides = tabs.nextElementSibling.querySelectorAll("[data-debate-side]");
+    const show = (value) => {
+      tabs.querySelectorAll("[data-debate-tab]").forEach((tab) => {
+        tab.setAttribute("aria-pressed", String(tab.dataset.debateTab === value));
+      });
+      sides.forEach((side) => side.classList.toggle("is-active", side.dataset.debateSide === value));
+    };
+    tabs.addEventListener("click", (event) => {
+      const tab = event.target.closest("[data-debate-tab]");
+      if (tab) show(tab.dataset.debateTab);
+    });
+    const linked = window.location.hash.startsWith("#argument-")
+      ? document.getElementById(window.location.hash.slice(1))?.closest("[data-debate-side]")
+      : null;
+    show(linked ? linked.dataset.debateSide : sides[0]?.dataset.debateSide);
+    tabs.hidden = false;
+  });
+
+  // Feature / hide buttons for responses and arguments.
+  document.querySelectorAll("[data-admin-moderate-url]").forEach((button) => {
     button.addEventListener("click", async () => {
       const message = document.querySelector("[data-admin-table-message]");
       const field = button.getAttribute("data-field");
       const raw = button.getAttribute("data-value");
       button.disabled = true;
       try {
-        await adminJsonRequest(`/api/admin/responses/${button.getAttribute("data-response-id")}`, {
+        await adminJsonRequest(button.getAttribute("data-admin-moderate-url"), {
           method: "PATCH",
           body: { [field]: field === "is_featured" ? raw === "true" : raw },
         });
@@ -1145,7 +1205,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (item.found) {
         name.textContent = `${item.display_name} (@${item.username})`;
         detail.textContent = `${item.email}${item.requested ? " · asked to be deleted" : " · did not ask"} · ` +
-          `${item.pieces} pieces, ${item.responses} responses, ${item.comments} comments, ${item.saved} saved`;
+          `${item.pieces} pieces, ${item.responses} responses, ${item.arguments} arguments, ${item.comments} comments, ${item.saved} saved`;
       } else {
         name.textContent = item.email;
         detail.textContent = "No account with this address; nothing to delete.";

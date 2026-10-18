@@ -13,6 +13,7 @@ from pymongo import DESCENDING
 from app.config.constants import ARTICLE_STATUS_PUBLISHED
 from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION
+from app.models.debate import DEBATE_COLLECTION
 from app.models.question import QUESTION_COLLECTION
 from app.models.quiz import QUIZ_COLLECTION
 from app.services.nav_service import get_rooms
@@ -21,7 +22,7 @@ from app.services.question_service import site_today
 
 # One sitemap file holds 50,000 URLs; split into an index before reaching it.
 URL_LIMIT = 45_000
-SECTION_PAGES = ("/", "/articles", "/categories", "/questions", "/experiences", "/play",
+SECTION_PAGES = ("/", "/articles", "/categories", "/questions", "/debates", "/experiences", "/play",
                  "/guidelines", "/editorial-policy", "/privacy", "/terms")
 
 
@@ -40,6 +41,9 @@ async def sitemap_entries(database: AsyncIOMotorDatabase | None = None) -> list[
         {"status": "published", "publish_date": {"$lte": site_today()}}, {"slug": 1, "publish_date": 1}
     ).sort([("publish_date", DESCENDING)]).limit(URL_LIMIT)
     entries += [(f"/questions/{q['slug']}", q.get("publish_date")) async for q in questions]
+
+    debates = db[DEBATE_COLLECTION].find({"status": "published"}, {"slug": 1, "updated_at": 1}).limit(URL_LIMIT)
+    entries += [(f"/debates/{d['slug']}", _day(d.get("updated_at"))) async for d in debates]
 
     claims = db[QUIZ_COLLECTION].find({"status": "published"}, {"slug": 1, "updated_at": 1}).limit(URL_LIMIT)
     entries += [(f"/play/{c['slug']}", _day(c.get("updated_at"))) async for c in claims]

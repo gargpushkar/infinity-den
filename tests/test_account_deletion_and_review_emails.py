@@ -10,6 +10,7 @@ from app.models.article import ARTICLE_COLLECTION
 from app.models.bookmark import BOOKMARK_COLLECTION
 from app.models.category import CATEGORY_COLLECTION
 from app.models.comment import COMMENT_COLLECTION
+from app.models.debate import ARGUMENT_COLLECTION
 from app.models.question import RESPONSE_COLLECTION
 from app.models.report import REPORT_COLLECTION
 from app.models.user import USER_COLLECTION, UserDocument
@@ -48,6 +49,7 @@ def _world(tmp_path):
             {"user_id": str(other), "article_id": str(others_piece)},       # unrelated, stays
         ]),
         RESPONSE_COLLECTION: FakeCollection([{"user_id": str(mira)}, {"user_id": str(other)}]),
+        ARGUMENT_COLLECTION: FakeCollection([{"user_id": str(mira)}, {"user_id": str(other)}]),
         BOOKMARK_COLLECTION: FakeCollection([
             {"user_id": str(mira), "article_id": str(others_piece)},
             {"user_id": str(other), "article_id": str(piece)},             # someone saved Mira's piece
@@ -96,7 +98,7 @@ def test_editor_deletion_removes_everything_and_keeps_only_the_email(media):
     asyncio.run(service.request(mira, "mira-password-1"))
     preview = asyncio.run(service.preview(parse_emails("MIRA@example.org, nobody@example.org\nmira@example.org")))
     assert [(row["email"], row["found"]) for row in preview] == [("mira@example.org", True), ("nobody@example.org", False)]
-    assert preview[0]["pieces"] == 1 and preview[0]["requested"] is True
+    assert preview[0]["pieces"] == 1 and preview[0]["arguments"] == 1 and preview[0]["requested"] is True
     assert len(db[USER_COLLECTION].documents) == 2  # previewing deletes nothing
 
     results = asyncio.run(service.delete_by_emails(["mira@example.org", "nobody@example.org"], editor="ed"))
@@ -107,6 +109,7 @@ def test_editor_deletion_removes_everything_and_keeps_only_the_email(media):
     assert all(a["author_id"] == other for a in db[ARTICLE_COLLECTION].documents)
     assert len(db[COMMENT_COLLECTION].documents) == 1 and db[COMMENT_COLLECTION].documents[0]["user_id"] == other
     assert [r["user_id"] for r in db[RESPONSE_COLLECTION].documents] == [other]
+    assert [a["user_id"] for a in db[ARGUMENT_COLLECTION].documents] == [other]
     assert len(db[BOOKMARK_COLLECTION].documents) == 1
     assert not list(media.iterdir())
     filed, about_mira = db[REPORT_COLLECTION].documents

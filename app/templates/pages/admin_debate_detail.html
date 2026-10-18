@@ -1,0 +1,51 @@
+{% extends "layouts/admin.html" %}
+
+{% block admin_content %}
+<section class="admin-section-header">
+  <div>
+    <p class="admin-kicker mb-2">Debate &middot; {{ debate.status }} &middot; open until {{ debate.closes_on }}</p>
+    <h2>{{ debate.motion }}</h2>
+  </div>
+  <div class="admin-row-actions">
+    <a class="btn btn-outline-primary" href="/debates/{{ debate.slug }}" target="_blank" rel="noopener">View</a>
+    <a class="btn btn-outline-primary" href="/admin/debates">All debates</a>
+  </div>
+</section>
+
+<section class="admin-split">
+  {% include "partials/admin_debate_form.html" %}
+
+  <section class="admin-panel">
+    <div class="admin-panel-header">
+      <div>
+        <p class="admin-kicker mb-1">Arguments</p>
+        <h2>{{ arguments|length }} arguments</h2>
+      </div>
+      <p class="admin-muted mb-0" data-admin-table-message role="status">Feature the best-argued, on either side.</p>
+    </div>
+    {% if arguments %}
+      <div class="admin-list">
+        {% for argument in arguments %}
+          <article class="admin-resource-row">
+            <div>
+              <strong>{{ argument.claim }}</strong>
+              <small>{{ argument.side }} &middot; {{ argument.author }} (@{{ argument.author_username }}) &middot; {{ argument.sources|length }} sources &middot; {{ argument.status }}{% if argument.is_featured %}, featured{% endif %}</small>
+              <p>{{ argument.body|truncate(400) }}</p>
+            </div>
+            <div class="admin-row-actions">
+              <button type="button" data-admin-moderate-url="/api/admin/arguments/{{ argument.id }}" data-field="is_featured" data-value="{{ 'false' if argument.is_featured else 'true' }}">{{ "Unfeature" if argument.is_featured else "Feature" }}</button>
+              <button type="button" data-admin-moderate-url="/api/admin/arguments/{{ argument.id }}" data-field="status" data-value="{{ 'published' if argument.status == 'hidden' else 'hidden' }}">{{ "Restore" if argument.status == "hidden" else "Hide" }}</button>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="admin-empty">No arguments yet.</p>
+    {% endif %}
+
+    {% if admin.role == "admin" %}
+      <button class="btn btn-outline-danger mt-3" type="button" data-admin-delete-resource data-delete-url="/api/admin/debates/{{ debate.id }}" data-delete-label="this debate and its arguments" data-after-delete="/admin/debates">Delete debate</button>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

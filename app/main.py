@@ -15,6 +15,7 @@ from app.routes.admin.auth import router as admin_auth_pages_router
 from app.routes.admin.dashboard import router as admin_dashboard_router
 from app.routes.api.admin_auth import router as admin_auth_router
 from app.routes.api.admin_covers import router as admin_covers_router
+from app.routes.api.admin_debates import router as admin_debates_router
 from app.routes.api.admin_deletions import router as admin_deletions_router
 from app.routes.api.admin_dashboard import router as admin_dashboard_api_router
 from app.routes.api.admin_questions import router as admin_questions_router
@@ -30,6 +31,7 @@ from app.routes.api.tags import router as tags_router
 from app.routes.public.articles import router as public_articles_router
 from app.routes.public.categories import router as public_categories_router
 from app.routes.public.covers import router as covers_router
+from app.routes.public.debates import router as debates_router
 from app.routes.public.experiences import router as experiences_router
 from app.routes.public.home import router as home_router
 from app.routes.public.members import router as members_router
@@ -90,6 +92,7 @@ register_exception_handlers(app)
 register_security_middleware(app)
 app.include_router(admin_auth_router)
 app.include_router(admin_covers_router)
+app.include_router(admin_debates_router)
 app.include_router(admin_deletions_router)
 app.include_router(admin_dashboard_api_router)
 app.include_router(admin_questions_router)
@@ -105,6 +108,7 @@ app.include_router(tags_router)
 app.include_router(public_articles_router)
 app.include_router(public_categories_router)
 app.include_router(covers_router)
+app.include_router(debates_router)
 app.include_router(experiences_router)
 app.include_router(home_router)
 app.include_router(members_router)

@@ -1,0 +1,48 @@
+{# Create or edit a debate. Expects `debate` (or none), `rooms`, `today`, and `default_closes_on` for a new one. #}
+<form class="admin-panel admin-resource-form" method="post" data-admin-debate-form data-debate-id="{{ debate.id if debate else '' }}">
+  <div class="admin-panel-header">
+    <div>
+      <p class="admin-kicker mb-1">{% if debate %}Edit debate{% else %}New debate{% endif %}</p>
+      <h2>{% if debate %}Update the motion{% else %}Set a motion{% endif %}</h2>
+    </div>
+  </div>
+
+  <div class="admin-field">
+    <label for="debateMotion">Motion</label>
+    <textarea class="form-control" id="debateMotion" name="motion" rows="3" minlength="10" maxlength="200" required>{{ debate.motion if debate else '' }}</textarea>
+    <p class="admin-field-note">One clear statement people can be for or against, e.g. "This house believes remote work is better for society than office work."</p>
+  </div>
+
+  <div class="admin-field">
+    <label for="debateIntro">Intro</label>
+    <textarea class="form-control" id="debateIntro" name="intro" rows="4" maxlength="1000">{{ debate.intro if debate and debate.intro else '' }}</textarea>
+    <p class="admin-field-note">Optional. Context, and what the motion does and doesn't mean.</p>
+  </div>
+
+  <div class="admin-field">
+    <label for="debateRoom">Room</label>
+    <select class="form-select" id="debateRoom" name="category_id">
+      <option value="">No room</option>
+      {% for room in rooms %}
+        <option value="{{ room.slug }}" {% if debate and debate.category_id == room.slug %}selected{% endif %}>{{ room.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="admin-field">
+    <label for="debateCloses">Open until</label>
+    <input class="form-control" id="debateCloses" name="closes_on" type="date" value="{{ debate.closes_on if debate else default_closes_on }}" required>
+    <p class="admin-field-note">The last day members can post arguments (site timezone; today is {{ today }}). To close a debate now, set yesterday's date.</p>
+  </div>
+
+  <div class="admin-field">
+    <label for="debateStatus">Status</label>
+    <select class="form-select" id="debateStatus" name="status">
+      <option value="draft" {% if not debate or debate.status == "draft" %}selected{% endif %}>Draft</option>
+      <option value="published" {% if debate and debate.status == "published" %}selected{% endif %}>Published (live now)</option>
+    </select>
+  </div>
+
+  <p class="admin-form-message" data-admin-form-message role="status">Ready to save.</p>
+  <button class="btn btn-primary w-100" type="submit">{% if debate %}Save debate{% else %}Create debate{% endif %}</button>
+</form>

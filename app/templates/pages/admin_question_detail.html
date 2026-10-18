@@ -33,8 +33,8 @@
               <p>{{ response.body|truncate(400) }}</p>
             </div>
             <div class="admin-row-actions">
-              <button type="button" data-admin-response-action data-response-id="{{ response.id }}" data-field="is_featured" data-value="{{ 'false' if response.is_featured else 'true' }}">{{ "Unfeature" if response.is_featured else "Feature" }}</button>
-              <button type="button" data-admin-response-action data-response-id="{{ response.id }}" data-field="status" data-value="{{ 'published' if response.status == 'hidden' else 'hidden' }}">{{ "Restore" if response.status == "hidden" else "Hide" }}</button>
+              <button type="button" data-admin-moderate-url="/api/admin/responses/{{ response.id }}" data-field="is_featured" data-value="{{ 'false' if response.is_featured else 'true' }}">{{ "Unfeature" if response.is_featured else "Feature" }}</button>
+              <button type="button" data-admin-moderate-url="/api/admin/responses/{{ response.id }}" data-field="status" data-value="{{ 'published' if response.status == 'hidden' else 'hidden' }}">{{ "Restore" if response.status == "hidden" else "Hide" }}</button>
             </div>
           </article>
         {% endfor %}

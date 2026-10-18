@@ -21,25 +21,29 @@
       <span>04</span>
       Question Room
     </a>
-    <a class="{% if active_nav == 'arcade' %}is-active{% endif %}" href="/admin/arcade">
+    <a class="{% if active_nav == 'debates' %}is-active{% endif %}" href="/admin/debates">
       <span>05</span>
+      Debate Den
+    </a>
+    <a class="{% if active_nav == 'arcade' %}is-active{% endif %}" href="/admin/arcade">
+      <span>06</span>
       Arcade
     </a>
     <a class="{% if active_nav == 'reports' %}is-active{% endif %}" href="/admin/reports">
-      <span>06</span>
+      <span>07</span>
       Reports{% if open_reports %} <em class="admin-nav-count" aria-label="{{ open_reports }} open">{{ open_reports }}</em>{% endif %}
     </a>
     <a class="{% if active_nav == 'submissions' %}is-active{% endif %}" href="/admin/submissions">
-      <span>07</span>
+      <span>08</span>
       Submissions
     </a>
     {% if admin.role == "admin" %}
       <a class="{% if active_nav == 'users' %}is-active{% endif %}" href="/admin/users">
-        <span>08</span>
+        <span>09</span>
         Users
       </a>
       <a class="{% if active_nav == 'deletions' %}is-active{% endif %}" href="/admin/deletions">
-        <span>09</span>
+        <span>10</span>
         Deletions{% if pending_deletions %} <em class="admin-nav-count" aria-label="{{ pending_deletions }} waiting">{{ pending_deletions }}</em>{% endif %}
       </a>
     {% endif %}
