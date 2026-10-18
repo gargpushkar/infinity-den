@@ -90,7 +90,7 @@ Creative names are display text. Everything permanent is plain and descriptive.
 | Room | `/categories/{slug}` (the single canonical room page) |
 | Room filtered by format | `/categories/{slug}?format=experience` |
 | Article | `/articles/{slug}` (flat, never nested under a room) |
-| Question Room | `/questions` (today's or latest), `/questions/{slug}` |
+| Question Room | `/questions` (today's or latest), `/questions/{slug}`; `?kind=thought\|answer\|story\|researched` shows one kind of response |
 | Human Library | `/experiences` |
 | Curiosity Arcade | `/play` (random claim), `/play/{slug}`, `/play/{slug}?answer=fact\|fiction` |
 | Debate Den | `/debates` (open and past debates), `/debates/{slug}` (rebuttals link as `#rebuttal-{id}`) |
@@ -311,7 +311,7 @@ Fields:
 - status — `published` | `hidden`
 - created_at, updated_at
 
-No votes or likes. Order: featured first, then newest.
+No votes or likes. Order: featured first (shown as quotes at the top), then newest; the list folds after 8.
 
 ### debates
 

@@ -5,15 +5,26 @@
 {% block meta_description %}{{ seo_description }}{% endblock %}
 
 {% macro response_card(item) -%}
-  <article class="response-card{% if item.is_featured %} is-featured{% endif %}" id="response-{{ item.id }}">
-    <header class="response-card-meta">
-      <a class="response-author" href="{{ item.author_url }}">{{ item.author }}</a>
-      <span class="content-label">{{ item.kind_label }}</span>
-      {% if item.is_featured %}<span class="content-label content-label-featured">Editor's pick</span>{% endif %}
-      <span class="response-date">{{ item.date_label }}</span>
+  {% set is_mine = current_member and item.author_username == current_member.username %}
+  <article class="qr-card{% if item.is_short %} is-short{% endif %}" id="response-{{ item.id }}">
+    <header class="argument-byline">
+      <span class="argument-initial" aria-hidden="true"><span>{{ item.initial }}</span></span>
+      <span class="argument-author"><a href="{{ item.author_url }}">{{ item.author }}</a> <span class="argument-date">&middot; {{ item.date_label }}{% if is_mine %} &middot; you{% endif %}</span></span>
+      <span class="qr-kind qr-kind-{{ item.kind }}">{{ item.kind_label }}</span>
     </header>
+    {% if item.is_featured %}<p class="qr-pick">Editor's pick</p>{% endif %}
     {# body_html comes from app/utils/markdown.py, which escapes first. #}
-    <div class="article-content response-body">{{ item.body_html }}</div>
+    {% if item.is_long %}
+      <div class="argument-case">
+        <p class="argument-preview">{{ item.preview }}</p>
+        <details class="argument-full">
+          <summary><span class="when-closed">Read more</span><span class="when-open">Show less</span></summary>
+          <div class="response-body">{{ item.body_html }}</div>
+        </details>
+      </div>
+    {% else %}
+      <div class="response-body qr-body">{{ item.body_html }}</div>
+    {% endif %}
     {% if item.sources %}
       <ol class="response-sources" aria-label="Sources">
         {% for source in item.sources %}
@@ -21,106 +32,174 @@
         {% endfor %}
       </ol>
     {% endif %}
-    {% if not (current_member and item.author_url == "/members/" ~ current_member.username) %}
-      <a class="report-link" href="/report?type=response&amp;id={{ item.id }}" rel="nofollow">Report</a>
-    {% endif %}
+    <p class="qr-card-actions">
+      {% if is_mine %}
+        <a class="argument-action" href="#your-response">Edit</a>
+      {% else %}
+        <a class="report-link" href="/report?type=response&amp;id={{ item.id }}" rel="nofollow">Report</a>
+      {% endif %}
+    </p>
   </article>
 {%- endmacro %}
 
 {% block content %}
-<section class="question-room">
-  <div class="container">
-    {% if question %}
-      <header class="question-hero">
-        <p class="eyebrow mb-2">
+<div class="qr-page">
+  <section class="qr-hero" aria-labelledby="questionTitle">
+    {% include "components/den_motif.html" %}
+    <div class="container qr-hero-inner">
+      {% if question %}
+        <p class="qr-hero-label">
           {% if question.is_today %}Today's question{% else %}Question of {{ question.date_label }}{% endif %}
           {% if room %} &middot; <a href="{{ room.url }}">{{ room.name }}</a>{% endif %}
+          {% if question.is_today %} &middot; {{ question.weekday_label }}{% endif %}
         </p>
-        <h1>{{ question.text }}</h1>
-        {% if question.intro %}<p class="question-intro">{{ question.intro }}</p>{% endif %}
-        <p class="question-count">{{ question.response_count }} {{ "response" if question.response_count == 1 else "responses" }}</p>
-      </header>
-
-      <div class="question-layout">
-        <div class="question-responses">
-          {% if featured_responses %}
-            <section aria-labelledby="featuredTitle">
-              <h2 class="question-section-title" id="featuredTitle">Insightful responses</h2>
-              {% for item in featured_responses %}{{ response_card(item) }}{% endfor %}
-            </section>
+        <h1 class="qr-question" id="questionTitle">{{ question.text }}</h1>
+        {% if question.intro %}<p class="qr-intro">{{ question.intro }}</p>{% endif %}
+        <div class="qr-hero-actions">
+          {% if question.response_count %}
+            <a class="btn btn-ivory" href="#your-response">{% if own_response %}Edit your response{% else %}Add your answer{% endif %}</a>
+            <a class="btn btn-ghost-light" href="#responses">Read {{ question.response_count }} {{ "response" if question.response_count == 1 else "responses" }}</a>
+          {% else %}
+            <a class="btn btn-ivory" href="#your-response">Be the first to answer</a>
           {% endif %}
-
-          <section aria-labelledby="allResponsesTitle">
-            <h2 class="question-section-title" id="allResponsesTitle">{% if featured_responses %}More responses{% else %}Responses{% endif %}</h2>
-            {% for item in responses %}{{ response_card(item) }}{% else %}
-              <p class="member-profile-empty">No responses yet. Yours could be the first.</p>
-            {% endfor %}
-          </section>
         </div>
+      {% else %}
+        <p class="qr-hero-label">The Question Room</p>
+        <h1 class="qr-question" id="questionTitle">A new question is on its way.</h1>
+        <p class="qr-intro">{% if is_unavailable %}The Question Room is unavailable right now. Please try again shortly.{% else %}Every day, one thought-provoking question to reflect on and answer together.{% endif %}</p>
+      {% endif %}
+    </div>
+  </section>
 
-        <aside class="question-respond" id="your-response" aria-labelledby="respondTitle">
-          <h2 class="question-section-title" id="respondTitle">{% if own_response %}Your response{% else %}Respond{% endif %}</h2>
+  {% if question %}
+    {% if featured_responses %}
+      <section class="container qr-section" aria-labelledby="featuredTitle">
+        <h2 class="qr-title" id="featuredTitle">Insightful responses</h2>
+        <p class="qr-lede">Picked by our editors for what they make you think, not how popular they are.</p>
+        <div class="stance-notes">
+          {% for item in featured_responses %}
+            <figure class="stance-note" id="response-{{ item.id }}">
+              <blockquote><p>{{ item.preview }}</p></blockquote>
+              <figcaption>
+                <a href="{{ item.author_url }}">{{ item.author }}</a>
+                &middot; <span class="qr-kind qr-kind-{{ item.kind }}">{{ item.kind_label }}</span>
+                {% if item.sources %}&middot; {{ item.sources|length }} {{ "source" if item.sources|length == 1 else "sources" }}{% endif %}
+              </figcaption>
+            </figure>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    <section class="container qr-section" id="responses" aria-labelledby="responsesTitle">
+      {% if question.response_count %}
+        <h2 class="qr-title" id="responsesTitle">
+          {% if active_kind %}{{ kind_plurals[active_kind] }}{% elif featured_responses %}More responses{% else %}All responses{% endif %}
+          <span>{{ responses_shown|length + responses_folded|length }}</span>
+        </h2>
+        <nav class="qr-filters" aria-label="Show one kind of response">
+          <a class="qr-filter{% if not active_kind %} is-on{% endif %}" href="{{ question.url }}#responses"{% if not active_kind %} aria-current="true"{% endif %}>All <span>{{ question.response_count }}</span></a>
+          {% for filter in kind_filters if filter.count %}
+            <a class="qr-filter{% if active_kind == filter.value %} is-on{% endif %}" href="{{ question.url }}?kind={{ filter.value }}#responses"{% if active_kind == filter.value %} aria-current="true"{% endif %}>{{ filter.label }} <span>{{ filter.count }}</span></a>
+          {% endfor %}
+        </nav>
+        {% if responses_shown %}
+          <div class="qr-cards">
+            {% for item in responses_shown %}{{ response_card(item) }}{% endfor %}
+          </div>
+          {% if responses_folded %}
+            <details class="qr-more">
+              <summary>Show {{ responses_folded|length }} more {{ "response" if responses_folded|length == 1 else "responses" }}</summary>
+              <div class="qr-cards">
+                {% for item in responses_folded %}{{ response_card(item) }}{% endfor %}
+              </div>
+            </details>
+          {% endif %}
+        {% else %}
+          <p class="qr-lede">Every response here is one of the editors' picks above.</p>
+        {% endif %}
+      {% else %}
+        <div class="qr-first">
+          <div>
+            <h2 class="qr-title" id="responsesTitle">No responses yet. Yours could be the first.</h2>
+            <p class="qr-lede">The first answer sets the tone. There's no wrong way in: pick whichever fits what you want to say.</p>
+          </div>
+          <ul class="qr-first-kinds" role="list">
+            {% for value, label in kinds.items() %}
+              <li><strong class="qr-kind qr-kind-{{ value }}">{{ label }}</strong><span>{{ kind_hints[value] }}</span></li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="qr-turn" id="your-response" aria-labelledby="turnTitle">
+      <div class="container qr-turn-inner">
+        <div class="qr-turn-main">
+          <p class="qr-turn-label">Your turn</p>
+          <h2 id="turnTitle">{% if own_response %}Your response{% elif signed_in %}Add your answer{% else %}Answer a new question every day.{% endif %}</h2>
           {{ form_alert(error, notice) }}
           {% if own_response and own_response.is_hidden %}
-            <div class="member-alert member-alert-review" role="note">Editors have hidden your response, so only you can see it.</div>
+            <p class="debate-turn-note" role="note">Editors have hidden your response, so only you can see it.</p>
           {% endif %}
 
-          {% if signed_in and current_member and not current_member.email_confirmed %}
+          {% if not signed_in %}
+            <p class="qr-turn-text">Sign in to share a thought, a story, or a researched answer. Editors feature the most insightful responses, not the most popular.</p>
+            <div class="debate-turn-actions">
+              <a class="btn btn-amber" href="/login?next={{ question.url }}">Sign in to respond</a>
+              <a class="btn btn-ghost-light" href="/join">Create an account</a>
+            </div>
+          {% elif not member_can_act %}
             {% with confirm_action = "respond" %}{% include "components/confirm_email_note.html" %}{% endwith %}
-          {% elif signed_in %}
-            <form class="member-form" method="post" action="{{ question.url }}/respond" novalidate>
+          {% else %}
+            <form class="qr-form" method="post" action="{{ question.url }}/respond" novalidate>
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <fieldset class="member-field member-format-choice">
+              <fieldset class="qr-kinds">
                 <legend>What kind of response?</legend>
                 {% for value, label in kinds.items() %}
-                  <label class="member-radio">
-                    <input type="radio" name="kind" value="{{ value }}" {% if values.get("kind", "answer") == value %}checked{% endif %}>
-                    <span>{{ label }}</span>
-                  </label>
+                  <input class="stance-radio" type="radio" id="kind-{{ value }}" name="kind" value="{{ value }}" {% if values.get("kind", "answer") == value %}checked{% endif %}>
+                  <label class="qr-kind-choice" for="kind-{{ value }}"><strong>{{ label }}</strong><span>{{ kind_hints[value] }}</span></label>
                 {% endfor %}
                 {% if field_errors.get("kind") %}<p class="member-field-error">{{ field_errors.get("kind") }}</p>{% endif %}
               </fieldset>
               {{ field("body", "Your response", values, field_errors, type="textarea", hint="Short thoughts up to 500 characters; anything else up to 3,000. **bold**, _italic_ and [links](https://example.org) work.", attrs='maxlength="3000" required') }}
               {{ field("sources", "Sources", values, field_errors, type="textarea", hint="Needed for a researched answer. One per line: Title | https://link") }}
-              <button class="btn btn-primary member-submit" type="submit">{% if own_response %}Update response{% else %}Post response{% endif %}</button>
-              <p class="member-field-hint">Responses appear right away and follow the <a href="/guidelines">community guidelines</a>. One response per question; you can edit it any time.</p>
+              <button class="btn btn-amber" type="submit">{% if own_response %}Update response{% else %}Post response{% endif %}</button>
             </form>
             {% if own_response %}
-              <form class="member-signout" method="post" action="{{ question.url }}/respond/delete">
+              <form class="qr-delete" method="post" action="{{ question.url }}/respond/delete">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                <button class="btn btn-outline-primary" type="submit">Delete my response</button>
+                <button class="btn btn-ghost-light" type="submit">Delete my response</button>
               </form>
             {% endif %}
-          {% else %}
-            <p class="member-lede">Sign in to share a thought, a story, or a researched answer.</p>
-            <a class="btn btn-primary" href="/login?next={{ question.url }}">Sign in to respond</a>
-            <p class="member-switch">New here? <a href="/join">Create an account</a></p>
           {% endif %}
+        </div>
+        <aside class="qr-turn-aside" aria-label="How responses work">
+          <p>How responses work</p>
+          <ul>
+            <li>One response per question. You can edit it any time.</li>
+            <li>It appears right away; editors pick the most insightful.</li>
+            <li>No votes or likes. Thoughtful beats popular.</li>
+            <li>Follow the <a href="/guidelines">community guidelines</a>.</li>
+          </ul>
         </aside>
       </div>
-    {% else %}
-      <header class="question-hero">
-        <p class="eyebrow mb-2">The Question Room</p>
-        <h1>A new question is on its way.</h1>
-        <p class="question-intro">
-          {% if is_unavailable %}The Question Room is unavailable right now. Please try again shortly.{% else %}Every day, one thought-provoking question to reflect on and answer together.{% endif %}
-        </p>
-      </header>
-    {% endif %}
+    </section>
+  {% endif %}
 
-    {% if past_questions %}
-      <section class="question-archive" aria-labelledby="pastTitle">
-        <h2 class="question-section-title" id="pastTitle">Past questions</h2>
-        <ul role="list">
-          {% for past in past_questions %}
-            <li>
-              <a href="{{ past.url }}">{{ past.text }}</a>
-              <span>{{ past.date_label }} &middot; {{ past.response_count }} {{ "response" if past.response_count == 1 else "responses" }}</span>
-            </li>
-          {% endfor %}
-        </ul>
-      </section>
-    {% endif %}
-  </div>
-</section>
+  {% if past_questions %}
+    <section class="container qr-section qr-earlier" aria-labelledby="pastTitle">
+      <h2 class="qr-title" id="pastTitle">Earlier questions</h2>
+      <div class="qr-past">
+        {% for past in past_questions %}
+          <a class="qr-past-card" href="{{ past.url }}">
+            <span class="qr-past-date"><strong>{{ past.day }}</strong> {{ past.month }}{% if past.room_name %}<span>{{ past.room_name }}</span>{% endif %}</span>
+            <span class="qr-past-text">{{ past.text }}</span>
+            <span class="qr-past-count">{{ past.response_count }} {{ "response" if past.response_count == 1 else "responses" }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+</div>
 {% endblock %}
