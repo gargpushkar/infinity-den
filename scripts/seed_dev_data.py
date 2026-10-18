@@ -22,6 +22,11 @@ import sys
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from app.config.constants import LAUNCH_ROOMS
 from app.config.settings import settings
 from app.database.indexes import create_indexes
