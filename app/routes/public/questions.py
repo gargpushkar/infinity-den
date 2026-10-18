@@ -36,13 +36,14 @@ NOTICES = {
 
 
 @router.get("/questions")
-async def question_room(request: Request, notice: str = ""):
-    return await _page(request, slug=None, notice=NOTICES.get(notice))
+async def question_room(request: Request, notice: str = "", kind: str = ""):
+    """`?kind=thought|answer|story|researched` shows only that kind of response."""
+    return await _page(request, slug=None, kind=kind, notice=NOTICES.get(notice))
 
 
 @router.get("/questions/{slug}")
-async def question_page(request: Request, slug: str = SLUG, notice: str = ""):
-    return await _page(request, slug=slug, notice=NOTICES.get(notice))
+async def question_page(request: Request, slug: str = SLUG, notice: str = "", kind: str = ""):
+    return await _page(request, slug=slug, kind=kind, notice=NOTICES.get(notice))
 
 
 @router.post("/questions/{slug}/respond")
@@ -97,13 +98,14 @@ async def _page(
     request: Request,
     *,
     slug: str | None,
+    kind: str = "",
     values: dict[str, Any] | None = None,
     status_code: int = 200,
     **extra: Any,
 ):
     try:
         member = await get_current_member(request)
-        context = await get_question_room_context(slug=slug, member=member)
+        context = await get_question_room_context(slug=slug, member=member, kind=kind)
     except (RuntimeError, PyMongoError):
         member, context = None, {"question": None, "past_questions": [], "is_unavailable": True}
 
@@ -119,6 +121,7 @@ async def _page(
         values=values if values is not None else own_response_values(context),
         status_code=status_code,
         signed_in=member is not None,
+        member_can_act=bool(member and member.email_confirmed),
         robots="index, follow",
         seo_description=(question["intro"] or question["text"]) if question else "One thought-provoking question a day, answered by the community.",
         **context,

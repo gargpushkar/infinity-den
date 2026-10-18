@@ -138,3 +138,53 @@ def test_question_slug_is_dated_and_readable():
     assert question_slug("Can a person be intelligent without being wise?", "2026-10-16") == (
         "2026-10-16-can-a-person-be-intelligent-without-being-wise"
     )
+
+
+# --- the page: filters, featured quotes, folding ------------------------------------
+
+def _page_context(monkeypatch, service: QuestionService, **kwargs):
+    from app.services import question_page_service
+
+    async def no_rooms(_db):
+        return [{"slug": "science", "name": "Cosmic Canvas"}]
+
+    monkeypatch.setattr(question_page_service, "get_database", lambda: service.database)
+    monkeypatch.setattr(question_page_service, "get_rooms", no_rooms)
+    monkeypatch.setattr(question_page_service, "site_today", lambda: "2026-10-16")
+    return _run(question_page_service.get_question_room_context(slug=None, member=None, **kwargs))
+
+
+def _members(count: int) -> list[MemberRead]:
+    return [MemberRead(_id=f"{n:024x}", username=f"m{n}", display_name=f"M{n}", email=f"{n}@x.org", created_at=NOW) for n in range(1, count + 1)]
+
+
+def test_featured_responses_lead_and_the_list_folds_after_eight(monkeypatch):
+    service = _service([_question("2026-10-16"), {**_question("2026-10-15", text="Yesterday's question?"), "category_id": "science"}])
+    question = _live_question(service)
+    for member in _members(11):
+        _run(service.save_response(question, member, ResponseInput(kind="answer", body=f"Answer from {member.display_name}.")))
+    first = _run(service.member_response(question.id, _members(1)[0]))
+    _run(service.moderate_response(first.id, AdminResponseUpdate(is_featured=True)))
+
+    context = _page_context(monkeypatch, service)
+    assert [r["author"] for r in context["featured_responses"]] == ["M1"]
+    assert len(context["responses_shown"]) == 8 and len(context["responses_folded"]) == 2  # the other 10
+    assert "M1" not in [r["author"] for r in context["responses_shown"] + context["responses_folded"]]
+    past = context["past_questions"][0]
+    assert (past["day"], past["month"], past["room_name"]) == (15, "October", "Cosmic Canvas")
+
+
+def test_a_kind_filter_lists_only_that_kind_featured_included(monkeypatch):
+    service = _service([_question("2026-10-16")])
+    question = _live_question(service)
+    people = _members(3)
+    _run(service.save_response(question, people[0], ResponseInput(kind="thought", body="Dark matter.")))
+    _run(service.save_response(question, people[1], ResponseInput(kind="story", body="My son's condition.")))
+    featured = _run(service.save_response(question, people[2], ResponseInput(kind="thought", body="Life starting twice.")))
+    _run(service.moderate_response(featured.id, AdminResponseUpdate(is_featured=True)))
+
+    context = _page_context(monkeypatch, service, kind="thought")
+    assert context["active_kind"] == "thought" and context["featured_responses"] == []
+    assert sorted(r["author"] for r in context["responses_shown"]) == ["M1", "M3"]
+    assert {f["value"]: f["count"] for f in context["kind_filters"]} == {"thought": 2, "answer": 0, "story": 1, "researched": 0}
+    assert _page_context(monkeypatch, service, kind="nonsense")["active_kind"] == ""
