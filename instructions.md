@@ -363,6 +363,25 @@ Fields:
 Oldest first under the argument; after three, the rest fold behind "Show more".
 No featuring and no ordering by popularity.
 
+### argument_ratings
+
+How well an argument is made, separately from agreeing with it
+(`app/services/debate_rating_service.py`). Any confirmed member except the
+author rates all three dimensions (`RATING_DIMENSIONS` in `constants.py`) while
+the debate is open; one rating per member per argument (unique index), and
+they can change it.
+
+Fields:
+
+- debate_id, argument_id, user_id
+- clarity, evidence, reasoning — 1 to 5
+- created_at, updated_at
+
+Averages appear once `RATINGS_NEEDED` (3) members have rated, and then only to
+members who rated that argument themselves, or to everyone once the debate
+closes. Ratings never change the order of arguments, and nobody, editors
+included, sees who gave which rating.
+
 ### comments
 
 Flat (no replies), oldest first, posted immediately. Members can delete their

@@ -139,3 +139,18 @@ class RebuttalRead(BaseModel):
 
 class AdminRebuttalUpdate(BaseModel):
     status: ArgumentStatus
+
+
+class RatingInput(BaseModel):
+    """All three scores are required, so averages stay comparable."""
+
+    clarity: int = Field(ge=1, le=5)
+    evidence: int = Field(ge=1, le=5)
+    reasoning: int = Field(ge=1, le=5)
+
+    @field_validator("clarity", "evidence", "reasoning", mode="before")
+    @classmethod
+    def chosen(cls, value: Any) -> Any:
+        if value in ("", None):
+            raise ValueError("Choose a score from 1 to 5.")
+        return value

@@ -31,6 +31,8 @@
               <strong>{{ argument.claim }}</strong>
               <small>{{ argument.side }} &middot; {{ argument.author }} (@{{ argument.author_username }}) &middot; {{ argument.sources|length }} sources &middot; {{ argument.status }}{% if argument.is_featured %}, featured{% endif %}</small>
               <p>{{ argument.body|truncate(400) }}</p>
+              {% set rating = ratings.get(argument.id) %}
+              <small>{% if rating %}Ratings ({{ rating.count }}): clarity {{ rating.clarity }} &middot; evidence {{ rating.evidence }} &middot; reasoning {{ rating.reasoning }}{% if rating.count < ratings_needed %} (hidden from readers until {{ ratings_needed }}){% endif %}{% else %}No ratings yet{% endif %}</small>
               {% for rebuttal in rebuttals.get(argument.id, []) %}
                 <div class="admin-rebuttal">
                   <small>Rebuttal by {{ rebuttal.author }} (@{{ rebuttal.author_username }}) &middot; {{ rebuttal.status }}</small>

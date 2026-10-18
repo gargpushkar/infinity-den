@@ -6,7 +6,7 @@ from fastapi import status as http_status
 from fastapi.templating import Jinja2Templates
 from pymongo.errors import PyMongoError
 
-from app.config.constants import ARTICLE_STATUS_PENDING_REVIEW
+from app.config.constants import ARTICLE_STATUS_PENDING_REVIEW, RATINGS_NEEDED
 from app.config.settings import settings
 from app.database.mongodb import get_database
 from app.schemas.admin import AdminRead
@@ -23,6 +23,7 @@ from app.services.admin_csrf import ADMIN_CSRF_COOKIE, issue_admin_csrf_token
 from app.services.admin_permissions import require_admin_manager, require_destructive_admin
 from app.services.admin_session import get_current_admin
 from app.services.article_service import ArticleService
+from app.services.debate_rating_service import DebateRatingService
 from app.services.debate_service import DebateService, is_open
 from app.services.nav_service import get_rooms
 from app.services.question_service import QuestionService, site_today
@@ -231,9 +232,10 @@ async def admin_debate_page(
         debate = await service.get_debate(debate_id)
         arguments = await service.all_arguments(debate_id) if debate else []
         rebuttals = await service.all_rebuttals(debate_id) if debate else {}
+        ratings = await DebateRatingService(database=db).averages(debate_id) if debate else {}
         rooms = await get_rooms(db)
     except (RuntimeError, PyMongoError):
-        debate, arguments, rebuttals, rooms = None, [], {}, []
+        debate, arguments, rebuttals, ratings, rooms = None, [], {}, {}, []
     if debate is None:
         raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Debate was not found.")
 
@@ -243,7 +245,15 @@ async def admin_debate_page(
         admin=admin,
         active_nav="debates",
         page_title="Debate Den",
-        context={"debate": debate, "arguments": arguments, "rebuttals": rebuttals, "rooms": rooms, "today": site_today()},
+        context={
+            "debate": debate,
+            "arguments": arguments,
+            "rebuttals": rebuttals,
+            "ratings": ratings,
+            "ratings_needed": RATINGS_NEEDED,
+            "rooms": rooms,
+            "today": site_today(),
+        },
     )
 
 

@@ -6,20 +6,22 @@ from fastapi.responses import RedirectResponse
 from pydantic import ValidationError
 from pymongo.errors import PyMongoError
 
+from app.config.constants import RATING_DIMENSIONS
 from app.routes.public.form_pages import FORM_EXPIRED, TOO_MANY_ATTEMPTS, field_errors, render_form_page
-from app.schemas.debate import ArgumentInput, RebuttalInput
+from app.schemas.debate import ArgumentInput, RatingInput, RebuttalInput
 from app.services.debate_page_service import (
     debate_url,
     get_debate_context,
     get_debates_context,
     own_argument_values,
 )
+from app.services.debate_rating_service import DebateRatingService
 from app.services.debate_service import DebateClosedError, DebateNotFoundError, DebateService, OwnArgumentError
 from app.services.member_article_service import parse_sources
 from app.services.member_session import form_csrf_is_valid, get_current_member, unconfirmed_redirect
 from app.services.question_service import site_today
 from app.utils.forms import read_form
-from app.utils.rate_limit import member_argument_limiter, member_rebuttal_limiter
+from app.utils.rate_limit import member_argument_limiter, member_rating_limiter, member_rebuttal_limiter
 
 
 router = APIRouter()
@@ -146,6 +148,37 @@ async def delete_rebuttal(request: Request, slug: str = SLUG, argument_id: str =
         return await _page(request, slug=slug, rebuttal={"argument_id": argument_id, "body": "", "error": FORM_EXPIRED}, status_code=400)
 
     await DebateService().delete_rebuttal(argument_id, member)
+    return RedirectResponse(f"{debate_url(slug)}#argument-{argument_id}", status_code=303)
+
+
+@router.post("/debates/{slug}/arguments/{argument_id}/rate")
+async def rate(request: Request, slug: str = SLUG, argument_id: str = ARGUMENT_ID):
+    member = await get_current_member(request)
+    if member is None:
+        return RedirectResponse(f"/login?next={debate_url(slug)}", status_code=303)
+    if redirect := unconfirmed_redirect(member):
+        return redirect
+
+    form = await read_form(request)
+    rating = {"argument_id": argument_id, "scores": {key: form.get(key, "") for key in RATING_DIMENSIONS}}
+
+    if not form_csrf_is_valid(request, form):
+        return await _page(request, slug=slug, rating={**rating, "error": FORM_EXPIRED}, status_code=400)
+    debate = await DebateService().get_published_debate(slug)
+    if debate is None:
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Debate was not found.")
+    if not member_rating_limiter.allow(member.id):
+        return await _page(request, slug=slug, rating={**rating, "error": TOO_MANY_ATTEMPTS}, status_code=429)
+
+    try:
+        payload = RatingInput(**rating["scores"])
+    except ValidationError:
+        return await _page(request, slug=slug, rating={**rating, "error": "Choose a score from 1 to 5 for all three."}, status_code=422)
+
+    try:
+        await DebateRatingService().save_rating(debate, argument_id, member, payload, site_today())
+    except (DebateClosedError, DebateNotFoundError, OwnArgumentError) as exc:
+        return await _page(request, slug=slug, rating={**rating, "error": str(exc)}, status_code=409)
     return RedirectResponse(f"{debate_url(slug)}#argument-{argument_id}", status_code=303)
 
 
