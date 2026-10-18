@@ -14,6 +14,7 @@ USER_DOCUMENT_FIELDS: Final[tuple[str, ...]] = (
     "session_version",
     "email_confirmed",
     "pending_expires_at",
+    "deletion_requested_at",  # set when the member asks to be deleted; the account is then inactive
     "created_at",
     "updated_at",
 )

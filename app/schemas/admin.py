@@ -109,3 +109,9 @@ class AdminListResponse(BaseModel):
     total: int = Field(ge=0)
     active_admins: int = Field(ge=0)
     active_editors: int = Field(ge=0)
+
+
+class AdminDeletionInput(BaseModel):
+    """Email addresses to preview or delete: commas, spaces, or one per line."""
+
+    emails: str = Field(min_length=3, max_length=20_000)

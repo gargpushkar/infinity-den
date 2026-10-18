@@ -38,6 +38,10 @@
         <span>08</span>
         Users
       </a>
+      <a class="{% if active_nav == 'deletions' %}is-active{% endif %}" href="/admin/deletions">
+        <span>09</span>
+        Deletions{% if pending_deletions %} <em class="admin-nav-count" aria-label="{{ pending_deletions }} waiting">{{ pending_deletions }}</em>{% endif %}
+      </a>
     {% endif %}
   </nav>
 

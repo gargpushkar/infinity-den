@@ -21,7 +21,7 @@ Progress against `vision.md`. Admin-specific work is tracked in `admin.md`.
 - [x] Brevo: domain authenticated in GoDaddy DNS; sending from dave@infinityden.com verified (inbox, SPF/DKIM/DMARC pass)
 - [ ] On the server: SMTP settings, `MAIL_FROM`, `SITE_URL`, and the server's IP in Brevo's Authorised IPs
 - [x] Email confirmation at sign-up (`feature/email-confirmation`): unconfirmed members can read and save but not take part; unconfirmed accounts expire after 7 days
-- [x] Self-serve account deletion (`feature/account-deletion-and-review-emails`): everything removed, password to confirm, reports kept without the reporter, goodbye email
+- [x] Account deletion: members request it (account deactivated at once, deleted within 30 days); editors delete from `/admin/deletions` or `scripts/delete_members.py`, one or many emails at a time (`feature/deletion-requests`)
 - [x] Emails to writers when an editor publishes their piece or sends it back with a note
 - [ ] Newsletter: confirmed subscriptions, one-click unsubscribe, sending from admin (or reword the footer until then)
 - [ ] Then Phase 2, starting with the Debate Den

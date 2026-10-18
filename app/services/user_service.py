@@ -31,6 +31,10 @@ class InvalidCredentialsError(UserServiceError):
     pass
 
 
+class DeletionRequestedError(UserServiceError):
+    """The right password, for an account its owner asked us to delete."""
+
+
 # Unconfirmed sign-ups hold their username and email only this long.
 PENDING_ACCOUNT_DAYS = 7
 
@@ -80,11 +84,12 @@ class UserService:
         document = await self.collection.find_one({"email": payload.email})
         # Same error for unknown email, wrong password, or a disabled account,
         # so the form does not reveal which emails have accounts.
-        if (
-            document is None
-            or not document.get("is_active", True)
-            or not verify_password(payload.password, document.get("password_hash", ""))
-        ):
+        if document is None or not verify_password(payload.password, document.get("password_hash", "")):
+            raise InvalidCredentialsError("Email or password is incorrect.")
+        # Only someone who knows the password learns the account is waiting to be deleted.
+        if document.get("deletion_requested_at"):
+            raise DeletionRequestedError("This account is waiting to be deleted.")
+        if not document.get("is_active", True):
             raise InvalidCredentialsError("Email or password is incorrect.")
 
         return MemberRead.model_validate(document)

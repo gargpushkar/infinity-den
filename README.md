@@ -192,7 +192,15 @@ The app reads configuration from `.env` through `app/config/settings.py`.
    claims, a few pieces per room (some personal experiences, some marked
    "Editor's pick"). Tags appear as filters once a piece using them is
    published.
-6. **Email (Brevo, free plan: 300 a day).** In Brevo, add `infinityden.com`
+6. **Account deletions.** Members request deletion from their account page;
+   the privacy policy promises it within 30 days. Delete from
+   `/admin/deletions` (admin role), or on the server:
+
+   ```bash
+   python scripts/delete_members.py one@example.com two@example.com   # preview
+   python scripts/delete_members.py --file emails.txt --apply         # delete
+   ```
+7. **Email (Brevo, free plan: 300 a day).** In Brevo, add `infinityden.com`
    under Senders, Domains & Dedicated IPs → Domains, and add the records it
    shows in GoDaddy's DNS (the Brevo code, DKIM, and DMARC with `p=none`).
    GoDaddy adds `.infinityden.com` to names itself, and a domain must have only
@@ -200,7 +208,7 @@ The app reads configuration from `.env` through `app/config/settings.py`.
    an SMTP key under SMTP & API and put it in `.env` as above. To check, use
    "Forgot your password?" on the site with your own account. If the server
    can't connect, the host may block port 587: set `SMTP_PORT=2525`.
-7. **After launch.** Turn on HSTS in nginx once the site will only ever be
+8. **After launch.** Turn on HSTS in nginx once the site will only ever be
    served over HTTPS.
 
 ## Development Notes

@@ -29,9 +29,15 @@ from app.services.member_session import (
     set_member_cookie,
 )
 from app.routes.public.email_confirmation import send_confirmation_later
-from app.services.account_deletion_service import AccountDeletionService, WrongPasswordError, send_goodbye
+from app.services.account_deletion_service import (
+    DELETION_DAYS,
+    AccountDeletionService,
+    WrongPasswordError,
+    send_request_received,
+)
 from app.services.nav_service import get_nav_context
 from app.services.user_service import (
+    DeletionRequestedError,
     EmailTakenError,
     InvalidCredentialsError,
     UserService,
@@ -112,6 +118,12 @@ async def login(request: Request):
         )
     except (ValidationError, InvalidCredentialsError):
         return await render_form_page(request, "pages/member_login.html", "Sign in", values=values, error="Email or password is incorrect.", status_code=401)
+    except DeletionRequestedError:
+        return await render_form_page(
+            request, "pages/member_login.html", "Sign in", values=values, status_code=403,
+            error=f"You asked us to delete this account, so it can't be used any more. "
+                  f"If you've changed your mind or need help, contact us at {settings.contact_email}.",
+        )
     except (RuntimeError, PyMongoError):
         return await render_form_page(request, "pages/member_login.html", "Sign in", values=values, error=SERVICE_UNAVAILABLE, status_code=503)
 
@@ -187,7 +199,8 @@ async def update_account(request: Request):
 
 
 @router.post("/account/delete")
-async def delete_account(request: Request):
+async def request_account_deletion(request: Request):
+    """Members only ask; editors delete (see account_deletion_service)."""
     member = await get_current_member(request)
     if member is None:
         return RedirectResponse("/login?next=/account", status_code=303)
@@ -206,7 +219,7 @@ async def delete_account(request: Request):
         return await render_form_page(request, "pages/member_account.html", "Your account", values=values, error=TOO_MANY_ATTEMPTS, status_code=429, **page)
 
     try:
-        deleted = await AccountDeletionService().delete(member.id, form.get("delete_password", ""))
+        account = await AccountDeletionService().request(member.id, form.get("delete_password", ""))
     except WrongPasswordError:
         return await render_form_page(
             request, "pages/member_account.html", "Your account", values=values,
@@ -215,9 +228,9 @@ async def delete_account(request: Request):
     except (RuntimeError, PyMongoError):
         return await render_form_page(request, "pages/member_account.html", "Your account", values=values, error=SERVICE_UNAVAILABLE, status_code=503, **page)
 
-    response = await render_form_page(request, "pages/member_account_deleted.html", "Account deleted", values={})
+    response = await render_form_page(request, "pages/member_account_deleted.html", "Deletion requested", values={}, deletion_days=DELETION_DAYS)
     clear_member_cookie(response)
-    response.background = BackgroundTask(send_goodbye, deleted["email"], deleted["display_name"])
+    response.background = BackgroundTask(send_request_received, account["email"], account["display_name"])
     return response
 
 

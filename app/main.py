@@ -15,6 +15,7 @@ from app.routes.admin.auth import router as admin_auth_pages_router
 from app.routes.admin.dashboard import router as admin_dashboard_router
 from app.routes.api.admin_auth import router as admin_auth_router
 from app.routes.api.admin_covers import router as admin_covers_router
+from app.routes.api.admin_deletions import router as admin_deletions_router
 from app.routes.api.admin_dashboard import router as admin_dashboard_api_router
 from app.routes.api.admin_questions import router as admin_questions_router
 from app.routes.api.admin_quiz import router as admin_quiz_router
@@ -89,6 +90,7 @@ register_exception_handlers(app)
 register_security_middleware(app)
 app.include_router(admin_auth_router)
 app.include_router(admin_covers_router)
+app.include_router(admin_deletions_router)
 app.include_router(admin_dashboard_api_router)
 app.include_router(admin_questions_router)
 app.include_router(admin_quiz_router)

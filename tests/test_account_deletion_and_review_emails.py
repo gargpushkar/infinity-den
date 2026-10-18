@@ -1,5 +1,5 @@
-"""Deleting an account removes everything the member wrote; editors' review
-decisions email the writer."""
+"""Members request deletion; editors delete, removing everything the member
+wrote. Editors' review decisions email the writer."""
 
 import asyncio
 
@@ -17,7 +17,10 @@ from app.schemas.article import ArticleUpdate
 from app.schemas.user import MemberRead
 from app.services import cover_upload_service as covers
 from app.services import review_email_service
-from app.services.account_deletion_service import DELETED_REPORTER, AccountDeletionService, WrongPasswordError
+from app.models.deletion_request import DELETION_REQUEST_COLLECTION
+from app.schemas.user import MemberLogin
+from app.services.account_deletion_service import DELETED_REPORTER, AccountDeletionService, WrongPasswordError, parse_emails
+from app.services.user_service import DeletionRequestedError, InvalidCredentialsError, UserService
 from app.services.member_article_service import MemberArticleService
 from app.utils.security import hash_password
 from tests.fakes import FakeCollection
@@ -54,6 +57,7 @@ def _world(tmp_path):
             {"reporter_id": str(mira), "target_id": str(others_piece), "status": "open"},
             {"reporter_id": str(other), "target_id": str(piece), "status": "open"},
         ]),
+        DELETION_REQUEST_COLLECTION: FakeCollection(),
     }
     return db, str(mira), str(other)
 
@@ -64,29 +68,89 @@ def media(tmp_path, monkeypatch):
     return tmp_path
 
 
-def test_deleting_an_account_removes_everything_they_wrote(media):
+def test_requesting_deletion_deactivates_but_deletes_nothing(media):
+    db, mira, _ = _world(media)
+    service = AccountDeletionService(database=db)
+    asyncio.run(service.request(mira, "mira-password-1"))
+    asyncio.run(service.request(mira, "mira-password-1"))  # asking twice makes one request
+    account = next(u for u in db[USER_COLLECTION].documents if str(u["_id"]) == mira)
+    assert account["is_active"] is False and account["deletion_requested_at"] and account["session_version"] == 2
+    assert [r["status"] for r in db[DELETION_REQUEST_COLLECTION].documents] == ["pending"]
+    assert len(db[ARTICLE_COLLECTION].documents) == 2 and list(media.iterdir())  # nothing removed yet
+    assert asyncio.run(service.pending_count()) == 1
+
+
+def test_signing_in_after_a_request_explains_why(media):
+    db, mira, _ = _world(media)
+    asyncio.run(AccountDeletionService(database=db).request(mira, "mira-password-1"))
+    users = UserService(database=db)
+    with pytest.raises(DeletionRequestedError):
+        asyncio.run(users.authenticate(MemberLogin(email="mira@example.org", password="mira-password-1")))
+    with pytest.raises(InvalidCredentialsError):  # a wrong password reveals nothing
+        asyncio.run(users.authenticate(MemberLogin(email="mira@example.org", password="wrong-password")))
+
+
+def test_editor_deletion_removes_everything_and_keeps_only_the_email(media):
     db, mira, other = _world(media)
-    goodbye = asyncio.run(AccountDeletionService(database=db).delete(mira, "mira-password-1"))
-    assert goodbye == {"email": "mira@example.org", "display_name": "Mira"}
+    service = AccountDeletionService(database=db)
+    asyncio.run(service.request(mira, "mira-password-1"))
+    preview = asyncio.run(service.preview(parse_emails("MIRA@example.org, nobody@example.org\nmira@example.org")))
+    assert [(row["email"], row["found"]) for row in preview] == [("mira@example.org", True), ("nobody@example.org", False)]
+    assert preview[0]["pieces"] == 1 and preview[0]["requested"] is True
+    assert len(db[USER_COLLECTION].documents) == 2  # previewing deletes nothing
+
+    results = asyncio.run(service.delete_by_emails(["mira@example.org", "nobody@example.org"], editor="ed"))
+    assert [(r["email"], r["deleted"]) for r in results] == [("mira@example.org", True), ("nobody@example.org", False)]
+    assert results[0]["requested"] is True
 
     assert [str(u["_id"]) for u in db[USER_COLLECTION].documents] == [other]
     assert all(a["author_id"] == other for a in db[ARTICLE_COLLECTION].documents)
     assert len(db[COMMENT_COLLECTION].documents) == 1 and db[COMMENT_COLLECTION].documents[0]["user_id"] == other
     assert [r["user_id"] for r in db[RESPONSE_COLLECTION].documents] == [other]
     assert len(db[BOOKMARK_COLLECTION].documents) == 1
-    assert not list(media.iterdir())  # the uploaded cover is gone
-
+    assert not list(media.iterdir())
     filed, about_mira = db[REPORT_COLLECTION].documents
-    assert filed["reporter_id"] == DELETED_REPORTER and filed["status"] == "open"
-    assert about_mira["status"] == "resolved"
+    assert filed["reporter_id"] == DELETED_REPORTER and about_mira["status"] == "resolved"
+    request = db[DELETION_REQUEST_COLLECTION].documents[0]
+    assert request["status"] == "deleted" and request["handled_by"] == "ed"
+    assert request["email"] == "mira@example.org" and request["username"] is None and request["display_name"] is None
 
 
-def test_wrong_password_deletes_nothing(media):
+def test_editors_can_delete_accounts_that_did_not_ask(media):
+    db, _, other = _world(media)
+    service = AccountDeletionService(database=db)
+    asyncio.run(service.request(other, "omar-password-1"))  # asked once, then changed their mind
+    asyncio.run(service.cancel(str(db[DELETION_REQUEST_COLLECTION].documents[0]["_id"]), "ed"))
+    results = asyncio.run(service.delete_by_emails(["omar@example.org"], editor="ed"))
+    assert results[0]["deleted"] and results[0]["requested"] is False
+    assert other not in [str(u["_id"]) for u in db[USER_COLLECTION].documents]
+    cancelled = db[DELETION_REQUEST_COLLECTION].documents[0]
+    assert cancelled["status"] == "cancelled" and cancelled["username"] is None and cancelled["display_name"] is None
+
+
+def test_cancelling_a_request_reactivates_the_account(media):
+    db, mira, _ = _world(media)
+    service = AccountDeletionService(database=db)
+    asyncio.run(service.request(mira, "mira-password-1"))
+    request_id = str(db[DELETION_REQUEST_COLLECTION].documents[0]["_id"])
+    assert asyncio.run(service.cancel(request_id, "ed"))
+    account = next(u for u in db[USER_COLLECTION].documents if str(u["_id"]) == mira)
+    assert account["is_active"] is True and account["deletion_requested_at"] is None
+    assert db[DELETION_REQUEST_COLLECTION].documents[0]["status"] == "cancelled"
+    assert not asyncio.run(service.cancel(request_id, "ed"))  # already handled
+
+
+def test_wrong_password_requests_nothing(media):
     db, mira, _ = _world(media)
     for password in ("wrong-password", "omar-password-1", ""):
         with pytest.raises(WrongPasswordError):
-            asyncio.run(AccountDeletionService(database=db).delete(mira, password))
-    assert len(db[USER_COLLECTION].documents) == 2 and len(db[ARTICLE_COLLECTION].documents) == 2
+            asyncio.run(AccountDeletionService(database=db).request(mira, password))
+    assert db[DELETION_REQUEST_COLLECTION].documents == []
+    assert all(u["is_active"] for u in db[USER_COLLECTION].documents)
+
+
+def test_parse_emails_accepts_any_separator():
+    assert parse_emails(" A@x.org,b@x.org;\n\na@x.org  c@x.org ") == ["a@x.org", "b@x.org", "c@x.org"]
 
 
 @pytest.fixture

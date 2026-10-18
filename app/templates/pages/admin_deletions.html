@@ -1,0 +1,77 @@
+{% extends "layouts/admin.html" %}
+
+{% block admin_content %}
+<div data-admin-deletions>
+<section class="admin-section-header">
+  <div>
+    <p class="admin-kicker mb-2">Members</p>
+    <h2>Account deletions</h2>
+  </div>
+  <p class="admin-muted mb-0" data-admin-table-message role="status">Deleting removes the account and everything it wrote. It can't be undone.</p>
+</section>
+
+<section class="admin-panel mb-3">
+  <div class="admin-panel-header">
+    <div>
+      <p class="admin-kicker mb-1">Requested</p>
+      <h2>{{ pending|length }} waiting</h2>
+    </div>
+    <p class="admin-muted mb-0">Members are told we delete within {{ deletion_days }} days. Oldest first.</p>
+  </div>
+  {% if pending %}
+    <div class="admin-list">
+      {% for item in pending %}
+        <article class="admin-resource-row">
+          <label class="admin-check admin-deletion-pick">
+            <input type="checkbox" value="{{ item.email }}" data-deletion-pick>
+            <span>
+              <strong>{{ item.display_name }}</strong>
+              <small>@{{ item.username }} &middot; {{ item.email }} &middot; asked {{ item.requested_at.strftime("%b %-d, %Y") }}</small>
+            </span>
+          </label>
+          <div class="admin-row-actions">
+            <span class="admin-pill{% if item.is_overdue %} admin-pill-danger{% endif %}">
+              {% if item.is_overdue %}Overdue{% else %}{{ item.days_left }} day{{ "s" if item.days_left != 1 }} left{% endif %}
+            </span>
+            <button type="button" data-deletion-cancel="{{ item.id }}">Cancel request</button>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    <button class="btn btn-outline-danger mt-3" type="button" data-deletion-preview-selected>Preview deleting the selected accounts</button>
+  {% else %}
+    <p class="admin-empty">No requests. Members ask from their account page.</p>
+  {% endif %}
+</section>
+
+<section class="admin-panel mb-3">
+  <div class="admin-panel-header">
+    <div>
+      <p class="admin-kicker mb-1">By email</p>
+      <h2>Delete accounts by email address</h2>
+    </div>
+    <p class="admin-muted mb-0">Any accounts, whether or not they asked. Up to 100 at a time.</p>
+  </div>
+  <div class="admin-field">
+    <label for="deletionEmails">Email addresses</label>
+    <textarea class="form-control" id="deletionEmails" rows="4" placeholder="one@example.com, two@example.com" data-deletion-emails></textarea>
+    <p class="admin-muted small mt-1 mb-0">Commas, spaces, or one per line.</p>
+  </div>
+  <button class="btn btn-outline-primary mt-2" type="button" data-deletion-preview>Preview</button>
+</section>
+
+<section class="admin-panel" data-deletion-review hidden>
+  <div class="admin-panel-header">
+    <div>
+      <p class="admin-kicker mb-1">Check before deleting</p>
+      <h2 data-deletion-review-title>What will be deleted</h2>
+    </div>
+  </div>
+  <div class="admin-list" data-deletion-review-rows></div>
+  <div class="d-flex gap-2 mt-3">
+    <button class="btn btn-outline-danger" type="button" data-deletion-confirm>Delete these accounts</button>
+    <button class="btn btn-outline-primary" type="button" data-deletion-back>Back</button>
+  </div>
+</section>
+</div>
+{% endblock %}
