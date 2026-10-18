@@ -1,13 +1,14 @@
 from datetime import date, datetime
 from typing import Any
 
-from app.config.constants import DEBATE_SIDE_LABELS, RATING_DIMENSIONS, RATINGS_NEEDED, REBUTTALS_SHOWN
+from app.config.constants import DEBATE_SIDE_LABELS, RATING_DIMENSIONS, RATINGS_NEEDED, REBUTTALS_SHOWN, STANCE_LABELS
 from app.database.mongodb import get_database
 from app.schemas.debate import ArgumentRead, DebateRead, RebuttalRead
 from app.schemas.user import MemberRead
 from app.services.article_page_service import room_url
 from app.services.debate_rating_service import DebateRatingService
 from app.services.debate_service import DebateService, is_open
+from app.services.debate_stance_service import DebateStanceService
 from app.services.member_article_service import sources_text
 from app.services.nav_service import get_rooms
 from app.services.question_service import site_today
@@ -48,6 +49,8 @@ async def get_debate_context(*, slug: str, member: MemberRead | None) -> dict[st
     averages = await ratings.averages(debate.id)
     own_ratings = await ratings.member_ratings(debate.id, member) if member else {}
     debate_open = is_open(debate, today)
+    stances = DebateStanceService(database=db)
+    own_stance = await stances.member_stance(debate.id, member) if member else None
     rooms = {room["slug"]: room for room in await get_rooms(db)}
     room = rooms.get(debate.category_id or "")
     views = [
@@ -69,6 +72,41 @@ async def get_debate_context(*, slug: str, member: MemberRead | None) -> dict[st
         "side_labels": DEBATE_SIDE_LABELS,
         "rating_dimensions": RATING_DIMENSIONS,
         "ratings_needed": RATINGS_NEEDED,
+        "stance_labels": STANCE_LABELS,
+        "own_stance": _own_stance_view(own_stance),
+        # Results stay hidden while the debate is open, so they can't sway anyone.
+        "results": None if debate_open else results_view(await stances.results(debate.id)),
+    }
+
+
+def results_view(results: dict[str, Any]) -> dict[str, Any]:
+    return {**results, "notes": [_note_view(stance) for stance in results["notes"]]}
+
+
+def _own_stance_view(stance: dict[str, Any] | None) -> dict[str, Any] | None:
+    if stance is None:
+        return None
+    return {
+        "before": stance.get("before"),
+        "before_label": STANCE_LABELS.get(stance.get("before") or ""),
+        "after": stance.get("after"),
+        "after_label": STANCE_LABELS.get(stance.get("after") or ""),
+        "note": stance.get("note") or "",
+        "note_hidden": bool(stance.get("note")) and stance.get("status") == "hidden",
+    }
+
+
+def _note_view(stance: dict[str, Any]) -> dict[str, Any]:
+    before, after = stance.get("before"), stance["after"]
+    return {
+        "id": str(stance["_id"]),
+        "author": stance["author"],
+        "author_url": f"/members/{stance['author_username']}",
+        "author_username": stance["author_username"],
+        "before_label": STANCE_LABELS.get(before or ""),
+        "after_label": STANCE_LABELS[after],
+        "changed": bool(before) and before != after,
+        "note_html": render_markdown(stance["note"]),
     }
 
 

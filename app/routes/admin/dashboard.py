@@ -25,6 +25,7 @@ from app.services.admin_session import get_current_admin
 from app.services.article_service import ArticleService
 from app.services.debate_rating_service import DebateRatingService
 from app.services.debate_service import DebateService, is_open
+from app.services.debate_stance_service import DebateStanceService
 from app.services.nav_service import get_rooms
 from app.services.question_service import QuestionService, site_today
 from app.services.quiz_service import QuizService
@@ -233,9 +234,12 @@ async def admin_debate_page(
         arguments = await service.all_arguments(debate_id) if debate else []
         rebuttals = await service.all_rebuttals(debate_id) if debate else {}
         ratings = await DebateRatingService(database=db).averages(debate_id) if debate else {}
+        stances = DebateStanceService(database=db)
+        results = await stances.results(debate_id) if debate else None
+        notes = await stances.all_notes(debate_id) if debate else []
         rooms = await get_rooms(db)
     except (RuntimeError, PyMongoError):
-        debate, arguments, rebuttals, ratings, rooms = None, [], {}, {}, []
+        debate, arguments, rebuttals, ratings, results, notes, rooms = None, [], {}, {}, None, [], []
     if debate is None:
         raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Debate was not found.")
 
@@ -251,6 +255,8 @@ async def admin_debate_page(
             "rebuttals": rebuttals,
             "ratings": ratings,
             "ratings_needed": RATINGS_NEEDED,
+            "results": results,
+            "notes": notes,
             "rooms": rooms,
             "today": site_today(),
         },

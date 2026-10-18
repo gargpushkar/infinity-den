@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 from app.models.article import ARTICLE_COLLECTION
 from app.models.category import CATEGORY_COLLECTION
+from app.models.debate import ARGUMENT_COLLECTION, DEBATE_COLLECTION, RATING_COLLECTION, REBUTTAL_COLLECTION, STANCE_COLLECTION
 from app.models.question import QUESTION_COLLECTION, RESPONSE_COLLECTION
 from app.models.quiz import QUIZ_COLLECTION
 from app.services.home_service import get_homepage_context
@@ -30,13 +31,15 @@ def _claim(slug: str, status: str = "published") -> dict:
             "created_at": NOW, "updated_at": NOW}
 
 
-def _database(articles=(), claims=(), questions=(), responses=()) -> dict:
+def _database(articles=(), claims=(), questions=(), responses=(), debates=()) -> dict:
     return {
         ARTICLE_COLLECTION: FakeCollection(articles),
         CATEGORY_COLLECTION: FakeCollection([{"name": "Cosmic Canvas", "subtitle": "Science", "slug": "science", "nav_order": 1}]),
         QUESTION_COLLECTION: FakeCollection(questions),
         RESPONSE_COLLECTION: FakeCollection(responses),
         QUIZ_COLLECTION: FakeCollection(claims),
+        DEBATE_COLLECTION: FakeCollection(debates),
+        **{name: FakeCollection() for name in (ARGUMENT_COLLECTION, REBUTTAL_COLLECTION, RATING_COLLECTION, STANCE_COLLECTION)},
     }
 
 
@@ -100,3 +103,22 @@ def test_homepage_still_stands_up_without_a_database():
     # No connection in tests, so get_database() raises; the page falls back to the launch rooms.
     home = asyncio.run(get_homepage_context())
     assert home["arcade"] is None and len(home["rooms"]) == 6
+
+
+
+def _debate(motion: str, closes_on: str, status: str = "published") -> dict:
+    return {"motion": motion, "slug": motion.lower().replace(" ", "-"), "closes_on": closes_on, "status": status,
+            "intro": None, "category_id": None, "created_at": NOW, "updated_at": NOW}
+
+
+def test_the_debate_section_shows_the_open_debate_closing_soonest_else_the_last_closed():
+    today = site_today()
+    home = _home(_database(debates=[
+        _debate("Closes later", "2999-12-31"), _debate("Closes sooner", "2999-01-01"),
+        _debate("Already closed", "2000-01-01"), _debate("A draft", "2999-06-01", status="draft"),
+    ]))
+    assert home["debate"]["motion"] == "Closes sooner" and home["debate"]["is_open"] is True
+
+    home = _home(_database(debates=[_debate("Closed long ago", "2000-01-01"), _debate("Closed lately", today[:4] + "-01-01")]))
+    assert home["debate"]["motion"] == "Closed lately" and home["debate"]["is_open"] is False
+    assert _home(_database())["debate"] is None

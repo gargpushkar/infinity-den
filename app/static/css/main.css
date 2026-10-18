@@ -4636,6 +4636,171 @@ button:focus-visible,
   margin: 0.75rem 0 0.25rem;
 }
 
+/* Where you stand: before reading (above the sides) and after (below them). */
+.debate-stance {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  margin: 0 0 2rem;
+  max-width: 52rem;
+  padding: 1.1rem 1.25rem;
+  scroll-margin-top: 6rem;
+}
+
+.debate-stance-after {
+  margin: 2.5rem auto 0;
+  max-width: 44rem;
+}
+
+.debate-stance-title {
+  font-size: 1.25rem;
+  margin: 0 0 0.75rem;
+}
+
+.debate-stance-form {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.debate-stance-form fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.debate-stance-form-after {
+  align-items: stretch;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.debate-stance-form-after .btn {
+  justify-self: start;
+}
+
+.debate-stance-label {
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.debate-stance-hint {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  margin: 0.6rem 0 0;
+}
+
+.stance-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.stance-option {
+  align-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 500;
+  min-height: 44px;
+  padding: 0 1rem;
+  transition: background-color 120ms var(--motion-ease), border-color 120ms var(--motion-ease);
+}
+
+.stance-option:hover {
+  border-color: var(--accent);
+}
+
+.rating-input:checked + .stance-option {
+  background: var(--action);
+  border-color: var(--action);
+  color: var(--on-action);
+}
+
+.rating-input:focus-visible + .stance-option {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Results, once a debate closes. No winner: just how minds moved. */
+.debate-results {
+  margin: 0 0 2.5rem;
+  max-width: 52rem;
+}
+
+.debate-results-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.debate-results-table th,
+.debate-results-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.6rem 0.5rem;
+  text-align: left;
+}
+
+.debate-results-table thead th {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.debate-results-table td {
+  font-weight: 500;
+}
+
+.debate-results-table tfoot th,
+.debate-results-table tfoot td {
+  border-bottom: 0;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 400;
+}
+
+.debate-results-table td span {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.debate-results-summary {
+  font-size: 1.05rem;
+  margin: 1rem 0 0;
+}
+
+.debate-results-subtitle {
+  font-size: 1.2rem;
+  margin: 1.75rem 0 0.75rem;
+}
+
+.stance-notes {
+  display: grid;
+  gap: 1rem;
+}
+
+.stance-note {
+  border-left: 2px solid var(--line-strong);
+  margin: 0;
+  padding-left: 1rem;
+  scroll-margin-top: 6rem;
+}
+
+.stance-note:target {
+  background: var(--accent-tint);
+  box-shadow: 0 0 0 0.5rem var(--accent-tint);
+}
+
+.stance-note blockquote {
+  margin: 0 0 0.35rem;
+}
+
+.stance-note figcaption {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
 /* The form belongs to both sides, so it sits centred beneath them. */
 .debate-argue {
   margin: 2.5rem auto 0;

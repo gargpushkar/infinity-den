@@ -101,7 +101,7 @@ Creative names are display text. Everything permanent is plain and descriptive.
 | Your account | `/account` |
 | Write / edit your piece | `/write`, `/write/{id}` |
 | Saved pieces | `/saved` |
-| Report something | `/report?type=article\|response\|comment\|argument\|rebuttal&id=…` |
+| Report something | `/report?type=article\|response\|comment\|argument\|rebuttal\|stance&id=…` |
 | Comment on / save a piece (form posts) | `/articles/{slug}/comments`, `/articles/{slug}/bookmark` |
 | Community guidelines, editorial policy, privacy, terms | `/guidelines`, `/editorial-policy`, `/privacy`, `/terms` |
 
@@ -382,6 +382,25 @@ members who rated that argument themselves, or to everyone once the debate
 closes. Ratings never change the order of arguments, and nobody, editors
 included, sees who gave which rating.
 
+### debate_stances
+
+Where a member stood before and after reading, and why
+(`app/services/debate_stance_service.py`). One per member per debate (unique
+index); confirmed members only, while the debate is open.
+
+Fields:
+
+- debate_id, user_id, author, author_username
+- before, after — `for` | `against` | `undecided` (`STANCE_LABELS`); "before" locks once "after" is given
+- note — optional, up to 500 characters
+- status — the note's visibility, `published` | `hidden`; a hidden note's stance still counts
+- created_at, updated_at
+
+Results (before and after counts, and how many moved towards For or Against
+on the line Against → Undecided → For) are public once the debate closes, with
+the notes: changed minds first. Editors see them live. A stance is shown with
+a name only when its member wrote a note. There is no winner.
+
 ### comments
 
 Flat (no replies), oldest first, posted immediately. Members can delete their
@@ -436,7 +455,7 @@ as `dismissed`.
 
 Fields:
 
-- target_type — `article` | `response` | `comment` | `argument` | `rebuttal`
+- target_type — `article` | `response` | `comment` | `argument` | `rebuttal` | `stance` (a debate note)
 - target_id
 - reporter_id
 - reason — a key of `REPORT_REASONS` in `constants.py`

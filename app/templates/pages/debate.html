@@ -117,6 +117,27 @@
   </article>
 {%- endmacro %}
 
+{% macro stance_choices(moment, chosen) -%}
+  <div class="stance-options">
+    {% for value, label in stance_labels.items() %}
+      <input class="rating-input" type="radio" id="stance-{{ moment }}-{{ value }}" name="stance" value="{{ value }}"{% if chosen == value %} checked{% endif %}>
+      <label class="stance-option" for="stance-{{ moment }}-{{ value }}">{{ label }}</label>
+    {% endfor %}
+  </div>
+{%- endmacro %}
+
+{% macro stance_error(moment) -%}
+  {% if stance and stance.moment == moment and stance.error %}<p class="member-field-error" role="alert">{{ stance.error }}</p>{% endif %}
+{%- endmacro %}
+
+{% macro stance_sign_in() -%}
+  {% if not signed_in %}
+    <p class="debate-stance-hint"><a href="/login?next={{ debate.url }}">Sign in</a> to say where you stand, then see whether the arguments change your mind.</p>
+  {% else %}
+    {% with confirm_action = "say where you stand" %}{% include "components/confirm_email_note.html" %}{% endwith %}
+  {% endif %}
+{%- endmacro %}
+
 {% block content %}
 <section class="question-room debate-page">
   <div class="container">
@@ -131,6 +152,76 @@
         &middot; {{ debate.argument_count }} {{ "argument" if debate.argument_count == 1 else "arguments" }}
       </p>
     </header>
+
+    {% if results %}
+      <section class="debate-results" aria-labelledby="resultsTitle">
+        <h2 class="question-section-title" id="resultsTitle">How minds moved</h2>
+        {% if results.before.total or results.after.total %}
+          <table class="debate-results-table">
+            <caption class="visually-hidden">Where readers stood before and after reading</caption>
+            <thead>
+              <tr><th scope="col">Stance</th><th scope="col">Before reading</th><th scope="col">After reading</th></tr>
+            </thead>
+            <tbody>
+              {% for row in results.before.rows %}
+                {% set after_row = results.after.rows[loop.index0] %}
+                <tr>
+                  <th scope="row">{{ row.label }}</th>
+                  <td>{{ row.count }} <span>({{ row.percent }}%)</span></td>
+                  <td>{{ after_row.count }} <span>({{ after_row.percent }}%)</span></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr><th scope="row">Answered</th><td>{{ results.before.total }}</td><td>{{ results.after.total }}</td></tr>
+            </tfoot>
+          </table>
+          <p class="debate-results-summary">
+            {{ results.changed }} {{ "person" if results.changed == 1 else "people" }} changed their mind{% if results.changed %}: {{ results.towards_for }} moved towards For, {{ results.towards_against }} towards Against{% endif %}.
+          </p>
+          {% if results.notes %}
+            <h3 class="debate-results-subtitle">In their words</h3>
+            <div class="stance-notes">
+              {% for note in results.notes %}
+                <figure class="stance-note" id="stance-{{ note.id }}">
+                  {# note_html comes from app/utils/markdown.py, which escapes first. #}
+                  <blockquote class="response-body">{{ note.note_html }}</blockquote>
+                  <figcaption>
+                    <a class="response-author" href="{{ note.author_url }}">{{ note.author }}</a>
+                    &middot; {% if note.changed %}{{ note.before_label }} &rarr; {{ note.after_label }}{% elif note.before_label %}stayed {{ note.after_label }}{% else %}{{ note.after_label }}{% endif %}
+                    {% if not (current_member and note.author_username == current_member.username) %}
+                      <a class="report-link" href="/report?type=stance&amp;id={{ note.id }}" rel="nofollow">Report</a>
+                    {% endif %}
+                  </figcaption>
+                </figure>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% else %}
+          <p class="member-profile-empty">Nobody recorded where they stood in this debate.</p>
+        {% endif %}
+      </section>
+    {% elif debate.is_open %}
+      <section class="debate-stance" id="stance-before" aria-labelledby="stanceBeforeTitle">
+        <h2 class="debate-stance-title" id="stanceBeforeTitle">Where do you stand, before reading?</h2>
+        {{ stance_error("before") }}
+        {% if not (signed_in and current_member and current_member.email_confirmed) %}
+          {{ stance_sign_in() }}
+        {% elif own_stance and own_stance.after %}
+          <p class="debate-stance-hint">You started: <strong>{{ own_stance.before_label or "not recorded" }}</strong>. You've said where you stand after reading, so this is fixed.</p>
+        {% else %}
+          <form class="debate-stance-form" method="post" action="{{ debate.url }}/stance/before">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <fieldset>
+              <legend class="visually-hidden">Before reading</legend>
+              {{ stance_choices("before", stance.stance if stance and stance.moment == "before" else (own_stance.before if own_stance else "")) }}
+            </fieldset>
+            <button class="btn btn-outline-primary" type="submit">{{ "Change" if own_stance and own_stance.before else "Save" }}</button>
+          </form>
+          <p class="debate-stance-hint">{% if own_stance and own_stance.before %}Saved. You can change it until you say where you stand after reading.{% else %}Nobody sees this but you; it's counted when the debate closes.{% endif %}</p>
+        {% endif %}
+      </section>
+    {% endif %}
 
     <div class="debate-tabs" role="group" aria-label="Show arguments" data-debate-tabs hidden>
       {% for side in sides %}
@@ -150,6 +241,35 @@
         </section>
       {% endfor %}
     </div>
+
+    {% if debate.is_open %}
+      <section class="debate-stance debate-stance-after" id="stance-after" aria-labelledby="stanceAfterTitle">
+        <h2 class="debate-stance-title" id="stanceAfterTitle">Finished reading? Where do you stand now?</h2>
+        {{ stance_error("after") }}
+        {% if own_stance and own_stance.note_hidden %}
+          <p class="rebuttal-note" role="note">Editors have hidden your note. Your stance still counts.</p>
+        {% endif %}
+        {% if not (signed_in and current_member and current_member.email_confirmed) %}
+          {{ stance_sign_in() }}
+        {% else %}
+          {% set after_values = stance if stance and stance.moment == "after" else {"stance": own_stance.after if own_stance else "", "note": own_stance.note if own_stance else ""} %}
+          <form class="debate-stance-form debate-stance-form-after" method="post" action="{{ debate.url }}/stance/after">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <fieldset>
+              <legend class="visually-hidden">After reading</legend>
+              {{ stance_choices("after", after_values.stance) }}
+            </fieldset>
+            <label class="debate-stance-label" for="stance-note">Did you change your mind? Why?</label>
+            <textarea class="form-control" id="stance-note" name="note" rows="3" maxlength="500" aria-describedby="stanceNoteHint">{{ after_values.note }}</textarea>
+            <p class="member-field-hint" id="stanceNoteHint">Optional, up to 500 characters. When the debate closes, your note is shown with your name and how your view moved. Without a note, your stance is only counted.</p>
+            <button class="btn btn-outline-primary" type="submit">{{ "Update" if own_stance and own_stance.after else "Save" }}</button>
+          </form>
+          {% if own_stance and own_stance.after %}
+            <p class="debate-stance-hint">Saved: <strong>{{ own_stance.after_label }}</strong>. The results appear when the debate closes on {{ debate.closes_label }}.</p>
+          {% endif %}
+        {% endif %}
+      </section>
+    {% endif %}
 
     <section class="question-respond debate-argue" id="your-argument" aria-labelledby="argueTitle">
       <h2 class="question-section-title" id="argueTitle">{% if own_argument %}Your argument{% else %}Make your case{% endif %}</h2>

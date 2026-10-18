@@ -8,7 +8,7 @@ from app.models.category import CATEGORY_COLLECTION
 from app.models.newsletter import NEWSLETTER_SUBSCRIBER_COLLECTION
 from app.models.bookmark import BOOKMARK_COLLECTION
 from app.models.comment import COMMENT_COLLECTION
-from app.models.debate import ARGUMENT_COLLECTION, DEBATE_COLLECTION, RATING_COLLECTION, REBUTTAL_COLLECTION
+from app.models.debate import ARGUMENT_COLLECTION, DEBATE_COLLECTION, RATING_COLLECTION, REBUTTAL_COLLECTION, STANCE_COLLECTION
 from app.models.deletion_request import DELETION_REQUEST_COLLECTION
 from app.models.question import QUESTION_COLLECTION, RESPONSE_COLLECTION
 from app.models.report import REPORT_COLLECTION
@@ -42,7 +42,7 @@ async def create_indexes() -> None:
     await db[RESPONSE_COLLECTION].create_index(
         [("user_id", ASCENDING), ("status", ASCENDING), ("created_at", DESCENDING)]
     )
-    # One argument per member per debate; one rebuttal and one rating per member per argument.
+    # One argument and one stance per member per debate; one rebuttal and one rating per member per argument.
     await db[DEBATE_COLLECTION].create_index([("slug", ASCENDING)], unique=True)
     await db[DEBATE_COLLECTION].create_index([("status", ASCENDING), ("closes_on", DESCENDING)])
     await db[ARGUMENT_COLLECTION].create_index([("debate_id", ASCENDING), ("user_id", ASCENDING)], unique=True)
@@ -56,6 +56,8 @@ async def create_indexes() -> None:
     await db[RATING_COLLECTION].create_index([("argument_id", ASCENDING), ("user_id", ASCENDING)], unique=True)
     await db[RATING_COLLECTION].create_index([("debate_id", ASCENDING), ("user_id", ASCENDING)])
     await db[RATING_COLLECTION].create_index([("user_id", ASCENDING)])
+    await db[STANCE_COLLECTION].create_index([("debate_id", ASCENDING), ("user_id", ASCENDING)], unique=True)
+    await db[STANCE_COLLECTION].create_index([("user_id", ASCENDING)])
     await db[COMMENT_COLLECTION].create_index([("article_id", ASCENDING), ("status", ASCENDING), ("created_at", ASCENDING)])
     await db[COMMENT_COLLECTION].create_index([("user_id", ASCENDING), ("created_at", DESCENDING)])
     await db[BOOKMARK_COLLECTION].create_index([("user_id", ASCENDING), ("article_id", ASCENDING)], unique=True)

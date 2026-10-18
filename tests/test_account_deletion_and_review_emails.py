@@ -10,7 +10,7 @@ from app.models.article import ARTICLE_COLLECTION
 from app.models.bookmark import BOOKMARK_COLLECTION
 from app.models.category import CATEGORY_COLLECTION
 from app.models.comment import COMMENT_COLLECTION
-from app.models.debate import ARGUMENT_COLLECTION, RATING_COLLECTION, REBUTTAL_COLLECTION
+from app.models.debate import ARGUMENT_COLLECTION, RATING_COLLECTION, REBUTTAL_COLLECTION, STANCE_COLLECTION
 from app.models.question import RESPONSE_COLLECTION
 from app.models.report import REPORT_COLLECTION
 from app.models.user import USER_COLLECTION, UserDocument
@@ -51,6 +51,7 @@ def _world(tmp_path):
         ]),
         RESPONSE_COLLECTION: FakeCollection([{"user_id": str(mira)}, {"user_id": str(other)}]),
         ARGUMENT_COLLECTION: FakeCollection([{"_id": miras_argument, "user_id": str(mira)}, {"_id": others_argument, "user_id": str(other)}]),
+        STANCE_COLLECTION: FakeCollection([{"user_id": str(mira)}, {"user_id": str(other)}]),
         RATING_COLLECTION: FakeCollection([
             {"user_id": str(mira), "argument_id": str(others_argument)},    # Mira's rating elsewhere
             {"user_id": str(other), "argument_id": str(miras_argument)},    # a rating of Mira's argument
@@ -109,7 +110,7 @@ def test_editor_deletion_removes_everything_and_keeps_only_the_email(media):
     asyncio.run(service.request(mira, "mira-password-1"))
     preview = asyncio.run(service.preview(parse_emails("MIRA@example.org, nobody@example.org\nmira@example.org")))
     assert [(row["email"], row["found"]) for row in preview] == [("mira@example.org", True), ("nobody@example.org", False)]
-    assert preview[0]["pieces"] == 1 and preview[0]["arguments"] == 1 and preview[0]["rebuttals"] == 1 and preview[0]["ratings"] == 1 and preview[0]["requested"] is True
+    assert preview[0]["pieces"] == 1 and preview[0]["arguments"] == 1 and preview[0]["rebuttals"] == 1 and preview[0]["ratings"] == 1 and preview[0]["stances"] == 1 and preview[0]["requested"] is True
     assert len(db[USER_COLLECTION].documents) == 2  # previewing deletes nothing
 
     results = asyncio.run(service.delete_by_emails(["mira@example.org", "nobody@example.org"], editor="ed"))
@@ -124,6 +125,7 @@ def test_editor_deletion_removes_everything_and_keeps_only_the_email(media):
     remaining_argument = str(db[ARGUMENT_COLLECTION].documents[0]["_id"])
     assert [(r["user_id"], r["argument_id"]) for r in db[REBUTTAL_COLLECTION].documents] == [(other, remaining_argument)]
     assert [(r["user_id"], r["argument_id"]) for r in db[RATING_COLLECTION].documents] == [(other, remaining_argument)]
+    assert [s["user_id"] for s in db[STANCE_COLLECTION].documents] == [other]
     assert len(db[BOOKMARK_COLLECTION].documents) == 1
     assert not list(media.iterdir())
     filed, about_mira = db[REPORT_COLLECTION].documents

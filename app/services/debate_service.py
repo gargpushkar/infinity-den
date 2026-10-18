@@ -25,6 +25,7 @@ from app.models.debate import (
     DEBATE_COLLECTION,
     RATING_COLLECTION,
     REBUTTAL_COLLECTION,
+    STANCE_COLLECTION,
     ArgumentDocument,
     DebateDocument,
     RebuttalDocument,
@@ -100,6 +101,7 @@ class DebateService:
         self.arguments = self.database[ARGUMENT_COLLECTION]
         self.rebuttals = self.database[REBUTTAL_COLLECTION]
         self.ratings = self.database[RATING_COLLECTION]
+        self.stances = self.database[STANCE_COLLECTION]
 
     # --- editors -------------------------------------------------------------
 
@@ -139,6 +141,7 @@ class DebateService:
             await self.arguments.delete_many({"debate_id": debate_id})
             await self.rebuttals.delete_many({"debate_id": debate_id})
             await self.ratings.delete_many({"debate_id": debate_id})
+            await self.stances.delete_many({"debate_id": debate_id})
         return bool(result.deleted_count)
 
     async def list_debates(self) -> list[DebateRead]:

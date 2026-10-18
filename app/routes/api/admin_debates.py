@@ -3,10 +3,19 @@ from fastapi import status as http_status
 from fastapi.responses import Response
 
 from app.schemas.admin import AdminRead
-from app.schemas.debate import AdminArgumentUpdate, AdminRebuttalUpdate, ArgumentRead, DebateInput, DebateRead, RebuttalRead
+from app.schemas.debate import (
+    AdminArgumentUpdate,
+    AdminRebuttalUpdate,
+    AdminStanceUpdate,
+    ArgumentRead,
+    DebateInput,
+    DebateRead,
+    RebuttalRead,
+)
 from app.services.admin_csrf import verify_admin_csrf
 from app.services.admin_permissions import require_article_writer, require_destructive_admin
 from app.services.debate_service import DebateNotFoundError, DebateService
+from app.services.debate_stance_service import DebateStanceService
 
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Debate Den"])
@@ -80,3 +89,18 @@ async def moderate_rebuttal(
         return await service.moderate_rebuttal(rebuttal_id, payload)
     except DebateNotFoundError as exc:
         raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.patch("/stances/{stance_id}", status_code=http_status.HTTP_204_NO_CONTENT)
+async def moderate_stance_note(
+    stance_id: str,
+    payload: AdminStanceUpdate,
+    _admin: AdminRead = Depends(require_article_writer),
+    _csrf: None = Depends(verify_admin_csrf),
+) -> Response:
+    """Hide or restore a stance's note; the stance itself always counts."""
+    try:
+        await DebateStanceService().moderate_note(stance_id, payload)
+    except DebateNotFoundError as exc:
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    return Response(status_code=http_status.HTTP_204_NO_CONTENT)

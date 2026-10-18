@@ -18,6 +18,8 @@ from app.database.mongodb import get_database
 from app.models.article import ARTICLE_COLLECTION
 from app.schemas.article import ArticleRead
 from app.services.article_page_service import article_to_card_context
+from app.services.debate_page_service import debate_url
+from app.services.debate_service import DebateService, is_open
 from app.services.nav_service import fallback_rooms, get_rooms
 from app.services.play_page_service import claim_context
 from app.services.question_page_service import question_url
@@ -54,14 +56,16 @@ async def get_homepage_context(
             community = await _pieces(db, {**PUBLISHED, "author_id": {"$ne": None}}, NEWEST, room_names, shown)
             return experiences, ideas, community
 
-        # The question, the Arcade, and the reading sections don't depend on each other.
-        question, arcade, (experiences, ideas, community) = await asyncio.gather(
+        # The question, the debate, the Arcade, and the reading sections don't depend on each other.
+        question, debate, arcade, (experiences, ideas, community) = await asyncio.gather(
             _todays_question(db, room_names),
+            _featured_debate(db),
             _arcade(db, claim_slug=claim_slug, answer=answer, after=after),
             reading_sections(),
         )
         return {
             "question": question,
+            "debate": debate,
             "experiences": experiences,
             "arcade": arcade,
             "rooms": rooms,
@@ -107,6 +111,24 @@ async def _todays_question(db: Any, room_names: dict[str, str]) -> dict[str, Any
     }
 
 
+async def _featured_debate(db: Any) -> dict[str, Any] | None:
+    """The open debate closing soonest; with none open, the one that closed last."""
+    service = DebateService(database=db)
+    today = site_today()
+    debates = await service.published_debates()  # latest closing date first
+    open_debates = [d for d in debates if is_open(d, today)]
+    debate = open_debates[-1] if open_debates else next(iter(debates), None)
+    if debate is None:
+        return None
+    counts = await service.argument_counts([debate.id])
+    return {
+        "motion": debate.motion,
+        "url": debate_url(debate.slug),
+        "is_open": bool(open_debates),
+        "argument_count": counts.get(debate.id, 0),
+    }
+
+
 async def _arcade(db: Any, *, claim_slug: str | None, answer: str, after: str | None) -> dict[str, Any] | None:
     service = QuizService(database=db)
     item = await service.get_published(claim_slug) if claim_slug else None
@@ -127,4 +149,4 @@ def _plain(markdown: str, limit: int = 220) -> str:
 
 def _fallback_context() -> dict[str, Any]:
     """Rendered when MongoDB is unreachable, so the homepage still stands up."""
-    return {"question": None, "experiences": [], "arcade": None, "rooms": fallback_rooms(), "ideas": [], "community": []}
+    return {"question": None, "debate": None, "experiences": [], "arcade": None, "rooms": fallback_rooms(), "ideas": [], "community": []}

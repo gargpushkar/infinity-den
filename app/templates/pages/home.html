@@ -48,6 +48,25 @@
 {% endif %}
 
 <div class="home-reading">
+  {% if debate %}
+    <section class="home-section" aria-labelledby="homeDebateTitle">
+      <div class="container">
+        <div class="home-section-head">
+          <h2 id="homeDebateTitle">From the Debate Den</h2>
+          <p>Judge the argument, not the side.</p>
+          <a class="section-link" href="/debates">All debates</a>
+        </div>
+        <a class="debate-row home-debate" href="{{ debate.url }}">
+          <strong>{{ debate.motion }}</strong>
+          <span>
+            {{ debate.argument_count }} {{ "argument" if debate.argument_count == 1 else "arguments" }}
+            &middot; {% if debate.is_open %}Join the debate{% else %}Closed: see how minds moved{% endif %}
+          </span>
+        </a>
+      </div>
+    </section>
+  {% endif %}
+
   {% if experiences %}
     <section class="home-section" aria-labelledby="homeLibraryTitle">
       <div class="container">

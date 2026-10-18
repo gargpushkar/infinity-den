@@ -7,10 +7,12 @@ DEBATE_COLLECTION: Final = "debates"
 ARGUMENT_COLLECTION: Final = "arguments"
 REBUTTAL_COLLECTION: Final = "rebuttals"
 RATING_COLLECTION: Final = "argument_ratings"
+STANCE_COLLECTION: Final = "debate_stances"
 
 DebateStatus = Literal["draft", "published"]
 ArgumentSide = Literal["for", "against"]
 ArgumentStatus = Literal["published", "hidden"]
+Stance = Literal["for", "against", "undecided"]
 
 
 def utc_now() -> datetime:
@@ -86,6 +88,29 @@ class RatingDocument:
     clarity: int
     evidence: int
     reasoning: int
+    created_at: datetime = field(default_factory=utc_now)
+    updated_at: datetime = field(default_factory=utc_now)
+
+    def to_mongo(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(slots=True)
+class StanceDocument:
+    """Where one member stood on a motion before and after reading, and why.
+
+    Counted in the results; shown with the member's name only if they wrote a
+    note. `status` is the note's visibility: editors hide notes, never stances.
+    """
+
+    debate_id: str
+    user_id: str
+    author: str
+    author_username: str
+    before: Stance | None = None
+    after: Stance | None = None
+    note: str | None = None
+    status: ArgumentStatus = "published"
     created_at: datetime = field(default_factory=utc_now)
     updated_at: datetime = field(default_factory=utc_now)
 

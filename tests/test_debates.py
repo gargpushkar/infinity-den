@@ -6,11 +6,23 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from app.models.debate import ARGUMENT_COLLECTION, DEBATE_COLLECTION, RATING_COLLECTION, REBUTTAL_COLLECTION
-from app.schemas.debate import AdminArgumentUpdate, AdminRebuttalUpdate, ArgumentInput, DebateInput, RatingInput, RebuttalInput
+from app.models.debate import ARGUMENT_COLLECTION, DEBATE_COLLECTION, RATING_COLLECTION, REBUTTAL_COLLECTION, STANCE_COLLECTION
+from app.schemas.debate import (
+    AdminArgumentUpdate,
+    AdminRebuttalUpdate,
+    AdminStanceUpdate,
+    ArgumentInput,
+    DebateInput,
+    RatingInput,
+    RebuttalInput,
+    StanceAfterInput,
+    StanceBeforeInput,
+)
 from app.schemas.user import MemberRead
 from app.services.debate_page_service import _argument_view, _rebuttal_view, _with_rating, _with_thread
 from app.services.debate_rating_service import DebateRatingService
+from app.services.debate_stance_service import DebateStanceService, StanceLockedError
+from app.services.debate_page_service import results_view
 from app.services.debate_service import (
     DebateClosedError,
     DebateNotFoundError,
@@ -40,6 +52,7 @@ def _service() -> DebateService:
         ARGUMENT_COLLECTION: FakeCollection(unique=("debate_id", "user_id")),
         REBUTTAL_COLLECTION: FakeCollection(unique=("argument_id", "user_id")),
         RATING_COLLECTION: FakeCollection(unique=("argument_id", "user_id")),
+        STANCE_COLLECTION: FakeCollection(unique=("debate_id", "user_id")),
     })
 
 
@@ -322,3 +335,131 @@ def test_deleting_an_argument_or_debate_removes_its_ratings():
     _run(ratings.save_rating(debate, argument.id, SAM, _rate(3, 3, 3), TODAY))
     _run(service.delete_debate(debate.id))
     assert service.ratings.documents == []
+
+
+
+# --- stances ------------------------------------------------------------------
+
+def _stances(service: DebateService) -> DebateStanceService:
+    return DebateStanceService(database=service.database)
+
+
+def _before(stance: str) -> StanceBeforeInput:
+    return StanceBeforeInput(stance=stance)
+
+
+def _after(stance: str, note: str | None = None) -> StanceAfterInput:
+    return StanceAfterInput(stance=stance, note=note)
+
+
+def test_stances_are_for_against_or_undecided_and_notes_are_short():
+    with pytest.raises(ValidationError):
+        _before("maybe")
+    with pytest.raises(ValidationError):
+        _after("for", note="x" * 501)
+    assert _after("for", note="   ").note is None
+
+
+def test_before_can_change_until_after_is_given_then_it_locks():
+    service = _service()
+    stances = _stances(service)
+    debate = _debate(service)
+    _run(stances.save_before(debate, SAM, _before("against"), TODAY))
+    _run(stances.save_before(debate, SAM, _before("undecided"), TODAY))  # changed before reading: fine
+    _run(stances.save_after(debate, SAM, _after("for"), TODAY))
+    with pytest.raises(StanceLockedError):
+        _run(stances.save_before(debate, SAM, _before("for"), TODAY))
+    stance = _run(stances.member_stance(debate.id, SAM))
+    assert (stance["before"], stance["after"]) == ("undecided", "for")
+
+
+def test_no_stances_once_the_debate_closes():
+    service = _service()
+    debate = _debate(service, closes_on="2026-10-15")
+    with pytest.raises(DebateClosedError):
+        _run(_stances(service).save_before(debate, SAM, _before("for"), TODAY))
+    with pytest.raises(DebateClosedError):
+        _run(_stances(service).save_after(debate, SAM, _after("for"), TODAY))
+
+
+def test_results_count_both_sides_and_moves_along_one_line_with_changed_minds_first():
+    service = _service()
+    stances = _stances(service)
+    debate = _debate(service)
+    people = [_member(n) for n in range(1, 7)]
+    plan = [
+        ("against", "for", "The commute data convinced me."),   # +2, towards For
+        ("undecided", "for", None),                             # +1, towards For
+        ("for", "undecided", "Less sure now."),                  # -1, towards Against
+        ("for", "for", "Still for, more so."),                   # held
+        (None, "against", "Came late, but against."),            # no before: counted, never "changed"
+        ("against", None, None),                                 # never gave an after
+    ]
+    for member, (before, after, note) in zip(people, plan):
+        if before:
+            _run(stances.save_before(debate, member, _before(before), TODAY))
+        if after:
+            _run(stances.save_after(debate, member, _after(after, note), TODAY))
+
+    results = _run(stances.results(debate.id))
+    assert [(r["stance"], r["count"]) for r in results["before"]["rows"]] == [("for", 2), ("against", 2), ("undecided", 1)]
+    assert [(r["stance"], r["count"]) for r in results["after"]["rows"]] == [("for", 3), ("against", 1), ("undecided", 1)]
+    assert results["after"]["rows"][0]["percent"] == 60
+    assert (results["changed"], results["towards_for"], results["towards_against"]) == (3, 2, 1)
+    assert [n["note"] for n in results["notes"]] == [
+        "The commute data convinced me.", "Less sure now.", "Still for, more so.", "Came late, but against.",
+    ]
+    views = results_view(results)["notes"]
+    assert (views[0]["before_label"], views[0]["after_label"], views[0]["changed"]) == ("Against", "For", True)
+    assert views[3]["changed"] is False and views[3]["before_label"] is None
+
+
+def test_hidden_notes_leave_the_results_but_the_stance_still_counts_and_stays_hidden_after_editing():
+    service = _service()
+    stances = _stances(service)
+    debate = _debate(service)
+    _run(stances.save_before(debate, SAM, _before("against"), TODAY))
+    saved = _run(stances.save_after(debate, SAM, _after("for", "Off-topic advert."), TODAY))
+    _run(stances.moderate_note(str(saved["_id"]), AdminStanceUpdate(status="hidden")))
+    _run(stances.save_after(debate, SAM, _after("for", "Edited to sneak back."), TODAY))
+    results = _run(stances.results(debate.id))
+    assert results["notes"] == [] and results["towards_for"] == 1
+    assert [n["note"] for n in _run(stances.all_notes(debate.id))] == ["Edited to sneak back."]
+
+
+def test_results_stay_hidden_from_the_page_while_the_debate_is_open(monkeypatch):
+    from app.services import debate_page_service
+
+    service = _service()
+    debate = _debate(service, closes_on="2999-01-01")
+    monkeypatch.setattr(debate_page_service, "get_database", lambda: service.database)
+    monkeypatch.setattr(debate_page_service, "get_rooms", lambda db: _no_rooms())
+    context = _run(debate_page_service.get_debate_context(slug=debate.slug, member=None))
+    assert context["results"] is None
+
+    _run(service.update_debate(debate.id, DebateInput(motion=debate.motion, closes_on="2000-01-01", status="published")))
+    context = _run(debate_page_service.get_debate_context(slug=debate.slug, member=None))
+    assert context["results"]["changed"] == 0
+
+
+async def _no_rooms():
+    return []
+
+
+def test_deleting_a_debate_removes_its_stances():
+    service = _service()
+    debate = _debate(service)
+    _run(_stances(service).save_before(debate, SAM, _before("for"), TODAY))
+    _run(service.delete_debate(debate.id))
+    assert service.stances.documents == []
+
+
+@pytest.mark.parametrize("attack", ["<script>alert(1)</script>", "[x](javascript:alert(1))", "<img src=x onerror=alert(1)>"])
+def test_note_html_is_never_rendered(attack):
+    service = _service()
+    stances = _stances(service)
+    debate = _debate(service)
+    _run(stances.save_after(debate, SAM, _after("for", "Convinced. " + attack), TODAY))
+    note = results_view(_run(stances.results(debate.id)))["notes"][0]
+    html = str(note["note_html"])
+    assert "<script" not in html and "<img" not in html and 'href="javascript' not in html

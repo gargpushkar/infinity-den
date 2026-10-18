@@ -54,6 +54,38 @@
       <p class="admin-empty">No arguments yet.</p>
     {% endif %}
 
+    <div class="admin-panel-header mt-4">
+      <div>
+        <p class="admin-kicker mb-1">Where readers stand</p>
+        <h2>Live results</h2>
+      </div>
+      <p class="admin-muted mb-0">Readers see these only after the debate closes.</p>
+    </div>
+    {% if results and (results.before.total or results.after.total) %}
+      <div class="admin-resource-row">
+        <div>
+          {% for row in results.before.rows %}
+            <small>{{ row.label }}: {{ row.count }} before, {{ results.after.rows[loop.index0].count }} after</small>
+          {% endfor %}
+          <p>{{ results.changed }} changed their mind: {{ results.towards_for }} towards For, {{ results.towards_against }} towards Against.</p>
+        </div>
+      </div>
+    {% else %}
+      <p class="admin-empty">Nobody has said where they stand yet.</p>
+    {% endif %}
+    {% for note in notes %}
+      <article class="admin-resource-row mt-2">
+        <div>
+          <strong>Note by {{ note.author }} (@{{ note.author_username }})</strong>
+          <small>{{ note.before or "no before" }} &rarr; {{ note.after or "no after" }} &middot; {{ note.status }}</small>
+          <p>{{ note.note|truncate(300) }}</p>
+        </div>
+        <div class="admin-row-actions">
+          <button type="button" data-admin-moderate-url="/api/admin/stances/{{ note._id }}" data-field="status" data-value="{{ 'published' if note.status == 'hidden' else 'hidden' }}">{{ "Restore" if note.status == "hidden" else "Hide" }} note</button>
+        </div>
+      </article>
+    {% endfor %}
+
     {% if admin.role == "admin" %}
       <button class="btn btn-outline-danger mt-3" type="button" data-admin-delete-resource data-delete-url="/api/admin/debates/{{ debate.id }}" data-delete-label="this debate and its arguments" data-after-delete="/admin/debates">Delete debate</button>
     {% endif %}

@@ -124,7 +124,7 @@ In order:
 7. **From the community** — new voices and recent contributions, including from new members.
 8. **Write for Infinity Den** — a prominent invitation to contribute.
 
-Phase 2 adds a featured Debate Den section. On desktop, a sidebar may hold the
+Phase 2 adds a featured Debate Den section, right after Today's Question. On desktop, a sidebar may hold the
 daily quiz and trending questions; on mobile these become compact cards.
 
 ---
