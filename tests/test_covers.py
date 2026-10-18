@@ -12,7 +12,8 @@ from app.routes.public.seo import social_image_url
 from app.utils.covers import COVER_VERSION, PATTERNS, cover_svg, resolve_cover
 
 
-PALETTE = {"#171a2b", "#c2562f", "#f2a33a", "#fbf7f0", "#8e3b1e", "#3a3f5c", "#1f2337"}
+PALETTE = {"#171a2b", "#c2562f", "#f2a33a", "#fbf7f0", "#8e3b1e", "#3a3f5c", "#1f2337",
+           "#6f8ca8", "#9db7ce"}  # the Debate Den's dusk blues, for the "against" side
 
 
 @pytest.mark.parametrize("room", sorted(PATTERNS))

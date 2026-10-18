@@ -6,7 +6,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import ValidationError
 from pymongo.errors import PyMongoError
 
-from app.config.constants import RATING_DIMENSIONS
+from app.config.constants import DEBATE_SIDE_LABELS, RATING_DIMENSIONS
 from app.routes.public.form_pages import FORM_EXPIRED, TOO_MANY_ATTEMPTS, field_errors, render_form_page
 from app.schemas.debate import ArgumentInput, RatingInput, RebuttalInput, StanceAfterInput, StanceBeforeInput
 from app.services.debate_page_service import (
@@ -58,8 +58,9 @@ async def debates_page(request: Request):
 
 
 @router.get("/debates/{slug}")
-async def debate_page(request: Request, slug: str = SLUG, notice: str = ""):
-    return await _page(request, slug=slug, notice=NOTICES.get(notice))
+async def debate_page(request: Request, slug: str = SLUG, notice: str = "", side: str = "", edit: bool = False):
+    """`?side=for|against` opens the argument form on that side; `?edit=1` opens it to edit yours."""
+    return await _page(request, slug=slug, notice=NOTICES.get(notice), open_side=side if side in DEBATE_SIDE_LABELS else "", open_edit=edit)
 
 
 @router.post("/debates/{slug}/argue")
@@ -89,10 +90,10 @@ async def argue(request: Request, slug: str = SLUG):
         return await _page(request, slug=slug, values=values, field_errors=field_errors(exc), status_code=422)
 
     try:
-        await DebateService().save_argument(debate, member, payload, site_today())
+        saved = await DebateService().save_argument(debate, member, payload, site_today())
     except DebateClosedError as exc:
         return await _page(request, slug=slug, values=values, error=str(exc), status_code=409)
-    return RedirectResponse(f"{debate_url(slug)}?notice=saved#your-argument", status_code=303)
+    return RedirectResponse(f"{debate_url(slug)}?notice=saved#argument-{saved.id}", status_code=303)
 
 
 @router.post("/debates/{slug}/argue/delete")
@@ -229,7 +230,17 @@ async def save_stance(request: Request, slug: str = SLUG, moment: str = Path(pat
     return RedirectResponse(f"{debate_url(slug)}#stance-{moment}", status_code=303)
 
 
-async def _page(request: Request, *, slug: str, values: dict[str, Any] | None = None, status_code: int = 200, **extra: Any):
+async def _page(
+    request: Request,
+    *,
+    slug: str,
+    values: dict[str, Any] | None = None,
+    status_code: int = 200,
+    open_side: str = "",
+    open_edit: bool = False,
+    **extra: Any,
+):
+    """Render the debate. `values` comes only from a submitted argument, so the form opens with them."""
     try:
         member = await get_current_member(request)
         context = await get_debate_context(slug=slug, member=member)
@@ -243,9 +254,11 @@ async def _page(request: Request, *, slug: str, values: dict[str, Any] | None = 
         request,
         "pages/debate.html",
         debate["motion"],
-        values=values if values is not None else own_argument_values(context),
+        values=values if values is not None else (own_argument_values(context) or {"side": open_side}),
         status_code=status_code,
         signed_in=member is not None,
+        member_can_act=bool(member and member.email_confirmed),
+        argue_open=bool(values is not None or open_side or open_edit),
         robots="index, follow",
         seo_description=debate["intro"] or f"Arguments for and against: {debate['motion']}",
         **context,

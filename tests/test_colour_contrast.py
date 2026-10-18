@@ -19,6 +19,11 @@ TEXT_PAIRS = [
     ("label-experience", "card"), ("label-experience", "bg-main"),
     ("success", "success-bg"), ("danger", "danger-bg"), ("warning-fg", "warning-bg"), ("text", "warning-bg"),
     ("header-muted", "header-bg"), ("amber", "header-bg"), ("ivory", "header-bg"),
+    # Debate Den: each side's colour on its tint and on cards, body text on the tints, the copper band.
+    ("side-for", "side-for-tint"), ("side-for", "card"), ("side-against", "side-against-tint"), ("side-against", "card"),
+    ("text", "side-for-tint"), ("text-secondary", "side-for-tint"),
+    ("text", "side-against-tint"), ("text-secondary", "side-against-tint"),
+    ("ivory", "copper-deep"), ("band-muted", "copper-deep"), ("band-label", "copper-deep"),
 ]
 
 

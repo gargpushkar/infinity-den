@@ -117,8 +117,8 @@ def test_the_debate_section_shows_the_open_debate_closing_soonest_else_the_last_
         _debate("Closes later", "2999-12-31"), _debate("Closes sooner", "2999-01-01"),
         _debate("Already closed", "2000-01-01"), _debate("A draft", "2999-06-01", status="draft"),
     ]))
-    assert home["debate"]["motion"] == "Closes sooner" and home["debate"]["is_open"] is True
+    assert home["debate"]["motion_rest"] == "Closes sooner" and home["debate"]["is_open"] is True
 
     home = _home(_database(debates=[_debate("Closed long ago", "2000-01-01"), _debate("Closed lately", today[:4] + "-01-01")]))
-    assert home["debate"]["motion"] == "Closed lately" and home["debate"]["is_open"] is False
+    assert home["debate"]["motion_rest"] == "Closed lately" and home["debate"]["is_open"] is False
     assert _home(_database())["debate"] is None

@@ -536,6 +536,10 @@ Ink at the edge to Amber at the centre, "the deeper you go, the warmer the light
 | Amber | `#F2A33A` | Highlights; text only on dark backgrounds |
 | Ivory | `#FBF7F0` | The page background |
 
+The Debate Den adds one cool colour so its two sides face each other with equal
+weight: **For** uses Copper (`--side-for-*`), **Against** a dusk blue
+(`--side-against-*`, `#3E5C76` on light). Use them only for the sides.
+
 - Every colour is a CSS token in `main.css`; night values live in `night.css`.
   Never write a colour literal in a component rule; night mode depends on it.
   `tests/test_colour_contrast.py` checks the text pairings in both modes.
@@ -548,7 +552,8 @@ Ink at the edge to Amber at the centre, "the deeper you go, the warmer the light
   all-caps labels.
 - **Covers:** `app/utils/covers.py` draws one from the logo's 15° square for
   every article and room, served at `/covers/{room}/{slug}.svg`. Each room has
-  its own pattern. An uploaded `cover_image` always wins. Bump `COVER_VERSION`
+  its own pattern; debates share one (`/covers/debate/{slug}.svg`), two dens
+  facing each other, warm for and cool against. An uploaded `cover_image` always wins. Bump `COVER_VERSION`
   when the drawing changes. Social previews never use SVG; pages without a
   photo fall back to `images/brand/og-default.png`.
 - **Logo:** use the kit's files, never retype the wordmark. The header and

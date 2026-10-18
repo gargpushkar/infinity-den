@@ -463,3 +463,57 @@ def test_note_html_is_never_rendered(attack):
     note = results_view(_run(stances.results(debate.id)))["notes"][0]
     html = str(note["note_html"])
     assert "<script" not in html and "<img" not in html and 'href="javascript' not in html
+
+
+# --- page design helpers --------------------------------------------------------
+
+def test_this_house_believes_becomes_a_label_above_the_motion():
+    from app.services.debate_page_service import split_motion
+
+    assert split_motion("This house believes remote work is better") == ("This house believes", "remote work is better")
+    assert split_motion("this house believes, that cats rule") == ("This house believes", "that cats rule")
+    assert split_motion("Should cities ban cars?") == (None, "Should cities ban cars?")
+    assert split_motion("This house believes") == (None, "This house believes")  # nothing after it
+
+
+def test_time_left_counts_days_including_the_last():
+    from app.services.debate_page_service import time_left
+
+    assert time_left("2026-11-01", "2026-10-18") == "14 days left"
+    assert time_left("2026-10-19", "2026-10-18") == "1 day left"
+    assert time_left("2026-10-18", "2026-10-18") == "Last day"
+
+
+def test_result_bars_run_for_undecided_against_and_add_up_to_100():
+    service = _service()
+    stances = _stances(service)
+    debate = _debate(service)
+    for member, stance in zip([_member(n) for n in range(1, 5)], ("for", "for", "against", "undecided")):
+        _run(stances.save_after(debate, member, _after(stance), TODAY))
+    results = results_view(_run(stances.results(debate.id)))
+    bar = results["after_bar"]
+    assert [s["stance"] for s in bar] == ["for", "undecided", "against"]
+    assert [(s["x"], s["width"]) for s in bar] == [(0, 50.0), (50.0, 25.0), (75.0, 25.0)]
+    assert results["compared"] == 0  # nobody gave a "before"
+
+
+def test_side_rebuttal_and_stance_counts_cover_only_visible_items():
+    service = _service()
+    debate, argument = _debate_with_argument(service)
+    hidden = _run(service.save_argument(debate, SAM, _argue("against"), TODAY))
+    _run(service.moderate_argument(hidden.id, AdminArgumentUpdate(status="hidden")))
+    _run(service.save_rebuttal(debate, argument.id, LEE, REPLY, TODAY))
+    _run(_stances(service).save_before(debate, LEE, _before("for"), TODAY))
+    assert _run(service.side_counts([debate.id])) == {debate.id: {"for": 1, "against": 0}}
+    assert _run(service.rebuttal_counts([debate.id])) == {debate.id: 1}
+    assert _run(_stances(service).stance_counts([debate.id])) == {debate.id: 1}
+
+
+def test_long_cases_fold_behind_a_preview():
+    service = _service()
+    debate = _debate(service)
+    short = _argument_view(_run(service.save_argument(debate, MIRA, _argue(), TODAY)))
+    long_body = "A sentence that makes one careful point about commuting. " * 10
+    long = _argument_view(_run(service.save_argument(debate, SAM, _argue(body=long_body), TODAY)))
+    assert short["is_long"] is False and short["initial"] == "M"
+    assert long["is_long"] is True and long["preview"].endswith("…") and len(long["preview"]) <= 280

@@ -85,7 +85,7 @@ class DebateStanceService:
         """Before and after counts, how many moved and which way, and the visible notes."""
         before = dict.fromkeys(STANCE_LABELS, 0)
         after = dict.fromkeys(STANCE_LABELS, 0)
-        towards_for = towards_against = 0
+        towards_for = towards_against = compared = 0
         changed_notes, held_notes = [], []
         cursor = self.stances.find({"debate_id": debate_id}).sort([("created_at", 1)]).limit(STANCE_LIMIT)
         async for stance in cursor:
@@ -96,6 +96,7 @@ class DebateStanceService:
             move = 0
             if stance.get("before") and stance.get("after"):
                 move = STANCE_SCALE[stance["after"]] - STANCE_SCALE[stance["before"]]
+                compared += 1
                 towards_for += move > 0
                 towards_against += move < 0
             if stance.get("note") and stance.get("after") and stance.get("status") == "published":
@@ -104,10 +105,16 @@ class DebateStanceService:
             "before": _split(before),
             "after": _split(after),
             "changed": towards_for + towards_against,
+            "compared": compared,  # members who said where they stood both before and after
             "towards_for": towards_for,
             "towards_against": towards_against,
             "notes": changed_notes + held_notes,
         }
+
+    async def stance_counts(self, debate_ids: list[str]) -> dict[str, int]:
+        """How many members have taken a stand in each debate."""
+        pipeline = [{"$match": {"debate_id": {"$in": debate_ids}}}, {"$group": {"_id": "$debate_id", "count": {"$sum": 1}}}]
+        return {row["_id"]: row["count"] async for row in self.stances.aggregate(pipeline)}
 
     async def all_notes(self, debate_id: str) -> list[dict[str, Any]]:
         """Every note in the debate, hidden ones too, for editors."""

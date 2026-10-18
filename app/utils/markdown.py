@@ -76,3 +76,10 @@ def render_markdown(text: str) -> Markup:
     # Markup tells Jinja this string is already safe; it is, because every
     # piece of user text above went through escape() first.
     return Markup("".join(blocks))
+
+
+def plain_text(markdown: str, limit: int = 220) -> str:
+    """The opening of some markdown as plain text, for previews; templates escape it."""
+    text = re.sub(r"(?m)^\s*(?:[#>]+|-)\s*", "", markdown)  # headings, quotes, list marks
+    text = " ".join(re.sub(r"\[([^\]]*)\]\([^)]*\)|[*_`]", r"\1", text).split())  # links, emphasis
+    return text if len(text) <= limit else text[: limit - 1].rsplit(" ", 1)[0] + "\u2026"

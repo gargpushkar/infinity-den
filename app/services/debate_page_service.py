@@ -12,7 +12,13 @@ from app.services.debate_stance_service import DebateStanceService
 from app.services.member_article_service import sources_text
 from app.services.nav_service import get_rooms
 from app.services.question_service import site_today
-from app.utils.markdown import render_markdown
+from app.utils.covers import cover_url
+from app.utils.markdown import plain_text, render_markdown
+
+
+MOTION_OPENING = "This house believes"
+BAR_ORDER = ("for", "undecided", "against")  # results bars run warm to cool
+PREVIEW_LENGTH = 280
 
 
 def debate_url(slug: str) -> str:
@@ -20,15 +26,30 @@ def debate_url(slug: str) -> str:
 
 
 async def get_debates_context() -> dict[str, Any]:
-    """Every published debate: open ones closing soonest first, then the archive."""
-    service = DebateService(database=get_database())
+    """Every published debate: open ones closing soonest first, then the archive,
+    each closed one with how minds moved."""
+    db = get_database()
+    service = DebateService(database=db)
+    stances = DebateStanceService(database=db)
     today = site_today()
     debates = await service.published_debates()
-    counts = await service.argument_counts([d.id for d in debates])
-    views = [_debate_view(d, today, counts) for d in debates]
+    stats = await _stats(service, stances, [d.id for d in debates])
+    views = [_debate_view(d, today, stats) for d in debates]
+    for view in views:
+        if not view["is_open"]:
+            # ponytail: one results query per past debate; fine for a few hundred.
+            view["results"] = results_view(await stances.results(view["id"]))
     return {
         "open_debates": [v for v in reversed(views) if v["is_open"]],
         "closed_debates": [v for v in views if not v["is_open"]],
+    }
+
+
+async def _stats(service: DebateService, stances: DebateStanceService, debate_ids: list[str]) -> dict[str, dict]:
+    return {
+        "sides": await service.side_counts(debate_ids),
+        "rebuttals": await service.rebuttal_counts(debate_ids),
+        "stances": await stances.stance_counts(debate_ids),
     }
 
 
@@ -61,8 +82,9 @@ async def get_debate_context(*, slug: str, member: MemberRead | None) -> dict[st
         for a in arguments
     ]
 
+    stats = await _stats(service, stances, [debate.id])
     return {
-        "debate": _debate_view(debate, today, {debate.id: len(views)}),
+        "debate": _debate_view(debate, today, stats),
         "room": {"name": room["name"], "url": room_url(room["slug"])} if room else None,
         "sides": [
             {"value": side, "label": label, "arguments": [v for v in views if v["side"] == side]}
@@ -80,7 +102,24 @@ async def get_debate_context(*, slug: str, member: MemberRead | None) -> dict[st
 
 
 def results_view(results: dict[str, Any]) -> dict[str, Any]:
-    return {**results, "notes": [_note_view(stance) for stance in results["notes"]]}
+    return {
+        **results,
+        "before_bar": _bar(results["before"]),
+        "after_bar": _bar(results["after"]),
+        "notes": [_note_view(stance) for stance in results["notes"]],
+    }
+
+
+def _bar(split: dict[str, Any]) -> list[dict[str, Any]]:
+    """Segments of a 0-100 bar, For to Against, for an inline SVG (no style attributes)."""
+    rows = {row["stance"]: row for row in split["rows"]}
+    segments, x = [], 0.0
+    for stance in BAR_ORDER:
+        row = rows[stance]
+        width = 100 * row["count"] / split["total"] if split["total"] else 0
+        segments.append({**row, "x": round(x, 2), "width": round(width, 2)})
+        x += width
+    return segments
 
 
 def _own_stance_view(stance: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -127,17 +166,44 @@ def _date_label(value: str) -> str:
     return f"{day:%B} {day.day}, {day:%Y}"
 
 
-def _debate_view(debate: DebateRead, today: str, counts: dict[str, int]) -> dict[str, Any]:
+def _debate_view(debate: DebateRead, today: str, stats: dict[str, dict]) -> dict[str, Any]:
+    sides = stats["sides"].get(debate.id, dict.fromkeys(DEBATE_SIDE_LABELS, 0))
+    total = sum(sides.values())
+    kicker, rest = split_motion(debate.motion)
     return {
         "id": debate.id,
         "motion": debate.motion,
+        "motion_kicker": kicker,
+        "motion_rest": rest,
         "intro": debate.intro,
         "slug": debate.slug,
         "url": debate_url(debate.slug),
+        "cover_url": cover_url("debate", debate.slug),
         "is_open": is_open(debate, today),
         "closes_label": _date_label(debate.closes_on),
-        "argument_count": counts.get(debate.id, 0),
+        "time_left": time_left(debate.closes_on, today),
+        "argument_count": total,
+        "side_counts": sides,
+        "for_percent": round(100 * sides["for"] / total) if total else 50,
+        "rebuttal_count": stats["rebuttals"].get(debate.id, 0),
+        "stance_count": stats["stances"].get(debate.id, 0),
     }
+
+
+def split_motion(motion: str) -> tuple[str | None, str]:
+    """"This house believes X" shows the opening as a small label above X."""
+    if motion.lower().startswith(MOTION_OPENING.lower()):
+        rest = motion[len(MOTION_OPENING):].lstrip(" ,:")
+        if rest:
+            return MOTION_OPENING, rest
+    return None, motion
+
+
+def time_left(closes_on: str, today: str) -> str:
+    days = (date.fromisoformat(closes_on) - date.fromisoformat(today)).days
+    if days <= 0:
+        return "Last day"
+    return "1 day left" if days == 1 else f"{days} days left"
 
 
 def _with_thread(view: dict[str, Any], rebuttals: list[RebuttalRead], own: RebuttalRead | None) -> dict[str, Any]:
@@ -195,8 +261,12 @@ def _argument_view(argument: ArgumentRead) -> dict[str, Any]:
         "side": argument.side,
         "side_label": DEBATE_SIDE_LABELS[argument.side],
         "claim": argument.claim,
+        "initial": (argument.author[:1] or "?").upper(),
         "body": argument.body,
         "body_html": render_markdown(argument.body),
+        # Long cases show an opening and fold the rest behind "Read the full case".
+        "preview": plain_text(argument.body, PREVIEW_LENGTH),
+        "is_long": len(plain_text(argument.body, 100_000)) > PREVIEW_LENGTH,
         "sources": [source.model_dump() for source in argument.sources],
         "sources_text": sources_text(argument.sources),
         "is_featured": argument.is_featured,
